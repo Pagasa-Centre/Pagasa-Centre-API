@@ -5,8 +5,10 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -21,9 +23,31 @@ func main() {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
+	// Create a zap logger.
+	// You can choose zap.NewDevelopment() for local development or zap.NewProduction() for production.
+	var logger *zap.Logger
+	if cfg.Env == "prod" {
+		logger, err = zap.NewProduction()
+	} else {
+		logger, err = zap.NewDevelopment()
+	}
+	if err != nil {
+		fmt.Printf("Failed to create logger: %v\n", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			fmt.Printf("Error syncing logger: %v\n", err)
+		}
+	}() // flushes any buffered log entries
+
+	// Convert the logger to a sugared logger for a more ergonomic API.
+	sugaredLogger := logger.Sugar()
+
 	mux := router.New()
 
-	log.Printf("Server starting on port %s", cfg.Port)
+	//log.Printf("Server starting on port %s", cfg.Port)
+	sugaredLogger.Infof("Server starting on port %s", cfg.Port)
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 

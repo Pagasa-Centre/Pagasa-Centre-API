@@ -1,3 +1,4 @@
 port: "8080"
 #database_url: "postgres://user:password@localhost:5432/dbname?sslmode=disable"
 log_level: "debug"
+env: "dev"

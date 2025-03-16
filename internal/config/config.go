@@ -11,6 +11,7 @@ type Config struct {
 	Port string `mapstructure:"port" validate:"required"`
 	//DatabaseURL string `mapstructure:"database_url"`
 	LogLevel string `mapstructure:"log_level"`
+	Env      string `mapstructure:"env" validate:"required"`
 }
 
 // LoadConfig reads configuration from file and environment variables.
@@ -24,6 +25,7 @@ func LoadConfig() (*Config, error) {
 	viper.SetDefault("port", "8080")
 	//viper.SetDefault("database_url", "postgres://user:password@localhost:5432/dbname?sslmode=disable")
 	viper.SetDefault("log_level", "info")
+	viper.SetDefault("env", "dev")
 
 	viper.AutomaticEnv()
 

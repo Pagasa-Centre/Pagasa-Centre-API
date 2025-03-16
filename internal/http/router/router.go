@@ -16,9 +16,27 @@ func New() http.Handler {
 	router.Use(middleware.Recoverer) // recovers from panics
 
 	// Define the /alive endpoint.
+	registerAliveEndpoint(router)
+	router.Route(
+		"/api/v1", func(r chi.Router) {
+
+			//h := authhandler.NewHandler(authService, logger)
+
+			r.Route(
+				"/auth", func(r chi.Router) {
+					//r.Use(authMiddleware)
+					//r.Get("/{id}", h.Read())
+				},
+			)
+		},
+	)
+
+	return router
+}
+
+func registerAliveEndpoint(router *chi.Mux) {
 	router.Get("/alive", func(w http.ResponseWriter, r *http.Request) {
 		// Return a simple status message.
 		render.Json(w, http.StatusOK, "API is alive!")
 	})
-	return router
 }
