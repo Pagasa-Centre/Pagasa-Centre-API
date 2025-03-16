@@ -8,10 +8,10 @@ import (
 
 // Config holds all configuration for your application.
 type Config struct {
-	Port string `mapstructure:"port" validate:"required"`
-	//DatabaseURL string `mapstructure:"database_url"`
-	LogLevel string `mapstructure:"log_level"`
-	Env      string `mapstructure:"env" validate:"required"`
+	Port        string `mapstructure:"PORT" yaml:"port" validate:"required"`
+	DatabaseURL string `mapstructure:"DATABASE_URL" yaml:"database_url" validate:"required"`
+	LogLevel    string `mapstructure:"LOG_LEVEL" yaml:"log_level"`
+	Env         string `mapstructure:"ENV" yaml:"env" validate:"required"`
 }
 
 // LoadConfig reads configuration from file and environment variables.
@@ -23,9 +23,15 @@ func LoadConfig() (*Config, error) {
 
 	// Set defaults
 	viper.SetDefault("port", "8080")
-	//viper.SetDefault("database_url", "postgres://user:password@localhost:5432/dbname?sslmode=disable")
 	viper.SetDefault("log_level", "info")
 	viper.SetDefault("env", "dev")
+
+	// Bind environment variables explicitly.
+	// This ensures that values from the OS env (like those loaded by godotenv) are used.
+	err := viper.BindEnv("DATABASE_URL")
+	if err != nil {
+		return nil, err
+	}
 
 	viper.AutomaticEnv()
 

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/auth"
 	authentication "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/auth"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	"github.com/go-chi/chi/v5"
@@ -25,12 +26,12 @@ func New(
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 
-			authHandler := authentication.NewHandler(logger, authService)
+			authHandler := auth.NewHandler(logger, authService)
 
 			r.Route(
 				"/auth", func(r chi.Router) {
 					//r.Use(authMiddleware)
-					r.Get("/register", authHandler.Register())
+					r.Post("/register", authHandler.Register())
 				},
 			)
 		},
