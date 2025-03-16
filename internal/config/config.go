@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 )
 
 // Config holds all configuration for your application.
 type Config struct {
-	Port string `mapstructure:"port"`
+	Port string `mapstructure:"port" validate:"required"`
 	//DatabaseURL string `mapstructure:"database_url"`
 	LogLevel string `mapstructure:"log_level"`
 }
@@ -35,5 +36,14 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("unable to decode config: %w", err)
 	}
 
+	if err := validate[Config](cfg); err != nil {
+		return nil, fmt.Errorf("config validation failed: %w", err)
+	}
+
 	return &cfg, nil
+}
+
+// validate validates the config against the struct tags.
+func validate[T any](target T) error {
+	return validator.New().Struct(target)
 }
