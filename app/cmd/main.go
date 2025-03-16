@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
 	"github.com/joho/godotenv"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -18,7 +21,13 @@ func main() {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
-	// Now use cfg.Port, cfg.DatabaseURL, etc. to configure your app.
+	mux := router.New()
+
 	log.Printf("Server starting on port %s", cfg.Port)
-	// Initialize your database, router, etc.
+
+	addr := fmt.Sprintf(":%s", cfg.Port)
+
+	if err := http.ListenAndServe(addr, mux); err != nil {
+		log.Fatalf("failed to start server: %v", err)
+	}
 }
