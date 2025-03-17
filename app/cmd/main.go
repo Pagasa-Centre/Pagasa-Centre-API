@@ -21,14 +21,11 @@ func main() {
 		log.Println("No .env file found or error loading .env file")
 	}
 
-	// Now load your app configuration using Viper (which automatically reads env vars)
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
-	// Create a zap logger.
-	// You can choose zap.NewDevelopment() for local development or zap.NewProduction() for production.
 	var logger *zap.Logger
 	if cfg.Env == "prod" {
 		logger, err = zap.NewProduction()
@@ -60,7 +57,6 @@ func main() {
 
 	mux := router.New(*sugaredLogger, userService)
 
-	//log.Printf("Server starting on port %s", cfg.Port)
 	sugaredLogger.Infof("Server starting on port %s", cfg.Port)
 
 	addr := fmt.Sprintf(":%s", cfg.Port)

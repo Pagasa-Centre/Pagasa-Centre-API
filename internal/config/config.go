@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config holds all configuration for your application.
 type Config struct {
 	Port        string `mapstructure:"PORT" yaml:"port" validate:"required"`
 	DatabaseURL string `mapstructure:"DATABASE_URL" yaml:"database_url" validate:"required"`
