@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
-	authentication "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/auth"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
+	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq" // <-- Add this line to register the Postgres driver
 	"go.uber.org/zap"
 	"log"
 	"net/http"
@@ -45,9 +48,17 @@ func main() {
 	// Convert the logger to a sugared logger for a more ergonomic API.
 	sugaredLogger := logger.Sugar()
 
-	authService := authentication.NewService(*sugaredLogger)
+	// Connect to the PostgreSQL database using sqlx.
+	db, err := sqlx.Connect("postgres", cfg.DatabaseURL)
+	if err != nil {
+		sugaredLogger.Fatalf("failed to connect to database: %v", err)
+	}
 
-	mux := router.New(*sugaredLogger, authService)
+	// Create a new authentication repository with the DB connection.
+	userRepo := userStorage.NewRepository(db)
+	userService := user.NewService(*sugaredLogger, userRepo)
+
+	mux := router.New(*sugaredLogger, userService)
 
 	//log.Printf("Server starting on port %s", cfg.Port)
 	sugaredLogger.Infof("Server starting on port %s", cfg.Port)

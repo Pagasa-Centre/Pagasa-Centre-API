@@ -1,11 +1,11 @@
-package auth
+package user
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/auth/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/request"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/auth"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/auth/domain"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -14,22 +14,22 @@ type AuthHandler interface {
 	Register() http.HandlerFunc
 }
 
-type authHandler struct {
+type userHandler struct {
 	logger      zap.SugaredLogger
-	authService authentication.Service
+	userService user.Service
 }
 
 func NewHandler(
 	logger zap.SugaredLogger,
-	service authentication.Service,
+	service user.Service,
 ) AuthHandler {
-	return &authHandler{
+	return &userHandler{
 		logger:      logger,
-		authService: service,
+		userService: service,
 	}
 }
 
-func (h *authHandler) Register() http.HandlerFunc {
+func (h *userHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -45,7 +45,7 @@ func (h *authHandler) Register() http.HandlerFunc {
 
 		userDomain := domain.CreateUserRequestToUserDomain(req)
 
-		err := h.authService.RegisterNewUser(ctx, userDomain)
+		err := h.userService.RegisterNewUser(ctx, userDomain)
 		if err != nil {
 			h.logger.Errorw("Error registering new user", "error", err)
 		}

@@ -1,6 +1,6 @@
 package domain
 
-import "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/auth/dto"
+import "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 
 type User struct {
 	FirstName string
