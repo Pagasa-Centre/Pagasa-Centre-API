@@ -51,7 +51,6 @@ func main() {
 		sugaredLogger.Fatalf("failed to connect to database: %v", err)
 	}
 
-	// Create a new authentication repository with the DB connection.
 	userRepo := userStorage.NewRepository(db)
 	userService := user.NewService(*sugaredLogger, userRepo)
 

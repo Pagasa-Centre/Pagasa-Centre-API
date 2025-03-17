@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-type AuthHandler interface {
+type Handler interface {
 	Register() http.HandlerFunc
 }
 
@@ -22,7 +22,7 @@ type userHandler struct {
 func NewHandler(
 	logger zap.SugaredLogger,
 	service user.Service,
-) AuthHandler {
+) Handler {
 	return &userHandler{
 		logger:      logger,
 		userService: service,
