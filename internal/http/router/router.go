@@ -35,6 +35,7 @@ func New(
 				"/user", func(r chi.Router) {
 					// r.Use(authMiddleware)
 					r.Post("/register", userHandler.Register())
+					r.Post("/login", userHandler.Login())
 				},
 			)
 		},

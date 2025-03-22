@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/request"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
@@ -15,6 +16,7 @@ import (
 
 type UserHandler interface {
 	Register() http.HandlerFunc
+	Login() http.HandlerFunc
 }
 
 type userHandler struct {
@@ -99,5 +101,49 @@ func (h *userHandler) Register() http.HandlerFunc {
 		}
 
 		render.Json(w, http.StatusCreated, "Successfully created user")
+	}
+}
+
+func (h *userHandler) Login() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		var req dto.LoginRequest
+		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
+			h.logger.Errorw("failed to decode and validate login request body", "error", err)
+			render.Json(w, http.StatusBadRequest, err.Error())
+
+			return
+		}
+
+		userDomain, err := h.userService.GetUserByEmail(ctx, req.Email)
+		if err != nil {
+			h.logger.Errorw("failed to find user", "error", err)
+			// For security, use the same error for "not found" or "wrong password"
+			render.Json(w, http.StatusUnauthorized, "invalid credentials")
+
+			return
+		}
+
+		// Compare the provided password with the stored hashed password.
+		err = bcrypt.CompareHashAndPassword([]byte(userDomain.HashedPassword), []byte(req.Password))
+		if err != nil {
+			h.logger.Errorw("password mismatch", "error", err)
+			render.Json(w, http.StatusUnauthorized, "invalid credentials")
+
+			return
+		}
+
+		// Generate an authentication token (e.g., JWT)
+		token, err := h.userService.GenerateToken(userDomain)
+		if err != nil {
+			h.logger.Errorw("failed to generate token", "error", err)
+			render.Json(w, http.StatusInternalServerError, "internal server error")
+
+			return
+		}
+
+		// Step 2e: Return the token in the response.
+		render.Json(w, http.StatusOK, map[string]string{"token": token})
 	}
 }

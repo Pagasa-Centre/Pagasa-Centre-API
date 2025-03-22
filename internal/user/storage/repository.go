@@ -12,6 +12,7 @@ import (
 
 type UserRepository interface {
 	InsertUser(ctx context.Context, user *entity.User) (*int, error)
+	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 }
 
 type userRepository struct {
@@ -30,4 +31,14 @@ func (r *userRepository) InsertUser(ctx context.Context, user *entity.User) (*in
 	}
 
 	return &user.ID, nil
+}
+
+// GetUserByEmail retrieves a user by their email address.
+func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	user, err := entity.Users(entity.UserWhere.Email.EQ(email)).One(ctx, r.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by email %s: %w", email, err)
+	}
+
+	return user, nil
 }

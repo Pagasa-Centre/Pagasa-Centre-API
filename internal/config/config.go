@@ -12,6 +12,7 @@ type Config struct {
 	DatabaseURL string `mapstructure:"DATABASE_URL" yaml:"database_url" validate:"required"`
 	LogLevel    string `mapstructure:"LOG_LEVEL" yaml:"log_level"`
 	Env         string `mapstructure:"ENV" yaml:"env" validate:"required"`
+	JwtSecret   string `mapstructure:"JWT_SECRET" yaml:"jwt_secret" validate:"required"`
 }
 
 // LoadConfig reads configuration from file and environment variables.
@@ -29,6 +30,11 @@ func LoadConfig() (*Config, error) {
 	// Bind environment variables explicitly.
 	// This ensures that values from the OS env (like those loaded by godotenv) are used.
 	err := viper.BindEnv("DATABASE_URL")
+	if err != nil {
+		return nil, err
+	}
+
+	err = viper.BindEnv("JWT_SECRET")
 	if err != nil {
 		return nil, err
 	}

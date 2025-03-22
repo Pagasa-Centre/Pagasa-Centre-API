@@ -2,34 +2,43 @@ package user
 
 import (
 	"context"
+	"fmt"
+	"time"
 
+	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/mappers"
 	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
 )
 
 type UserService interface {
+	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	RegisterNewUser(ctx context.Context, user *domain.User) (*int, error)
+	GenerateToken(user *entity.User) (string, error)
 }
 
-type userservice struct {
-	logger   zap.SugaredLogger
-	userRepo userStorage.UserRepository
+type userService struct {
+	logger    zap.SugaredLogger
+	userRepo  userStorage.UserRepository
+	jwtSecret string
 }
 
 func NewService(
 	logger zap.SugaredLogger,
 	userRepo userStorage.UserRepository,
+	jwtSecret string,
 ) UserService {
-	return &userservice{
-		logger:   logger,
-		userRepo: userRepo,
+	return &userService{
+		logger:    logger,
+		userRepo:  userRepo,
+		jwtSecret: jwtSecret,
 	}
 }
 
-func (s *userservice) RegisterNewUser(ctx context.Context, user *domain.User) (*int, error) {
+func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User) (*int, error) {
 	s.logger.Infow("Registering new user")
 
 	userEntity := mappers.ToUserEntity(*user)
@@ -40,4 +49,35 @@ func (s *userservice) RegisterNewUser(ctx context.Context, user *domain.User) (*
 	}
 
 	return userID, nil
+}
+
+// GetUserByEmail retrieves a user by their email.
+func (s *userService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	s.logger.Infow("Getting user by email")
+
+	user, err := s.userRepo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// GenerateToken generates a JWT for the authenticated user.
+func (s *userService) GenerateToken(user *entity.User) (string, error) {
+	s.logger.Infow("Generating token")
+	// Define claims; you can add custom claims as needed.
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"email":   user.Email,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(), // token expires in 24 hours
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString([]byte(s.jwtSecret))
+	if err != nil {
+		return "", fmt.Errorf("failed to sign token: %w", err)
+	}
+
+	return signedToken, nil
 }

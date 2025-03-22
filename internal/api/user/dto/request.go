@@ -16,6 +16,15 @@ type RegisterRequest struct {
 	IsPastor     bool   `json:"is_pastor"`
 }
 
-func (cur RegisterRequest) Validate() error {
-	return validator.New().Struct(cur)
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+func (rr RegisterRequest) Validate() error {
+	return validator.New().Struct(rr)
+}
+
+func (lr LoginRequest) Validate() error {
+	return validator.New().Struct(lr)
 }

@@ -38,7 +38,7 @@ func main() {
 	}
 
 	userRepo := userStorage.NewUserRepository(db)
-	userService := user.NewService(*logger, userRepo)
+	userService := user.NewService(*logger, userRepo, cfg.JwtSecret)
 
 	rolesRepo := rolesStorage.NewRolesRepository(db)
 	rolesService := roles.NewRoleService(*logger, rolesRepo)
