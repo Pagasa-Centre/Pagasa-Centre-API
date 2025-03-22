@@ -11,6 +11,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/request"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commoncontext"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
@@ -182,55 +183,8 @@ func (h *userHandler) UpdateDetails() http.HandlerFunc {
 			return
 		}
 
-		// Update the fields if provided in the request.
-		if req.FirstName != "" {
-			currentUser.FirstName = req.FirstName
-		}
-
-		if req.LastName != "" {
-			currentUser.LastName = req.LastName
-		}
-
-		if req.Email != "" {
-			currentUser.Email = req.Email
-		}
-
-		if req.PhoneNumber != "" {
-			currentUser.Phone = null.StringFrom(req.PhoneNumber)
-		}
-
-		if req.Birthday != "" {
-			parsedBirthday, err := time.Parse("2006-01-02", req.Birthday)
-			if err != nil {
-				h.logger.Errorw("failed to parse birthday", "error", err)
-				render.Json(w, http.StatusBadRequest, "invalid birthday format; expected YYYY-MM-DD")
-
-				return
-			}
-
-			currentUser.Birthday = null.TimeFrom(parsedBirthday)
-		}
-
-		if req.Password != "" {
-			// Hash the new password before updating.
-			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-			if err != nil {
-				h.logger.Errorw("failed to hash new password", "error", err)
-				render.Json(w, http.StatusInternalServerError, "failed to update password")
-
-				return
-			}
-
-			currentUser.HashedPassword = string(hashedPassword)
-		}
-
-		if req.CellLeaderID != nil {
-			currentUser.CellLeaderID = null.IntFrom(*req.CellLeaderID)
-		}
-
-		if req.OutreachID != 0 {
-			currentUser.OutreachID = null.IntFrom(req.OutreachID)
-		}
+		// Update user fields based on the request.
+		h.updateUserFields(currentUser, req)
 
 		// Call the service to update the user details.
 		updatedUserDetails, err := h.userService.UpdateUserDetails(ctx, currentUser)
@@ -247,5 +201,50 @@ func (h *userHandler) UpdateDetails() http.HandlerFunc {
 			"message": "user details updated successfully",
 			"data":    resp,
 		})
+	}
+}
+
+// updateUserFields updates the provided user entity with the values from the update request.
+func (h *userHandler) updateUserFields(user *entity.User, req dto.UpdateDetailsRequest) {
+	if req.FirstName != "" {
+		user.FirstName = req.FirstName
+	}
+
+	if req.LastName != "" {
+		user.LastName = req.LastName
+	}
+
+	if req.Email != "" {
+		user.Email = req.Email
+	}
+
+	if req.PhoneNumber != "" {
+		user.Phone = null.StringFrom(req.PhoneNumber)
+	}
+
+	if req.Birthday != "" {
+		parsedBirthday, err := time.Parse("2006-01-02", req.Birthday)
+		if err != nil {
+			h.logger.Errorw("failed to parse birthday", "error", err)
+		} else {
+			user.Birthday = null.TimeFrom(parsedBirthday)
+		}
+	}
+
+	if req.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			h.logger.Errorw("failed to hash new password", "error", err)
+		} else {
+			user.HashedPassword = string(hashedPassword)
+		}
+	}
+
+	if req.CellLeaderID != nil {
+		user.CellLeaderID = null.IntFrom(*req.CellLeaderID)
+	}
+
+	if req.OutreachID != 0 {
+		user.OutreachID = null.IntFrom(req.OutreachID)
 	}
 }
