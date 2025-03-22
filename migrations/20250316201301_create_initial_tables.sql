@@ -31,9 +31,10 @@ CREATE TABLE IF NOT EXISTS roles (
 );-- e.g., 'Pastor', 'Pastora', 'Primary Leader', 'Cell Leader', 'Member' ETC
 
 CREATE TABLE IF NOT EXISTS user_roles (
-                            user_id INTEGER REFERENCES users(id),
-                            role_id INTEGER REFERENCES roles(id),
-                            PRIMARY KEY (user_id, role_id)
+                        user_id INTEGER REFERENCES users(id),
+                        role_id INTEGER REFERENCES roles(id),
+                        assigned_at TIMESTAMP DEFAULT now(),
+                        PRIMARY KEY (user_id, role_id)
 );
 
 CREATE TABLE IF NOT EXISTS cell_groups (

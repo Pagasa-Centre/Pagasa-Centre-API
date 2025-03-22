@@ -11,8 +11,8 @@ type RegisterRequest struct {
 	OutreachID   int    `json:"outreach_id" validate:"required"`
 	PhoneNumber  string `json:"phone_number" validate:"required"`
 	CellLeaderID int    `json:"cell_leader_id,omitempty"`
-	IsLeader     bool   `json:"is_leader"`
-	IsPrimary    bool   `json:"is_primary"`
+	IsLeader     bool   `json:"is_leader" `
+	IsPrimary    bool   `json:"is_primary" `
 	IsPastor     bool   `json:"is_pastor"`
 }
 

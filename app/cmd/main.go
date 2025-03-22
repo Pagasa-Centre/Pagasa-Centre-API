@@ -2,16 +2,20 @@ package main
 
 import (
 	"fmt"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
-	logger2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/logger"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
-	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
+	"log"
+	"net/http"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // <-- Add this line to register the Postgres driver
-	"log"
-	"net/http"
+
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
+	logger2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/logger"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
+	rolesStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
+	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
 )
 
 func main() {
@@ -36,7 +40,10 @@ func main() {
 	userRepo := userStorage.NewUserRepository(db)
 	userService := user.NewService(*logger, userRepo)
 
-	mux := router.New(*logger, userService)
+	rolesRepo := rolesStorage.NewRolesRepository(db)
+	rolesService := roles.NewRoleService(*logger, rolesRepo)
+
+	mux := router.New(*logger, userService, rolesService)
 
 	logger.Infof("Server starting on port %s", cfg.Port)
 

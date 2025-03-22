@@ -1,9 +1,10 @@
 package mappers
 
 import (
+	"github.com/volatiletech/null/v8"
+
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
-	"github.com/volatiletech/null/v8"
 )
 
 func ToUserEntity(user domain.User) *entity.User {

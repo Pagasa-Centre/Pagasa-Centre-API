@@ -1,18 +1,22 @@
 package router
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
-	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
-	"net/http"
+
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
+	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 )
 
 func New(
 	logger zap.SugaredLogger,
 	userService userService.UserService,
+	rolesService roles.RolesService,
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
@@ -25,12 +29,11 @@ func New(
 	registerAliveEndpoint(router)
 	router.Route(
 		"/api/v1", func(r chi.Router) {
-
-			userHandler := user.NewUserHandler(logger, userService)
+			userHandler := user.NewUserHandler(logger, userService, rolesService)
 
 			r.Route(
 				"/user", func(r chi.Router) {
-					//r.Use(authMiddleware)
+					// r.Use(authMiddleware)
 					r.Post("/register", userHandler.Register())
 				},
 			)

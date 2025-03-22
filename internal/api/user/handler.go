@@ -1,13 +1,16 @@
 package user
 
 import (
+	"net/http"
+
+	"go.uber.org/zap"
+
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/request"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
-	"go.uber.org/zap"
-	"net/http"
 )
 
 type UserHandler interface {
@@ -15,17 +18,20 @@ type UserHandler interface {
 }
 
 type userHandler struct {
-	logger      zap.SugaredLogger
-	userService user.UserService
+	logger       zap.SugaredLogger
+	userService  user.UserService
+	rolesService roles.RolesService
 }
 
 func NewUserHandler(
 	logger zap.SugaredLogger,
-	service user.UserService,
+	userService user.UserService,
+	rolesService roles.RolesService,
 ) UserHandler {
 	return &userHandler{
-		logger:      logger,
-		userService: service,
+		logger:       logger,
+		userService:  userService,
+		rolesService: rolesService,
 	}
 }
 
@@ -53,12 +59,43 @@ func (h *userHandler) Register() http.HandlerFunc {
 			return
 		}
 
-		err = h.userService.RegisterNewUser(ctx, userDomain)
+		userID, err := h.userService.RegisterNewUser(ctx, userDomain)
 		if err != nil {
 			h.logger.Errorw("Error registering new user", "error", err)
 
 			render.Json(w, http.StatusInternalServerError, "internal server error")
+
 			return
+		}
+
+		if req.IsLeader {
+			err = h.rolesService.AssignLeaderRole(ctx, *userID)
+			if err != nil {
+				h.logger.Errorw("failed to assign leader role", "error", err)
+				render.Json(w, http.StatusInternalServerError, err.Error())
+
+				return
+			}
+		}
+
+		if req.IsPrimary {
+			err = h.rolesService.AssignPrimaryRole(ctx, *userID)
+			if err != nil {
+				h.logger.Errorw("failed to assign primary role", "error", err)
+				render.Json(w, http.StatusInternalServerError, err.Error())
+
+				return
+			}
+		}
+
+		if req.IsPastor {
+			err = h.rolesService.AssignPastorRole(ctx, *userID)
+			if err != nil {
+				h.logger.Errorw("failed to assign pastor role", "error", err)
+				render.Json(w, http.StatusInternalServerError, err.Error())
+
+				return
+			}
 		}
 
 		render.Json(w, http.StatusCreated, "Successfully created user")

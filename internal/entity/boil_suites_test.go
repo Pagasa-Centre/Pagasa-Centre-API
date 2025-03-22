@@ -17,6 +17,7 @@ func TestParent(t *testing.T) {
 	t.Run("Ministries", testMinistries)
 	t.Run("Outreaches", testOutreaches)
 	t.Run("Roles", testRoles)
+	t.Run("UserRoles", testUserRoles)
 	t.Run("Users", testUsers)
 }
 
@@ -26,6 +27,7 @@ func TestDelete(t *testing.T) {
 	t.Run("Ministries", testMinistriesDelete)
 	t.Run("Outreaches", testOutreachesDelete)
 	t.Run("Roles", testRolesDelete)
+	t.Run("UserRoles", testUserRolesDelete)
 	t.Run("Users", testUsersDelete)
 }
 
@@ -35,6 +37,7 @@ func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Ministries", testMinistriesQueryDeleteAll)
 	t.Run("Outreaches", testOutreachesQueryDeleteAll)
 	t.Run("Roles", testRolesQueryDeleteAll)
+	t.Run("UserRoles", testUserRolesQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
 }
 
@@ -44,6 +47,7 @@ func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Ministries", testMinistriesSliceDeleteAll)
 	t.Run("Outreaches", testOutreachesSliceDeleteAll)
 	t.Run("Roles", testRolesSliceDeleteAll)
+	t.Run("UserRoles", testUserRolesSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
 }
 
@@ -53,6 +57,7 @@ func TestExists(t *testing.T) {
 	t.Run("Ministries", testMinistriesExists)
 	t.Run("Outreaches", testOutreachesExists)
 	t.Run("Roles", testRolesExists)
+	t.Run("UserRoles", testUserRolesExists)
 	t.Run("Users", testUsersExists)
 }
 
@@ -62,6 +67,7 @@ func TestFind(t *testing.T) {
 	t.Run("Ministries", testMinistriesFind)
 	t.Run("Outreaches", testOutreachesFind)
 	t.Run("Roles", testRolesFind)
+	t.Run("UserRoles", testUserRolesFind)
 	t.Run("Users", testUsersFind)
 }
 
@@ -71,6 +77,7 @@ func TestBind(t *testing.T) {
 	t.Run("Ministries", testMinistriesBind)
 	t.Run("Outreaches", testOutreachesBind)
 	t.Run("Roles", testRolesBind)
+	t.Run("UserRoles", testUserRolesBind)
 	t.Run("Users", testUsersBind)
 }
 
@@ -80,6 +87,7 @@ func TestOne(t *testing.T) {
 	t.Run("Ministries", testMinistriesOne)
 	t.Run("Outreaches", testOutreachesOne)
 	t.Run("Roles", testRolesOne)
+	t.Run("UserRoles", testUserRolesOne)
 	t.Run("Users", testUsersOne)
 }
 
@@ -89,6 +97,7 @@ func TestAll(t *testing.T) {
 	t.Run("Ministries", testMinistriesAll)
 	t.Run("Outreaches", testOutreachesAll)
 	t.Run("Roles", testRolesAll)
+	t.Run("UserRoles", testUserRolesAll)
 	t.Run("Users", testUsersAll)
 }
 
@@ -98,6 +107,7 @@ func TestCount(t *testing.T) {
 	t.Run("Ministries", testMinistriesCount)
 	t.Run("Outreaches", testOutreachesCount)
 	t.Run("Roles", testRolesCount)
+	t.Run("UserRoles", testUserRolesCount)
 	t.Run("Users", testUsersCount)
 }
 
@@ -107,6 +117,7 @@ func TestHooks(t *testing.T) {
 	t.Run("Ministries", testMinistriesHooks)
 	t.Run("Outreaches", testOutreachesHooks)
 	t.Run("Roles", testRolesHooks)
+	t.Run("UserRoles", testUserRolesHooks)
 	t.Run("Users", testUsersHooks)
 }
 
@@ -121,6 +132,8 @@ func TestInsert(t *testing.T) {
 	t.Run("Outreaches", testOutreachesInsertWhitelist)
 	t.Run("Roles", testRolesInsert)
 	t.Run("Roles", testRolesInsertWhitelist)
+	t.Run("UserRoles", testUserRolesInsert)
+	t.Run("UserRoles", testUserRolesInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
 }
@@ -131,6 +144,7 @@ func TestReload(t *testing.T) {
 	t.Run("Ministries", testMinistriesReload)
 	t.Run("Outreaches", testOutreachesReload)
 	t.Run("Roles", testRolesReload)
+	t.Run("UserRoles", testUserRolesReload)
 	t.Run("Users", testUsersReload)
 }
 
@@ -140,6 +154,7 @@ func TestReloadAll(t *testing.T) {
 	t.Run("Ministries", testMinistriesReloadAll)
 	t.Run("Outreaches", testOutreachesReloadAll)
 	t.Run("Roles", testRolesReloadAll)
+	t.Run("UserRoles", testUserRolesReloadAll)
 	t.Run("Users", testUsersReloadAll)
 }
 
@@ -149,6 +164,7 @@ func TestSelect(t *testing.T) {
 	t.Run("Ministries", testMinistriesSelect)
 	t.Run("Outreaches", testOutreachesSelect)
 	t.Run("Roles", testRolesSelect)
+	t.Run("UserRoles", testUserRolesSelect)
 	t.Run("Users", testUsersSelect)
 }
 
@@ -158,6 +174,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("Ministries", testMinistriesUpdate)
 	t.Run("Outreaches", testOutreachesUpdate)
 	t.Run("Roles", testRolesUpdate)
+	t.Run("UserRoles", testUserRolesUpdate)
 	t.Run("Users", testUsersUpdate)
 }
 
@@ -167,5 +184,6 @@ func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Ministries", testMinistriesSliceUpdateAll)
 	t.Run("Outreaches", testOutreachesSliceUpdateAll)
 	t.Run("Roles", testRolesSliceUpdateAll)
+	t.Run("UserRoles", testUserRolesSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
 }

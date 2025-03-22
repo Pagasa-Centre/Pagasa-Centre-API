@@ -55,8 +55,18 @@ WHERE role_name IN (
                     'Monitor',
                     'Livestreamer',
                     'IT Ministry'
-
     );
+
+-- Update users to remove the reference to the outreach
+UPDATE users
+SET outreach_id = NULL
+WHERE outreach_id = (
+    SELECT id FROM outreaches
+    WHERE name = 'Pagasa Centre Dagenham'
+      AND post_code = 'RM9 4UN'
+      AND city = 'London'
+      AND country = 'England'
+);
 
 DELETE FROM outreaches
 WHERE name = 'Pagasa Centre Dagenham'

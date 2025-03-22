@@ -16,10 +16,7 @@ func DecodeAndValidate(src io.ReadCloser, target Validator) error {
 	}
 
 	defer func(src io.ReadCloser) {
-		err := src.Close()
-		if err != nil {
-
-		}
+		_ = src.Close()
 	}(src)
 
 	if err := json.NewDecoder(src).Decode(target); err != nil {
