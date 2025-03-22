@@ -9,6 +9,7 @@ import "testing"
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
 	t.Run("CellGroupToUserUsingLeader", testCellGroupToOneUserUsingLeader)
+	t.Run("MinistryToUserUsingLeader", testMinistryToOneUserUsingLeader)
 	t.Run("MinistryToOutreachUsingOutreach", testMinistryToOneOutreachUsingOutreach)
 	t.Run("UserRoleToRoleUsingRole", testUserRoleToOneRoleUsingRole)
 	t.Run("UserRoleToUserUsingUser", testUserRoleToOneUserUsingUser)
@@ -29,6 +30,7 @@ func TestToMany(t *testing.T) {
 	t.Run("RoleToUserRoles", testRoleToManyUserRoles)
 	t.Run("UserToCellGroups", testUserToManyCellGroups)
 	t.Run("UserToLeaderCellGroups", testUserToManyLeaderCellGroups)
+	t.Run("UserToLeaderMinistries", testUserToManyLeaderMinistries)
 	t.Run("UserToUserRoles", testUserToManyUserRoles)
 	t.Run("UserToCellLeaderUsers", testUserToManyCellLeaderUsers)
 }
@@ -37,6 +39,7 @@ func TestToMany(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
 	t.Run("CellGroupToUserUsingLeaderCellGroups", testCellGroupToOneSetOpUserUsingLeader)
+	t.Run("MinistryToUserUsingLeaderMinistries", testMinistryToOneSetOpUserUsingLeader)
 	t.Run("MinistryToOutreachUsingMinistries", testMinistryToOneSetOpOutreachUsingOutreach)
 	t.Run("UserRoleToRoleUsingUserRoles", testUserRoleToOneSetOpRoleUsingRole)
 	t.Run("UserRoleToUserUsingUserRoles", testUserRoleToOneSetOpUserUsingUser)
@@ -48,6 +51,7 @@ func TestToOneSet(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneRemove(t *testing.T) {
 	t.Run("CellGroupToUserUsingLeaderCellGroups", testCellGroupToOneRemoveOpUserUsingLeader)
+	t.Run("MinistryToUserUsingLeaderMinistries", testMinistryToOneRemoveOpUserUsingLeader)
 	t.Run("UserToUserUsingCellLeaderUsers", testUserToOneRemoveOpUserUsingCellLeader)
 	t.Run("UserToOutreachUsingUsers", testUserToOneRemoveOpOutreachUsingOutreach)
 }
@@ -69,6 +73,7 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("RoleToUserRoles", testRoleToManyAddOpUserRoles)
 	t.Run("UserToCellGroups", testUserToManyAddOpCellGroups)
 	t.Run("UserToLeaderCellGroups", testUserToManyAddOpLeaderCellGroups)
+	t.Run("UserToLeaderMinistries", testUserToManyAddOpLeaderMinistries)
 	t.Run("UserToUserRoles", testUserToManyAddOpUserRoles)
 	t.Run("UserToCellLeaderUsers", testUserToManyAddOpCellLeaderUsers)
 }
@@ -80,6 +85,7 @@ func TestToManySet(t *testing.T) {
 	t.Run("OutreachToUsers", testOutreachToManySetOpUsers)
 	t.Run("UserToCellGroups", testUserToManySetOpCellGroups)
 	t.Run("UserToLeaderCellGroups", testUserToManySetOpLeaderCellGroups)
+	t.Run("UserToLeaderMinistries", testUserToManySetOpLeaderMinistries)
 	t.Run("UserToCellLeaderUsers", testUserToManySetOpCellLeaderUsers)
 }
 
@@ -90,5 +96,6 @@ func TestToManyRemove(t *testing.T) {
 	t.Run("OutreachToUsers", testOutreachToManyRemoveOpUsers)
 	t.Run("UserToCellGroups", testUserToManyRemoveOpCellGroups)
 	t.Run("UserToLeaderCellGroups", testUserToManyRemoveOpLeaderCellGroups)
+	t.Run("UserToLeaderMinistries", testUserToManyRemoveOpLeaderMinistries)
 	t.Run("UserToCellLeaderUsers", testUserToManyRemoveOpCellLeaderUsers)
 }

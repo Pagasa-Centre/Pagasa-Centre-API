@@ -54,8 +54,9 @@ CREATE TABLE IF NOT EXISTS ministries (
                             outreach_id INTEGER NOT NULL REFERENCES outreaches(id),
                             name VARCHAR(255) NOT NULL,
                             description TEXT,
-                            leader VARCHAR(255) NOT NULL,
-                            date_time TIMESTAMP,
+                            leader_id INTEGER REFERENCES users(id),
+                            meeting_day VARCHAR(15),
+                            meeting_time TIMESTAMP,
                             meeting_location VARCHAR(255)
 );
 -- +goose StatementEnd
