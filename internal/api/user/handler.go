@@ -22,6 +22,7 @@ type UserHandler interface {
 	Register() http.HandlerFunc
 	Login() http.HandlerFunc
 	UpdateDetails() http.HandlerFunc
+	Delete() http.HandlerFunc
 }
 
 type userHandler struct {
@@ -201,6 +202,31 @@ func (h *userHandler) UpdateDetails() http.HandlerFunc {
 			"message": "user details updated successfully",
 			"data":    resp,
 		})
+	}
+}
+
+func (h *userHandler) Delete() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		userID, err := commoncontext.GetUserID(ctx)
+		if err != nil {
+			h.logger.Errorw("user ID not found in session", "error", err)
+			render.Json(w, http.StatusUnauthorized, "unauthorized")
+
+			return
+		}
+
+		// Call the service to delete the user.
+		if err := h.userService.DeleteUser(ctx, userID); err != nil {
+			h.logger.Errorw("failed to delete user", "error", err)
+			render.Json(w, http.StatusInternalServerError, "failed to delete user")
+
+			return
+		}
+
+		// Return a success response.
+		render.Json(w, http.StatusOK, map[string]string{"message": "user deleted successfully"})
 	}
 }
 

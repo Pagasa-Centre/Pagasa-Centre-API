@@ -20,6 +20,7 @@ type UserService interface {
 	GenerateToken(user *entity.User) (string, error)
 	UpdateUserDetails(ctx context.Context, user *entity.User) (*entity.User, error)
 	GetUserById(ctx context.Context, id int) (*entity.User, error)
+	DeleteUser(ctx context.Context, id int) error
 }
 
 type userService struct {
@@ -105,4 +106,15 @@ func (s *userService) UpdateUserDetails(ctx context.Context, user *entity.User) 
 	}
 
 	return user, nil
+}
+
+// DeleteUser deletes a user by their ID.
+func (s *userService) DeleteUser(ctx context.Context, id int) error {
+	s.logger.Infow("Deleting user")
+
+	if err := s.userRepo.DeleteUser(ctx, id); err != nil {
+		return fmt.Errorf("service error deleting user: %w", err)
+	}
+
+	return nil
 }

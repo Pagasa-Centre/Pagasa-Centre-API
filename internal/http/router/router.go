@@ -42,6 +42,7 @@ func New(
 					r.Group(func(r chi.Router) {
 						r.Use(middleware2.AuthMiddleware([]byte(jwtSecret)))
 						r.Post("/update-details", userHandler.UpdateDetails())
+						r.Delete("/", userHandler.Delete())
 					})
 				},
 			)

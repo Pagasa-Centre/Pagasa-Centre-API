@@ -15,6 +15,7 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	GetUserById(ctx context.Context, id int) (*entity.User, error)
 	UpdateUser(ctx context.Context, user *entity.User) (*entity.User, error)
+	DeleteUser(ctx context.Context, id int) error
 }
 
 type userRepository struct {
@@ -56,4 +57,21 @@ func (r *userRepository) UpdateUser(ctx context.Context, user *entity.User) (*en
 	}
 
 	return user, nil
+}
+
+// DeleteUser deletes a user with the given id.
+func (r *userRepository) DeleteUser(ctx context.Context, id int) error {
+	// Create an entity with the ID to delete.
+	user := &entity.User{ID: id}
+	// SQLBoiler's Delete method will execute a DELETE query using the user's primary key.
+	rowsAffected, err := user.Delete(ctx, r.db)
+	if err != nil {
+		return fmt.Errorf("failed to delete user with id %d: %w", id, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("no user found with id %d", id)
+	}
+
+	return nil
 }
