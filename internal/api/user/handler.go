@@ -10,19 +10,19 @@ import (
 	"net/http"
 )
 
-type Handler interface {
+type UserHandler interface {
 	Register() http.HandlerFunc
 }
 
 type userHandler struct {
 	logger      zap.SugaredLogger
-	userService user.Service
+	userService user.UserService
 }
 
-func NewHandler(
+func NewUserHandler(
 	logger zap.SugaredLogger,
-	service user.Service,
-) Handler {
+	service user.UserService,
+) UserHandler {
 	return &userHandler{
 		logger:      logger,
 		userService: service,
@@ -33,22 +33,34 @@ func (h *userHandler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		var req dto.CreateUserRequest
+		var req dto.RegisterRequest
 
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
-			h.logger.Errorw("failed to decode and validate user request body", "context", ctx)
+			h.logger.Errorw("failed to decode and validate register request body",
+				"context", ctx, "error", err)
 
-			render.Json(w, http.StatusBadRequest, "invalid body")
+			render.Json(w, http.StatusBadRequest, err.Error())
 
 			return
 		}
 
-		userDomain := domain.CreateUserRequestToUserDomain(req)
+		userDomain, err := domain.RegisterRequestToUserDomain(req)
+		if err != nil {
+			h.logger.Errorw("failed to map register request to user domain",
+				"context", ctx, "error", err)
+			render.Json(w, http.StatusBadRequest, err.Error())
 
-		err := h.userService.RegisterNewUser(ctx, userDomain)
+			return
+		}
+
+		err = h.userService.RegisterNewUser(ctx, userDomain)
 		if err != nil {
 			h.logger.Errorw("Error registering new user", "error", err)
+
+			render.Json(w, http.StatusInternalServerError, "internal server error")
+			return
 		}
+
 		render.Json(w, http.StatusCreated, "Successfully created user")
 	}
 }

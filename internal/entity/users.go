@@ -24,12 +24,16 @@ import (
 
 // User is an object representing the database table.
 type User struct {
-	ID             int       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	FirstName      string    `boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
-	LastName       string    `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
-	Email          string    `boil:"email" json:"email" toml:"email" yaml:"email"`
-	HashedPassword string    `boil:"hashed_password" json:"hashed_password" toml:"hashed_password" yaml:"hashed_password"`
-	CreatedAt      null.Time `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
+	ID             int         `boil:"id" json:"id" toml:"id" yaml:"id"`
+	FirstName      string      `boil:"first_name" json:"first_name" toml:"first_name" yaml:"first_name"`
+	LastName       string      `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
+	Email          string      `boil:"email" json:"email" toml:"email" yaml:"email"`
+	HashedPassword string      `boil:"hashed_password" json:"hashed_password" toml:"hashed_password" yaml:"hashed_password"`
+	Birthday       null.Time   `boil:"birthday" json:"birthday,omitempty" toml:"birthday" yaml:"birthday,omitempty"`
+	Phone          null.String `boil:"phone" json:"phone,omitempty" toml:"phone" yaml:"phone,omitempty"`
+	OutreachID     null.Int    `boil:"outreach_id" json:"outreach_id,omitempty" toml:"outreach_id" yaml:"outreach_id,omitempty"`
+	CellLeaderID   null.Int    `boil:"cell_leader_id" json:"cell_leader_id,omitempty" toml:"cell_leader_id" yaml:"cell_leader_id,omitempty"`
+	CreatedAt      null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -41,6 +45,10 @@ var UserColumns = struct {
 	LastName       string
 	Email          string
 	HashedPassword string
+	Birthday       string
+	Phone          string
+	OutreachID     string
+	CellLeaderID   string
 	CreatedAt      string
 }{
 	ID:             "id",
@@ -48,6 +56,10 @@ var UserColumns = struct {
 	LastName:       "last_name",
 	Email:          "email",
 	HashedPassword: "hashed_password",
+	Birthday:       "birthday",
+	Phone:          "phone",
+	OutreachID:     "outreach_id",
+	CellLeaderID:   "cell_leader_id",
 	CreatedAt:      "created_at",
 }
 
@@ -57,6 +69,10 @@ var UserTableColumns = struct {
 	LastName       string
 	Email          string
 	HashedPassword string
+	Birthday       string
+	Phone          string
+	OutreachID     string
+	CellLeaderID   string
 	CreatedAt      string
 }{
 	ID:             "users.id",
@@ -64,65 +80,14 @@ var UserTableColumns = struct {
 	LastName:       "users.last_name",
 	Email:          "users.email",
 	HashedPassword: "users.hashed_password",
+	Birthday:       "users.birthday",
+	Phone:          "users.phone",
+	OutreachID:     "users.outreach_id",
+	CellLeaderID:   "users.cell_leader_id",
 	CreatedAt:      "users.created_at",
 }
 
 // Generated where
-
-type whereHelperstring struct{ field string }
-
-func (w whereHelperstring) EQ(x string) qm.QueryMod      { return qmhelper.Where(w.field, qmhelper.EQ, x) }
-func (w whereHelperstring) NEQ(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
-func (w whereHelperstring) LT(x string) qm.QueryMod      { return qmhelper.Where(w.field, qmhelper.LT, x) }
-func (w whereHelperstring) LTE(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.LTE, x) }
-func (w whereHelperstring) GT(x string) qm.QueryMod      { return qmhelper.Where(w.field, qmhelper.GT, x) }
-func (w whereHelperstring) GTE(x string) qm.QueryMod     { return qmhelper.Where(w.field, qmhelper.GTE, x) }
-func (w whereHelperstring) LIKE(x string) qm.QueryMod    { return qm.Where(w.field+" LIKE ?", x) }
-func (w whereHelperstring) NLIKE(x string) qm.QueryMod   { return qm.Where(w.field+" NOT LIKE ?", x) }
-func (w whereHelperstring) ILIKE(x string) qm.QueryMod   { return qm.Where(w.field+" ILIKE ?", x) }
-func (w whereHelperstring) NILIKE(x string) qm.QueryMod  { return qm.Where(w.field+" NOT ILIKE ?", x) }
-func (w whereHelperstring) SIMILAR(x string) qm.QueryMod { return qm.Where(w.field+" SIMILAR TO ?", x) }
-func (w whereHelperstring) NSIMILAR(x string) qm.QueryMod {
-	return qm.Where(w.field+" NOT SIMILAR TO ?", x)
-}
-func (w whereHelperstring) IN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelperstring) NIN(slice []string) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
-type whereHelpernull_Time struct{ field string }
-
-func (w whereHelpernull_Time) EQ(x null.Time) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Time) NEQ(x null.Time) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Time) LT(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Time) LTE(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Time) GT(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-func (w whereHelpernull_Time) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Time) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
 var UserWhere = struct {
 	ID             whereHelperint
@@ -130,6 +95,10 @@ var UserWhere = struct {
 	LastName       whereHelperstring
 	Email          whereHelperstring
 	HashedPassword whereHelperstring
+	Birthday       whereHelpernull_Time
+	Phone          whereHelpernull_String
+	OutreachID     whereHelpernull_Int
+	CellLeaderID   whereHelpernull_Int
 	CreatedAt      whereHelpernull_Time
 }{
 	ID:             whereHelperint{field: "\"users\".\"id\""},
@@ -137,15 +106,38 @@ var UserWhere = struct {
 	LastName:       whereHelperstring{field: "\"users\".\"last_name\""},
 	Email:          whereHelperstring{field: "\"users\".\"email\""},
 	HashedPassword: whereHelperstring{field: "\"users\".\"hashed_password\""},
+	Birthday:       whereHelpernull_Time{field: "\"users\".\"birthday\""},
+	Phone:          whereHelpernull_String{field: "\"users\".\"phone\""},
+	OutreachID:     whereHelpernull_Int{field: "\"users\".\"outreach_id\""},
+	CellLeaderID:   whereHelpernull_Int{field: "\"users\".\"cell_leader_id\""},
 	CreatedAt:      whereHelpernull_Time{field: "\"users\".\"created_at\""},
 }
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-}{}
+	CellLeader       string
+	Outreach         string
+	CellGroups       string
+	LeaderCellGroups string
+	Roles            string
+	CellLeaderUsers  string
+}{
+	CellLeader:       "CellLeader",
+	Outreach:         "Outreach",
+	CellGroups:       "CellGroups",
+	LeaderCellGroups: "LeaderCellGroups",
+	Roles:            "Roles",
+	CellLeaderUsers:  "CellLeaderUsers",
+}
 
 // userR is where relationships are stored.
 type userR struct {
+	CellLeader       *User          `boil:"CellLeader" json:"CellLeader" toml:"CellLeader" yaml:"CellLeader"`
+	Outreach         *Outreach      `boil:"Outreach" json:"Outreach" toml:"Outreach" yaml:"Outreach"`
+	CellGroups       CellGroupSlice `boil:"CellGroups" json:"CellGroups" toml:"CellGroups" yaml:"CellGroups"`
+	LeaderCellGroups CellGroupSlice `boil:"LeaderCellGroups" json:"LeaderCellGroups" toml:"LeaderCellGroups" yaml:"LeaderCellGroups"`
+	Roles            RoleSlice      `boil:"Roles" json:"Roles" toml:"Roles" yaml:"Roles"`
+	CellLeaderUsers  UserSlice      `boil:"CellLeaderUsers" json:"CellLeaderUsers" toml:"CellLeaderUsers" yaml:"CellLeaderUsers"`
 }
 
 // NewStruct creates a new relationship struct
@@ -153,13 +145,55 @@ func (*userR) NewStruct() *userR {
 	return &userR{}
 }
 
+func (r *userR) GetCellLeader() *User {
+	if r == nil {
+		return nil
+	}
+	return r.CellLeader
+}
+
+func (r *userR) GetOutreach() *Outreach {
+	if r == nil {
+		return nil
+	}
+	return r.Outreach
+}
+
+func (r *userR) GetCellGroups() CellGroupSlice {
+	if r == nil {
+		return nil
+	}
+	return r.CellGroups
+}
+
+func (r *userR) GetLeaderCellGroups() CellGroupSlice {
+	if r == nil {
+		return nil
+	}
+	return r.LeaderCellGroups
+}
+
+func (r *userR) GetRoles() RoleSlice {
+	if r == nil {
+		return nil
+	}
+	return r.Roles
+}
+
+func (r *userR) GetCellLeaderUsers() UserSlice {
+	if r == nil {
+		return nil
+	}
+	return r.CellLeaderUsers
+}
+
 // userL is where Load methods for each relationship are stored.
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "first_name", "last_name", "email", "hashed_password", "created_at"}
+	userAllColumns            = []string{"id", "first_name", "last_name", "email", "hashed_password", "birthday", "phone", "outreach_id", "cell_leader_id", "created_at"}
 	userColumnsWithoutDefault = []string{"first_name", "last_name", "email", "hashed_password"}
-	userColumnsWithDefault    = []string{"id", "created_at"}
+	userColumnsWithDefault    = []string{"id", "birthday", "phone", "outreach_id", "cell_leader_id", "created_at"}
 	userPrimaryKeyColumns     = []string{"id"}
 	userGeneratedColumns      = []string{}
 )
@@ -467,6 +501,1524 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	}
 
 	return count > 0, nil
+}
+
+// CellLeader pointed to by the foreign key.
+func (o *User) CellLeader(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.CellLeaderID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Users(queryMods...)
+}
+
+// Outreach pointed to by the foreign key.
+func (o *User) Outreach(mods ...qm.QueryMod) outreachQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.OutreachID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Outreaches(queryMods...)
+}
+
+// CellGroups retrieves all the cell_group's CellGroups with an executor.
+func (o *User) CellGroups(mods ...qm.QueryMod) cellGroupQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.InnerJoin("\"cell_group_members\" on \"cell_groups\".\"id\" = \"cell_group_members\".\"cell_group_id\""),
+		qm.Where("\"cell_group_members\".\"user_id\"=?", o.ID),
+	)
+
+	return CellGroups(queryMods...)
+}
+
+// LeaderCellGroups retrieves all the cell_group's CellGroups with an executor via leader_id column.
+func (o *User) LeaderCellGroups(mods ...qm.QueryMod) cellGroupQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"cell_groups\".\"leader_id\"=?", o.ID),
+	)
+
+	return CellGroups(queryMods...)
+}
+
+// Roles retrieves all the role's Roles with an executor.
+func (o *User) Roles(mods ...qm.QueryMod) roleQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.InnerJoin("\"user_roles\" on \"roles\".\"id\" = \"user_roles\".\"role_id\""),
+		qm.Where("\"user_roles\".\"user_id\"=?", o.ID),
+	)
+
+	return Roles(queryMods...)
+}
+
+// CellLeaderUsers retrieves all the user's Users with an executor via cell_leader_id column.
+func (o *User) CellLeaderUsers(mods ...qm.QueryMod) userQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"users\".\"cell_leader_id\"=?", o.ID),
+	)
+
+	return Users(queryMods...)
+}
+
+// LoadCellLeader allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (userL) LoadCellLeader(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		if !queries.IsNil(object.CellLeaderID) {
+			args[object.CellLeaderID] = struct{}{}
+		}
+
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			if !queries.IsNil(obj.CellLeaderID) {
+				args[obj.CellLeaderID] = struct{}{}
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(userAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.CellLeader = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.CellLeaderUsers = append(foreign.R.CellLeaderUsers, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.CellLeaderID, foreign.ID) {
+				local.R.CellLeader = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.CellLeaderUsers = append(foreign.R.CellLeaderUsers, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadOutreach allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (userL) LoadOutreach(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		if !queries.IsNil(object.OutreachID) {
+			args[object.OutreachID] = struct{}{}
+		}
+
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			if !queries.IsNil(obj.OutreachID) {
+				args[obj.OutreachID] = struct{}{}
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`outreaches`),
+		qm.WhereIn(`outreaches.id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Outreach")
+	}
+
+	var resultSlice []*Outreach
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Outreach")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for outreaches")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for outreaches")
+	}
+
+	if len(outreachAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Outreach = foreign
+		if foreign.R == nil {
+			foreign.R = &outreachR{}
+		}
+		foreign.R.Users = append(foreign.R.Users, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.OutreachID, foreign.ID) {
+				local.R.Outreach = foreign
+				if foreign.R == nil {
+					foreign.R = &outreachR{}
+				}
+				foreign.R.Users = append(foreign.R.Users, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadCellGroups allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadCellGroups(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.Select("\"cell_groups\".\"id\", \"cell_groups\".\"name\", \"cell_groups\".\"leader_id\", \"a\".\"user_id\""),
+		qm.From("\"cell_groups\""),
+		qm.InnerJoin("\"cell_group_members\" as \"a\" on \"cell_groups\".\"id\" = \"a\".\"cell_group_id\""),
+		qm.WhereIn("\"a\".\"user_id\" in ?", argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load cell_groups")
+	}
+
+	var resultSlice []*CellGroup
+
+	var localJoinCols []int
+	for results.Next() {
+		one := new(CellGroup)
+		var localJoinCol int
+
+		err = results.Scan(&one.ID, &one.Name, &one.LeaderID, &localJoinCol)
+		if err != nil {
+			return errors.Wrap(err, "failed to scan eager loaded results for cell_groups")
+		}
+		if err = results.Err(); err != nil {
+			return errors.Wrap(err, "failed to plebian-bind eager loaded slice cell_groups")
+		}
+
+		resultSlice = append(resultSlice, one)
+		localJoinCols = append(localJoinCols, localJoinCol)
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on cell_groups")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for cell_groups")
+	}
+
+	if len(cellGroupAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.CellGroups = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &cellGroupR{}
+			}
+			foreign.R.Users = append(foreign.R.Users, object)
+		}
+		return nil
+	}
+
+	for i, foreign := range resultSlice {
+		localJoinCol := localJoinCols[i]
+		for _, local := range slice {
+			if local.ID == localJoinCol {
+				local.R.CellGroups = append(local.R.CellGroups, foreign)
+				if foreign.R == nil {
+					foreign.R = &cellGroupR{}
+				}
+				foreign.R.Users = append(foreign.R.Users, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadLeaderCellGroups allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadLeaderCellGroups(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`cell_groups`),
+		qm.WhereIn(`cell_groups.leader_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load cell_groups")
+	}
+
+	var resultSlice []*CellGroup
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice cell_groups")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on cell_groups")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for cell_groups")
+	}
+
+	if len(cellGroupAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.LeaderCellGroups = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &cellGroupR{}
+			}
+			foreign.R.Leader = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.LeaderID) {
+				local.R.LeaderCellGroups = append(local.R.LeaderCellGroups, foreign)
+				if foreign.R == nil {
+					foreign.R = &cellGroupR{}
+				}
+				foreign.R.Leader = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadRoles allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadRoles(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.Select("\"roles\".\"id\", \"roles\".\"role_name\", \"a\".\"user_id\""),
+		qm.From("\"roles\""),
+		qm.InnerJoin("\"user_roles\" as \"a\" on \"roles\".\"id\" = \"a\".\"role_id\""),
+		qm.WhereIn("\"a\".\"user_id\" in ?", argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load roles")
+	}
+
+	var resultSlice []*Role
+
+	var localJoinCols []int
+	for results.Next() {
+		one := new(Role)
+		var localJoinCol int
+
+		err = results.Scan(&one.ID, &one.RoleName, &localJoinCol)
+		if err != nil {
+			return errors.Wrap(err, "failed to scan eager loaded results for roles")
+		}
+		if err = results.Err(); err != nil {
+			return errors.Wrap(err, "failed to plebian-bind eager loaded slice roles")
+		}
+
+		resultSlice = append(resultSlice, one)
+		localJoinCols = append(localJoinCols, localJoinCol)
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on roles")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for roles")
+	}
+
+	if len(roleAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Roles = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &roleR{}
+			}
+			foreign.R.Users = append(foreign.R.Users, object)
+		}
+		return nil
+	}
+
+	for i, foreign := range resultSlice {
+		localJoinCol := localJoinCols[i]
+		for _, local := range slice {
+			if local.ID == localJoinCol {
+				local.R.Roles = append(local.R.Roles, foreign)
+				if foreign.R == nil {
+					foreign.R = &roleR{}
+				}
+				foreign.R.Users = append(foreign.R.Users, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadCellLeaderUsers allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadCellLeaderUsers(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.cell_leader_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load users")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice users")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(userAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.CellLeaderUsers = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &userR{}
+			}
+			foreign.R.CellLeader = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.CellLeaderID) {
+				local.R.CellLeaderUsers = append(local.R.CellLeaderUsers, foreign)
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.CellLeader = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetCellLeader of the user to the related item.
+// Sets o.R.CellLeader to related.
+// Adds o to related.R.CellLeaderUsers.
+func (o *User) SetCellLeader(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"users\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"cell_leader_id"}),
+		strmangle.WhereClause("\"", "\"", 2, userPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.CellLeaderID, related.ID)
+	if o.R == nil {
+		o.R = &userR{
+			CellLeader: related,
+		}
+	} else {
+		o.R.CellLeader = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			CellLeaderUsers: UserSlice{o},
+		}
+	} else {
+		related.R.CellLeaderUsers = append(related.R.CellLeaderUsers, o)
+	}
+
+	return nil
+}
+
+// RemoveCellLeader relationship.
+// Sets o.R.CellLeader to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *User) RemoveCellLeader(ctx context.Context, exec boil.ContextExecutor, related *User) error {
+	var err error
+
+	queries.SetScanner(&o.CellLeaderID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("cell_leader_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.CellLeader = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.CellLeaderUsers {
+		if queries.Equal(o.CellLeaderID, ri.CellLeaderID) {
+			continue
+		}
+
+		ln := len(related.R.CellLeaderUsers)
+		if ln > 1 && i < ln-1 {
+			related.R.CellLeaderUsers[i] = related.R.CellLeaderUsers[ln-1]
+		}
+		related.R.CellLeaderUsers = related.R.CellLeaderUsers[:ln-1]
+		break
+	}
+	return nil
+}
+
+// SetOutreach of the user to the related item.
+// Sets o.R.Outreach to related.
+// Adds o to related.R.Users.
+func (o *User) SetOutreach(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Outreach) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"users\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"outreach_id"}),
+		strmangle.WhereClause("\"", "\"", 2, userPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.OutreachID, related.ID)
+	if o.R == nil {
+		o.R = &userR{
+			Outreach: related,
+		}
+	} else {
+		o.R.Outreach = related
+	}
+
+	if related.R == nil {
+		related.R = &outreachR{
+			Users: UserSlice{o},
+		}
+	} else {
+		related.R.Users = append(related.R.Users, o)
+	}
+
+	return nil
+}
+
+// RemoveOutreach relationship.
+// Sets o.R.Outreach to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *User) RemoveOutreach(ctx context.Context, exec boil.ContextExecutor, related *Outreach) error {
+	var err error
+
+	queries.SetScanner(&o.OutreachID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("outreach_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.Outreach = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.Users {
+		if queries.Equal(o.OutreachID, ri.OutreachID) {
+			continue
+		}
+
+		ln := len(related.R.Users)
+		if ln > 1 && i < ln-1 {
+			related.R.Users[i] = related.R.Users[ln-1]
+		}
+		related.R.Users = related.R.Users[:ln-1]
+		break
+	}
+	return nil
+}
+
+// AddCellGroups adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.CellGroups.
+// Sets related.R.Users appropriately.
+func (o *User) AddCellGroups(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*CellGroup) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		}
+	}
+
+	for _, rel := range related {
+		query := "insert into \"cell_group_members\" (\"user_id\", \"cell_group_id\") values ($1, $2)"
+		values := []interface{}{o.ID, rel.ID}
+
+		if boil.IsDebug(ctx) {
+			writer := boil.DebugWriterFrom(ctx)
+			fmt.Fprintln(writer, query)
+			fmt.Fprintln(writer, values)
+		}
+		_, err = exec.ExecContext(ctx, query, values...)
+		if err != nil {
+			return errors.Wrap(err, "failed to insert into join table")
+		}
+	}
+	if o.R == nil {
+		o.R = &userR{
+			CellGroups: related,
+		}
+	} else {
+		o.R.CellGroups = append(o.R.CellGroups, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &cellGroupR{
+				Users: UserSlice{o},
+			}
+		} else {
+			rel.R.Users = append(rel.R.Users, o)
+		}
+	}
+	return nil
+}
+
+// SetCellGroups removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Users's CellGroups accordingly.
+// Replaces o.R.CellGroups with related.
+// Sets related.R.Users's CellGroups accordingly.
+func (o *User) SetCellGroups(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*CellGroup) error {
+	query := "delete from \"cell_group_members\" where \"user_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	removeCellGroupsFromUsersSlice(o, related)
+	if o.R != nil {
+		o.R.CellGroups = nil
+	}
+
+	return o.AddCellGroups(ctx, exec, insert, related...)
+}
+
+// RemoveCellGroups relationships from objects passed in.
+// Removes related items from R.CellGroups (uses pointer comparison, removal does not keep order)
+// Sets related.R.Users.
+func (o *User) RemoveCellGroups(ctx context.Context, exec boil.ContextExecutor, related ...*CellGroup) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	query := fmt.Sprintf(
+		"delete from \"cell_group_members\" where \"user_id\" = $1 and \"cell_group_id\" in (%s)",
+		strmangle.Placeholders(dialect.UseIndexPlaceholders, len(related), 2, 1),
+	)
+	values := []interface{}{o.ID}
+	for _, rel := range related {
+		values = append(values, rel.ID)
+	}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err = exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+	removeCellGroupsFromUsersSlice(o, related)
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.CellGroups {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.CellGroups)
+			if ln > 1 && i < ln-1 {
+				o.R.CellGroups[i] = o.R.CellGroups[ln-1]
+			}
+			o.R.CellGroups = o.R.CellGroups[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+func removeCellGroupsFromUsersSlice(o *User, related []*CellGroup) {
+	for _, rel := range related {
+		if rel.R == nil {
+			continue
+		}
+		for i, ri := range rel.R.Users {
+			if o.ID != ri.ID {
+				continue
+			}
+
+			ln := len(rel.R.Users)
+			if ln > 1 && i < ln-1 {
+				rel.R.Users[i] = rel.R.Users[ln-1]
+			}
+			rel.R.Users = rel.R.Users[:ln-1]
+			break
+		}
+	}
+}
+
+// AddLeaderCellGroups adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.LeaderCellGroups.
+// Sets related.R.Leader appropriately.
+func (o *User) AddLeaderCellGroups(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*CellGroup) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.LeaderID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"cell_groups\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"leader_id"}),
+				strmangle.WhereClause("\"", "\"", 2, cellGroupPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.LeaderID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			LeaderCellGroups: related,
+		}
+	} else {
+		o.R.LeaderCellGroups = append(o.R.LeaderCellGroups, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &cellGroupR{
+				Leader: o,
+			}
+		} else {
+			rel.R.Leader = o
+		}
+	}
+	return nil
+}
+
+// SetLeaderCellGroups removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Leader's LeaderCellGroups accordingly.
+// Replaces o.R.LeaderCellGroups with related.
+// Sets related.R.Leader's LeaderCellGroups accordingly.
+func (o *User) SetLeaderCellGroups(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*CellGroup) error {
+	query := "update \"cell_groups\" set \"leader_id\" = null where \"leader_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.LeaderCellGroups {
+			queries.SetScanner(&rel.LeaderID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Leader = nil
+		}
+		o.R.LeaderCellGroups = nil
+	}
+
+	return o.AddLeaderCellGroups(ctx, exec, insert, related...)
+}
+
+// RemoveLeaderCellGroups relationships from objects passed in.
+// Removes related items from R.LeaderCellGroups (uses pointer comparison, removal does not keep order)
+// Sets related.R.Leader.
+func (o *User) RemoveLeaderCellGroups(ctx context.Context, exec boil.ContextExecutor, related ...*CellGroup) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.LeaderID, nil)
+		if rel.R != nil {
+			rel.R.Leader = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("leader_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.LeaderCellGroups {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.LeaderCellGroups)
+			if ln > 1 && i < ln-1 {
+				o.R.LeaderCellGroups[i] = o.R.LeaderCellGroups[ln-1]
+			}
+			o.R.LeaderCellGroups = o.R.LeaderCellGroups[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+// AddRoles adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.Roles.
+// Sets related.R.Users appropriately.
+func (o *User) AddRoles(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Role) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		}
+	}
+
+	for _, rel := range related {
+		query := "insert into \"user_roles\" (\"user_id\", \"role_id\") values ($1, $2)"
+		values := []interface{}{o.ID, rel.ID}
+
+		if boil.IsDebug(ctx) {
+			writer := boil.DebugWriterFrom(ctx)
+			fmt.Fprintln(writer, query)
+			fmt.Fprintln(writer, values)
+		}
+		_, err = exec.ExecContext(ctx, query, values...)
+		if err != nil {
+			return errors.Wrap(err, "failed to insert into join table")
+		}
+	}
+	if o.R == nil {
+		o.R = &userR{
+			Roles: related,
+		}
+	} else {
+		o.R.Roles = append(o.R.Roles, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &roleR{
+				Users: UserSlice{o},
+			}
+		} else {
+			rel.R.Users = append(rel.R.Users, o)
+		}
+	}
+	return nil
+}
+
+// SetRoles removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Users's Roles accordingly.
+// Replaces o.R.Roles with related.
+// Sets related.R.Users's Roles accordingly.
+func (o *User) SetRoles(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Role) error {
+	query := "delete from \"user_roles\" where \"user_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	removeRolesFromUsersSlice(o, related)
+	if o.R != nil {
+		o.R.Roles = nil
+	}
+
+	return o.AddRoles(ctx, exec, insert, related...)
+}
+
+// RemoveRoles relationships from objects passed in.
+// Removes related items from R.Roles (uses pointer comparison, removal does not keep order)
+// Sets related.R.Users.
+func (o *User) RemoveRoles(ctx context.Context, exec boil.ContextExecutor, related ...*Role) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	query := fmt.Sprintf(
+		"delete from \"user_roles\" where \"user_id\" = $1 and \"role_id\" in (%s)",
+		strmangle.Placeholders(dialect.UseIndexPlaceholders, len(related), 2, 1),
+	)
+	values := []interface{}{o.ID}
+	for _, rel := range related {
+		values = append(values, rel.ID)
+	}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err = exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+	removeRolesFromUsersSlice(o, related)
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.Roles {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.Roles)
+			if ln > 1 && i < ln-1 {
+				o.R.Roles[i] = o.R.Roles[ln-1]
+			}
+			o.R.Roles = o.R.Roles[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+func removeRolesFromUsersSlice(o *User, related []*Role) {
+	for _, rel := range related {
+		if rel.R == nil {
+			continue
+		}
+		for i, ri := range rel.R.Users {
+			if o.ID != ri.ID {
+				continue
+			}
+
+			ln := len(rel.R.Users)
+			if ln > 1 && i < ln-1 {
+				rel.R.Users[i] = rel.R.Users[ln-1]
+			}
+			rel.R.Users = rel.R.Users[:ln-1]
+			break
+		}
+	}
+}
+
+// AddCellLeaderUsers adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.CellLeaderUsers.
+// Sets related.R.CellLeader appropriately.
+func (o *User) AddCellLeaderUsers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*User) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.CellLeaderID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"users\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"cell_leader_id"}),
+				strmangle.WhereClause("\"", "\"", 2, userPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.CellLeaderID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			CellLeaderUsers: related,
+		}
+	} else {
+		o.R.CellLeaderUsers = append(o.R.CellLeaderUsers, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &userR{
+				CellLeader: o,
+			}
+		} else {
+			rel.R.CellLeader = o
+		}
+	}
+	return nil
+}
+
+// SetCellLeaderUsers removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.CellLeader's CellLeaderUsers accordingly.
+// Replaces o.R.CellLeaderUsers with related.
+// Sets related.R.CellLeader's CellLeaderUsers accordingly.
+func (o *User) SetCellLeaderUsers(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*User) error {
+	query := "update \"users\" set \"cell_leader_id\" = null where \"cell_leader_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.CellLeaderUsers {
+			queries.SetScanner(&rel.CellLeaderID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.CellLeader = nil
+		}
+		o.R.CellLeaderUsers = nil
+	}
+
+	return o.AddCellLeaderUsers(ctx, exec, insert, related...)
+}
+
+// RemoveCellLeaderUsers relationships from objects passed in.
+// Removes related items from R.CellLeaderUsers (uses pointer comparison, removal does not keep order)
+// Sets related.R.CellLeader.
+func (o *User) RemoveCellLeaderUsers(ctx context.Context, exec boil.ContextExecutor, related ...*User) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.CellLeaderID, nil)
+		if rel.R != nil {
+			rel.R.CellLeader = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("cell_leader_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.CellLeaderUsers {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.CellLeaderUsers)
+			if ln > 1 && i < ln-1 {
+				o.R.CellLeaderUsers[i] = o.R.CellLeaderUsers[ln-1]
+			}
+			o.R.CellLeaderUsers = o.R.CellLeaderUsers[:ln-1]
+			break
+		}
+	}
+
+	return nil
 }
 
 // Users retrieves all the records using an executor.

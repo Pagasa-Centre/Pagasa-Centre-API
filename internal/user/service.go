@@ -8,29 +8,29 @@ import (
 	"go.uber.org/zap"
 )
 
-type Service interface {
-	RegisterNewUser(ctx context.Context, user domain.User) error
+type UserService interface {
+	RegisterNewUser(ctx context.Context, user *domain.User) error
 }
 
-type service struct {
+type userservice struct {
 	logger   zap.SugaredLogger
-	userRepo userStorage.Repository
+	userRepo userStorage.UserRepository
 }
 
 func NewService(
 	logger zap.SugaredLogger,
-	userRepo userStorage.Repository,
-) Service {
-	return &service{
+	userRepo userStorage.UserRepository,
+) UserService {
+	return &userservice{
 		logger:   logger,
 		userRepo: userRepo,
 	}
 }
 
-func (s *service) RegisterNewUser(ctx context.Context, user domain.User) error {
-	s.logger.Infow("Registering new user", "context", ctx)
+func (s *userservice) RegisterNewUser(ctx context.Context, user *domain.User) error {
+	s.logger.Infow("Registering new user")
 
-	userEntity := mappers.ToUserEntity(user)
+	userEntity := mappers.ToUserEntity(*user)
 
 	err := s.userRepo.InsertUser(ctx, userEntity)
 	if err != nil {

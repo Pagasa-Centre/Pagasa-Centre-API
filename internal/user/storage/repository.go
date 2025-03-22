@@ -8,21 +8,21 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-type Repository interface {
+type UserRepository interface {
 	InsertUser(ctx context.Context, user *entity.User) error
 }
 
-type repository struct {
+type userRepository struct {
 	db *sqlx.DB
 }
 
-func NewRepository(db *sqlx.DB) Repository {
-	return &repository{
+func NewUserRepository(db *sqlx.DB) UserRepository {
+	return &userRepository{
 		db: db,
 	}
 }
 
-func (r *repository) InsertUser(ctx context.Context, user *entity.User) error {
+func (r *userRepository) InsertUser(ctx context.Context, user *entity.User) error {
 	if err := user.Insert(ctx, r.db, boil.Infer()); err != nil {
 		return fmt.Errorf("failed inserting user entity: %w", err)
 	}

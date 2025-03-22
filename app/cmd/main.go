@@ -33,7 +33,7 @@ func main() {
 		logger.Fatalf("failed to connect to database: %v", err)
 	}
 
-	userRepo := userStorage.NewRepository(db)
+	userRepo := userStorage.NewUserRepository(db)
 	userService := user.NewService(*logger, userRepo)
 
 	mux := router.New(*logger, userService)

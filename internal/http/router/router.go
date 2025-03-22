@@ -12,7 +12,7 @@ import (
 
 func New(
 	logger zap.SugaredLogger,
-	userService userService.Service,
+	userService userService.UserService,
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
@@ -26,7 +26,7 @@ func New(
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 
-			userHandler := user.NewHandler(logger, userService)
+			userHandler := user.NewUserHandler(logger, userService)
 
 			r.Route(
 				"/user", func(r chi.Router) {

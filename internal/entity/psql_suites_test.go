@@ -6,7 +6,15 @@ package entity
 import "testing"
 
 func TestUpsert(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsUpsert)
+
 	t.Run("GooseDBVersions", testGooseDBVersionsUpsert)
+
+	t.Run("Ministries", testMinistriesUpsert)
+
+	t.Run("Outreaches", testOutreachesUpsert)
+
+	t.Run("Roles", testRolesUpsert)
 
 	t.Run("Users", testUsersUpsert)
 }

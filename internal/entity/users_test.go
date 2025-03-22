@@ -494,6 +494,1626 @@ func testUsersInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testUserToManyCellGroups(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c CellGroup
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, cellGroupDBTypes, false, cellGroupColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, cellGroupDBTypes, false, cellGroupColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tx.Exec("insert into \"cell_group_members\" (\"user_id\", \"cell_group_id\") values ($1, $2)", a.ID, b.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = tx.Exec("insert into \"cell_group_members\" (\"user_id\", \"cell_group_id\") values ($1, $2)", a.ID, c.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.CellGroups().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.ID == b.ID {
+			bFound = true
+		}
+		if v.ID == c.ID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := UserSlice{&a}
+	if err = a.L.LoadCellGroups(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.CellGroups); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.CellGroups = nil
+	if err = a.L.LoadCellGroups(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.CellGroups); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testUserToManyLeaderCellGroups(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c CellGroup
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, cellGroupDBTypes, false, cellGroupColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, cellGroupDBTypes, false, cellGroupColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&b.LeaderID, a.ID)
+	queries.Assign(&c.LeaderID, a.ID)
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.LeaderCellGroups().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if queries.Equal(v.LeaderID, b.LeaderID) {
+			bFound = true
+		}
+		if queries.Equal(v.LeaderID, c.LeaderID) {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := UserSlice{&a}
+	if err = a.L.LoadLeaderCellGroups(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.LeaderCellGroups); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.LeaderCellGroups = nil
+	if err = a.L.LoadLeaderCellGroups(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.LeaderCellGroups); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testUserToManyRoles(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c Role
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, roleDBTypes, false, roleColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, roleDBTypes, false, roleColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = tx.Exec("insert into \"user_roles\" (\"user_id\", \"role_id\") values ($1, $2)", a.ID, b.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = tx.Exec("insert into \"user_roles\" (\"user_id\", \"role_id\") values ($1, $2)", a.ID, c.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.Roles().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.ID == b.ID {
+			bFound = true
+		}
+		if v.ID == c.ID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := UserSlice{&a}
+	if err = a.L.LoadRoles(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Roles); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Roles = nil
+	if err = a.L.LoadRoles(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Roles); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testUserToManyCellLeaderUsers(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, userDBTypes, false, userColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, userDBTypes, false, userColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&b.CellLeaderID, a.ID)
+	queries.Assign(&c.CellLeaderID, a.ID)
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.CellLeaderUsers().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if queries.Equal(v.CellLeaderID, b.CellLeaderID) {
+			bFound = true
+		}
+		if queries.Equal(v.CellLeaderID, c.CellLeaderID) {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := UserSlice{&a}
+	if err = a.L.LoadCellLeaderUsers(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.CellLeaderUsers); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.CellLeaderUsers = nil
+	if err = a.L.LoadCellLeaderUsers(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.CellLeaderUsers); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testUserToManyAddOpCellGroups(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e CellGroup
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*CellGroup{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, cellGroupDBTypes, false, strmangle.SetComplement(cellGroupPrimaryKeyColumns, cellGroupColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*CellGroup{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddCellGroups(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if first.R.Users[0] != &a {
+			t.Error("relationship was not added properly to the slice")
+		}
+		if second.R.Users[0] != &a {
+			t.Error("relationship was not added properly to the slice")
+		}
+
+		if a.R.CellGroups[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.CellGroups[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.CellGroups().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testUserToManySetOpCellGroups(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e CellGroup
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*CellGroup{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, cellGroupDBTypes, false, strmangle.SetComplement(cellGroupPrimaryKeyColumns, cellGroupColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetCellGroups(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.CellGroups().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetCellGroups(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.CellGroups().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	// The following checks cannot be implemented since we have no handle
+	// to these when we call Set(). Leaving them here as wishful thinking
+	// and to let people know there's dragons.
+	//
+	// if len(b.R.Users) != 0 {
+	// 	t.Error("relationship was not removed properly from the slice")
+	// }
+	// if len(c.R.Users) != 0 {
+	// 	t.Error("relationship was not removed properly from the slice")
+	// }
+	if d.R.Users[0] != &a {
+		t.Error("relationship was not added properly to the slice")
+	}
+	if e.R.Users[0] != &a {
+		t.Error("relationship was not added properly to the slice")
+	}
+
+	if a.R.CellGroups[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.CellGroups[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testUserToManyRemoveOpCellGroups(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e CellGroup
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*CellGroup{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, cellGroupDBTypes, false, strmangle.SetComplement(cellGroupPrimaryKeyColumns, cellGroupColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddCellGroups(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.CellGroups().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveCellGroups(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.CellGroups().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if len(b.R.Users) != 0 {
+		t.Error("relationship was not removed properly from the slice")
+	}
+	if len(c.R.Users) != 0 {
+		t.Error("relationship was not removed properly from the slice")
+	}
+	if d.R.Users[0] != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.Users[0] != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if len(a.R.CellGroups) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.CellGroups[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.CellGroups[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
+func testUserToManyAddOpLeaderCellGroups(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e CellGroup
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*CellGroup{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, cellGroupDBTypes, false, strmangle.SetComplement(cellGroupPrimaryKeyColumns, cellGroupColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*CellGroup{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddLeaderCellGroups(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if !queries.Equal(a.ID, first.LeaderID) {
+			t.Error("foreign key was wrong value", a.ID, first.LeaderID)
+		}
+		if !queries.Equal(a.ID, second.LeaderID) {
+			t.Error("foreign key was wrong value", a.ID, second.LeaderID)
+		}
+
+		if first.R.Leader != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Leader != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.LeaderCellGroups[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.LeaderCellGroups[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.LeaderCellGroups().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testUserToManySetOpLeaderCellGroups(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e CellGroup
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*CellGroup{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, cellGroupDBTypes, false, strmangle.SetComplement(cellGroupPrimaryKeyColumns, cellGroupColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetLeaderCellGroups(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.LeaderCellGroups().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetLeaderCellGroups(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.LeaderCellGroups().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.LeaderID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.LeaderID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if !queries.Equal(a.ID, d.LeaderID) {
+		t.Error("foreign key was wrong value", a.ID, d.LeaderID)
+	}
+	if !queries.Equal(a.ID, e.LeaderID) {
+		t.Error("foreign key was wrong value", a.ID, e.LeaderID)
+	}
+
+	if b.R.Leader != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Leader != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Leader != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.Leader != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.LeaderCellGroups[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.LeaderCellGroups[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testUserToManyRemoveOpLeaderCellGroups(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e CellGroup
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*CellGroup{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, cellGroupDBTypes, false, strmangle.SetComplement(cellGroupPrimaryKeyColumns, cellGroupColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddLeaderCellGroups(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.LeaderCellGroups().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveLeaderCellGroups(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.LeaderCellGroups().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.LeaderID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.LeaderID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.Leader != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Leader != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Leader != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.Leader != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.LeaderCellGroups) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.LeaderCellGroups[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.LeaderCellGroups[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
+func testUserToManyAddOpRoles(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Role
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Role{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, roleDBTypes, false, strmangle.SetComplement(rolePrimaryKeyColumns, roleColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Role{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddRoles(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if first.R.Users[0] != &a {
+			t.Error("relationship was not added properly to the slice")
+		}
+		if second.R.Users[0] != &a {
+			t.Error("relationship was not added properly to the slice")
+		}
+
+		if a.R.Roles[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Roles[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.Roles().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testUserToManySetOpRoles(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Role
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Role{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, roleDBTypes, false, strmangle.SetComplement(rolePrimaryKeyColumns, roleColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetRoles(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.Roles().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetRoles(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.Roles().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	// The following checks cannot be implemented since we have no handle
+	// to these when we call Set(). Leaving them here as wishful thinking
+	// and to let people know there's dragons.
+	//
+	// if len(b.R.Users) != 0 {
+	// 	t.Error("relationship was not removed properly from the slice")
+	// }
+	// if len(c.R.Users) != 0 {
+	// 	t.Error("relationship was not removed properly from the slice")
+	// }
+	if d.R.Users[0] != &a {
+		t.Error("relationship was not added properly to the slice")
+	}
+	if e.R.Users[0] != &a {
+		t.Error("relationship was not added properly to the slice")
+	}
+
+	if a.R.Roles[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.Roles[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testUserToManyRemoveOpRoles(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Role
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Role{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, roleDBTypes, false, strmangle.SetComplement(rolePrimaryKeyColumns, roleColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddRoles(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.Roles().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveRoles(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.Roles().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if len(b.R.Users) != 0 {
+		t.Error("relationship was not removed properly from the slice")
+	}
+	if len(c.R.Users) != 0 {
+		t.Error("relationship was not removed properly from the slice")
+	}
+	if d.R.Users[0] != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.Users[0] != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if len(a.R.Roles) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.Roles[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.Roles[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
+func testUserToManyAddOpCellLeaderUsers(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*User{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*User{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddCellLeaderUsers(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if !queries.Equal(a.ID, first.CellLeaderID) {
+			t.Error("foreign key was wrong value", a.ID, first.CellLeaderID)
+		}
+		if !queries.Equal(a.ID, second.CellLeaderID) {
+			t.Error("foreign key was wrong value", a.ID, second.CellLeaderID)
+		}
+
+		if first.R.CellLeader != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.CellLeader != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.CellLeaderUsers[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.CellLeaderUsers[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.CellLeaderUsers().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testUserToManySetOpCellLeaderUsers(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*User{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetCellLeaderUsers(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.CellLeaderUsers().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetCellLeaderUsers(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.CellLeaderUsers().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.CellLeaderID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.CellLeaderID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if !queries.Equal(a.ID, d.CellLeaderID) {
+		t.Error("foreign key was wrong value", a.ID, d.CellLeaderID)
+	}
+	if !queries.Equal(a.ID, e.CellLeaderID) {
+		t.Error("foreign key was wrong value", a.ID, e.CellLeaderID)
+	}
+
+	if b.R.CellLeader != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.CellLeader != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.CellLeader != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.CellLeader != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.CellLeaderUsers[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.CellLeaderUsers[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testUserToManyRemoveOpCellLeaderUsers(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*User{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddCellLeaderUsers(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.CellLeaderUsers().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveCellLeaderUsers(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.CellLeaderUsers().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.CellLeaderID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.CellLeaderID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.CellLeader != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.CellLeader != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.CellLeader != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.CellLeader != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.CellLeaderUsers) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.CellLeaderUsers[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.CellLeaderUsers[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
+func testUserToOneUserUsingCellLeader(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local User
+	var foreign User
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, userDBTypes, false, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&local.CellLeaderID, foreign.ID)
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.CellLeader().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !queries.Equal(check.ID, foreign.ID) {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	ranAfterSelectHook := false
+	AddUserHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *User) error {
+		ranAfterSelectHook = true
+		return nil
+	})
+
+	slice := UserSlice{&local}
+	if err = local.L.LoadCellLeader(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.CellLeader == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.CellLeader = nil
+	if err = local.L.LoadCellLeader(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.CellLeader == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	if !ranAfterSelectHook {
+		t.Error("failed to run AfterSelect hook for relationship")
+	}
+}
+
+func testUserToOneOutreachUsingOutreach(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local User
+	var foreign Outreach
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, outreachDBTypes, false, outreachColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Outreach struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&local.OutreachID, foreign.ID)
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.Outreach().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !queries.Equal(check.ID, foreign.ID) {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	ranAfterSelectHook := false
+	AddOutreachHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *Outreach) error {
+		ranAfterSelectHook = true
+		return nil
+	})
+
+	slice := UserSlice{&local}
+	if err = local.L.LoadOutreach(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Outreach == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Outreach = nil
+	if err = local.L.LoadOutreach(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Outreach == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	if !ranAfterSelectHook {
+		t.Error("failed to run AfterSelect hook for relationship")
+	}
+}
+
+func testUserToOneSetOpUserUsingCellLeader(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*User{&b, &c} {
+		err = a.SetCellLeader(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.CellLeader != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.CellLeaderUsers[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if !queries.Equal(a.CellLeaderID, x.ID) {
+			t.Error("foreign key was wrong value", a.CellLeaderID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.CellLeaderID))
+		reflect.Indirect(reflect.ValueOf(&a.CellLeaderID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if !queries.Equal(a.CellLeaderID, x.ID) {
+			t.Error("foreign key was wrong value", a.CellLeaderID, x.ID)
+		}
+	}
+}
+
+func testUserToOneRemoveOpUserUsingCellLeader(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetCellLeader(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveCellLeader(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.CellLeader().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.CellLeader != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.CellLeaderID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.CellLeaderUsers) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
+func testUserToOneSetOpOutreachUsingOutreach(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c Outreach
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, outreachDBTypes, false, strmangle.SetComplement(outreachPrimaryKeyColumns, outreachColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, outreachDBTypes, false, strmangle.SetComplement(outreachPrimaryKeyColumns, outreachColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Outreach{&b, &c} {
+		err = a.SetOutreach(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Outreach != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Users[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if !queries.Equal(a.OutreachID, x.ID) {
+			t.Error("foreign key was wrong value", a.OutreachID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.OutreachID))
+		reflect.Indirect(reflect.ValueOf(&a.OutreachID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if !queries.Equal(a.OutreachID, x.ID) {
+			t.Error("foreign key was wrong value", a.OutreachID, x.ID)
+		}
+	}
+}
+
+func testUserToOneRemoveOpOutreachUsingOutreach(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b Outreach
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, outreachDBTypes, false, strmangle.SetComplement(outreachPrimaryKeyColumns, outreachColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetOutreach(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveOutreach(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.Outreach().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Outreach != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.OutreachID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.Users) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
 func testUsersReload(t *testing.T) {
 	t.Parallel()
 
@@ -568,7 +2188,7 @@ func testUsersSelect(t *testing.T) {
 }
 
 var (
-	userDBTypes = map[string]string{`ID`: `integer`, `FirstName`: `character varying`, `LastName`: `character varying`, `Email`: `character varying`, `HashedPassword`: `character varying`, `CreatedAt`: `timestamp without time zone`}
+	userDBTypes = map[string]string{`ID`: `integer`, `FirstName`: `character varying`, `LastName`: `character varying`, `Email`: `character varying`, `HashedPassword`: `character varying`, `Birthday`: `date`, `Phone`: `character varying`, `OutreachID`: `integer`, `CellLeaderID`: `integer`, `CreatedAt`: `timestamp without time zone`}
 	_           = bytes.MinRead
 )
 

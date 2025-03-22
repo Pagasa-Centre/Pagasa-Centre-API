@@ -12,88 +12,160 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
+	t.Run("CellGroups", testCellGroups)
 	t.Run("GooseDBVersions", testGooseDBVersions)
+	t.Run("Ministries", testMinistries)
+	t.Run("Outreaches", testOutreaches)
+	t.Run("Roles", testRoles)
 	t.Run("Users", testUsers)
 }
 
 func TestDelete(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsDelete)
 	t.Run("GooseDBVersions", testGooseDBVersionsDelete)
+	t.Run("Ministries", testMinistriesDelete)
+	t.Run("Outreaches", testOutreachesDelete)
+	t.Run("Roles", testRolesDelete)
 	t.Run("Users", testUsersDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsQueryDeleteAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsQueryDeleteAll)
+	t.Run("Ministries", testMinistriesQueryDeleteAll)
+	t.Run("Outreaches", testOutreachesQueryDeleteAll)
+	t.Run("Roles", testRolesQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsSliceDeleteAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsSliceDeleteAll)
+	t.Run("Ministries", testMinistriesSliceDeleteAll)
+	t.Run("Outreaches", testOutreachesSliceDeleteAll)
+	t.Run("Roles", testRolesSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsExists)
 	t.Run("GooseDBVersions", testGooseDBVersionsExists)
+	t.Run("Ministries", testMinistriesExists)
+	t.Run("Outreaches", testOutreachesExists)
+	t.Run("Roles", testRolesExists)
 	t.Run("Users", testUsersExists)
 }
 
 func TestFind(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsFind)
 	t.Run("GooseDBVersions", testGooseDBVersionsFind)
+	t.Run("Ministries", testMinistriesFind)
+	t.Run("Outreaches", testOutreachesFind)
+	t.Run("Roles", testRolesFind)
 	t.Run("Users", testUsersFind)
 }
 
 func TestBind(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsBind)
 	t.Run("GooseDBVersions", testGooseDBVersionsBind)
+	t.Run("Ministries", testMinistriesBind)
+	t.Run("Outreaches", testOutreachesBind)
+	t.Run("Roles", testRolesBind)
 	t.Run("Users", testUsersBind)
 }
 
 func TestOne(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsOne)
 	t.Run("GooseDBVersions", testGooseDBVersionsOne)
+	t.Run("Ministries", testMinistriesOne)
+	t.Run("Outreaches", testOutreachesOne)
+	t.Run("Roles", testRolesOne)
 	t.Run("Users", testUsersOne)
 }
 
 func TestAll(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsAll)
+	t.Run("Ministries", testMinistriesAll)
+	t.Run("Outreaches", testOutreachesAll)
+	t.Run("Roles", testRolesAll)
 	t.Run("Users", testUsersAll)
 }
 
 func TestCount(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsCount)
 	t.Run("GooseDBVersions", testGooseDBVersionsCount)
+	t.Run("Ministries", testMinistriesCount)
+	t.Run("Outreaches", testOutreachesCount)
+	t.Run("Roles", testRolesCount)
 	t.Run("Users", testUsersCount)
 }
 
 func TestHooks(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsHooks)
 	t.Run("GooseDBVersions", testGooseDBVersionsHooks)
+	t.Run("Ministries", testMinistriesHooks)
+	t.Run("Outreaches", testOutreachesHooks)
+	t.Run("Roles", testRolesHooks)
 	t.Run("Users", testUsersHooks)
 }
 
 func TestInsert(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsInsert)
+	t.Run("CellGroups", testCellGroupsInsertWhitelist)
 	t.Run("GooseDBVersions", testGooseDBVersionsInsert)
 	t.Run("GooseDBVersions", testGooseDBVersionsInsertWhitelist)
+	t.Run("Ministries", testMinistriesInsert)
+	t.Run("Ministries", testMinistriesInsertWhitelist)
+	t.Run("Outreaches", testOutreachesInsert)
+	t.Run("Outreaches", testOutreachesInsertWhitelist)
+	t.Run("Roles", testRolesInsert)
+	t.Run("Roles", testRolesInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
 }
 
 func TestReload(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsReload)
 	t.Run("GooseDBVersions", testGooseDBVersionsReload)
+	t.Run("Ministries", testMinistriesReload)
+	t.Run("Outreaches", testOutreachesReload)
+	t.Run("Roles", testRolesReload)
 	t.Run("Users", testUsersReload)
 }
 
 func TestReloadAll(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsReloadAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsReloadAll)
+	t.Run("Ministries", testMinistriesReloadAll)
+	t.Run("Outreaches", testOutreachesReloadAll)
+	t.Run("Roles", testRolesReloadAll)
 	t.Run("Users", testUsersReloadAll)
 }
 
 func TestSelect(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsSelect)
 	t.Run("GooseDBVersions", testGooseDBVersionsSelect)
+	t.Run("Ministries", testMinistriesSelect)
+	t.Run("Outreaches", testOutreachesSelect)
+	t.Run("Roles", testRolesSelect)
 	t.Run("Users", testUsersSelect)
 }
 
 func TestUpdate(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsUpdate)
 	t.Run("GooseDBVersions", testGooseDBVersionsUpdate)
+	t.Run("Ministries", testMinistriesUpdate)
+	t.Run("Outreaches", testOutreachesUpdate)
+	t.Run("Roles", testRolesUpdate)
 	t.Run("Users", testUsersUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
+	t.Run("CellGroups", testCellGroupsSliceUpdateAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsSliceUpdateAll)
+	t.Run("Ministries", testMinistriesSliceUpdateAll)
+	t.Run("Outreaches", testOutreachesSliceUpdateAll)
+	t.Run("Roles", testRolesSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
 }

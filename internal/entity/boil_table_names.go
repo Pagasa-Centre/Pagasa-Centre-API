@@ -4,9 +4,21 @@
 package entity
 
 var TableNames = struct {
-	GooseDBVersion string
-	Users          string
+	CellGroupMembers string
+	CellGroups       string
+	GooseDBVersion   string
+	Ministries       string
+	Outreaches       string
+	Roles            string
+	UserRoles        string
+	Users            string
 }{
-	GooseDBVersion: "goose_db_version",
-	Users:          "users",
+	CellGroupMembers: "cell_group_members",
+	CellGroups:       "cell_groups",
+	GooseDBVersion:   "goose_db_version",
+	Ministries:       "ministries",
+	Outreaches:       "outreaches",
+	Roles:            "roles",
+	UserRoles:        "user_roles",
+	Users:            "users",
 }
