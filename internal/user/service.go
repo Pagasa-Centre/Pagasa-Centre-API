@@ -18,6 +18,8 @@ type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	RegisterNewUser(ctx context.Context, user *domain.User) (*int, error)
 	GenerateToken(user *entity.User) (string, error)
+	UpdateUserDetails(ctx context.Context, user *entity.User) (*entity.User, error)
+	GetUserById(ctx context.Context, id int) (*entity.User, error)
 }
 
 type userService struct {
@@ -80,4 +82,27 @@ func (s *userService) GenerateToken(user *entity.User) (string, error) {
 	}
 
 	return signedToken, nil
+}
+
+func (s *userService) GetUserById(ctx context.Context, id int) (*entity.User, error) {
+	s.logger.Infow("Getting user by id")
+
+	user, err := s.userRepo.GetUserById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// UpdateUserDetails updates a user in the database.
+func (s *userService) UpdateUserDetails(ctx context.Context, user *entity.User) (*entity.User, error) {
+	s.logger.Infow("Updating user details")
+
+	user, err := s.userRepo.UpdateUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

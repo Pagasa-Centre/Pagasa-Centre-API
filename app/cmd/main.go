@@ -43,7 +43,7 @@ func main() {
 	rolesRepo := rolesStorage.NewRolesRepository(db)
 	rolesService := roles.NewRoleService(*logger, rolesRepo)
 
-	mux := router.New(*logger, userService, rolesService)
+	mux := router.New(*logger, userService, rolesService, cfg.JwtSecret)
 
 	logger.Infof("Server starting on port %s", cfg.Port)
 
