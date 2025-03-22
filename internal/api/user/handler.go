@@ -122,7 +122,7 @@ func (h *userHandler) Login() http.HandlerFunc {
 			return
 		}
 
-		userDomain, err := h.userService.GetUserByEmail(ctx, req.Email)
+		userEntity, err := h.userService.GetUserByEmail(ctx, req.Email)
 		if err != nil {
 			h.logger.Errorw("failed to find user", "error", err)
 			// For security, use the same error for "not found" or "wrong password"
@@ -132,7 +132,7 @@ func (h *userHandler) Login() http.HandlerFunc {
 		}
 
 		// Compare the provided password with the stored hashed password.
-		err = bcrypt.CompareHashAndPassword([]byte(userDomain.HashedPassword), []byte(req.Password))
+		err = bcrypt.CompareHashAndPassword([]byte(userEntity.HashedPassword), []byte(req.Password))
 		if err != nil {
 			h.logger.Errorw("password mismatch", "error", err)
 			render.Json(w, http.StatusUnauthorized, "invalid credentials")
@@ -141,7 +141,7 @@ func (h *userHandler) Login() http.HandlerFunc {
 		}
 
 		// Generate an authentication token (e.g., JWT)
-		token, err := h.userService.GenerateToken(userDomain)
+		token, err := h.userService.GenerateToken(userEntity)
 		if err != nil {
 			h.logger.Errorw("failed to generate token", "error", err)
 			render.Json(w, http.StatusInternalServerError, "internal server error")
@@ -149,8 +149,13 @@ func (h *userHandler) Login() http.HandlerFunc {
 			return
 		}
 
+		resp := dto.ToResponse(userEntity)
+
 		// Step 2e: Return the token in the response.
-		render.Json(w, http.StatusOK, map[string]string{"token": token})
+		render.Json(w, http.StatusOK, map[string]interface{}{
+			"token":        token,
+			"user-details": resp,
+		})
 	}
 }
 

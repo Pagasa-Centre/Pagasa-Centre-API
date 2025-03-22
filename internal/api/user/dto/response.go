@@ -4,7 +4,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 )
 
-type UpdateDetailsResponse struct {
+type UserDetailsResponse struct {
 	FirstName    string `json:"first_name,omitempty"`
 	LastName     string `json:"last_name,omitempty"`
 	Email        string `json:"email,omitempty" validate:"omitempty,email"`
@@ -14,7 +14,7 @@ type UpdateDetailsResponse struct {
 	OutreachID   int    `json:"outreach_id,omitempty"`
 }
 
-func ToResponse(user *entity.User) (update UpdateDetailsResponse) {
+func ToResponse(user *entity.User) UserDetailsResponse {
 	var birthday string
 	if user.Birthday.Valid {
 		// Format the birthday as YYYY-MM-DD
@@ -39,7 +39,7 @@ func ToResponse(user *entity.User) (update UpdateDetailsResponse) {
 		outreachID = user.OutreachID.Int
 	}
 
-	return UpdateDetailsResponse{
+	return UserDetailsResponse{
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		Email:        user.Email,
