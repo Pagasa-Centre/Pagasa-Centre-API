@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	commonDb "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commonlibrary/db"
 	"log"
 	"net/http"
 
@@ -36,9 +37,12 @@ func main() {
 	if err != nil {
 		logger.Fatalf("failed to connect to database: %v", err)
 	}
+	if err := commonDb.RunMigrations(db.DB); err != nil {
+		logger.Fatalf("failed to run migrations: %v", err)
+	}
 
 	userRepo := userStorage.NewUserRepository(db)
-	userService := user.NewService(*logger, userRepo, cfg.JwtSecret)
+	userService := user.NewUserService(*logger, userRepo, cfg.JwtSecret)
 
 	rolesRepo := rolesStorage.NewRolesRepository(db)
 	rolesService := roles.NewRoleService(*logger, rolesRepo)

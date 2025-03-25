@@ -13,7 +13,6 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./migrations:/migrations  # mount for goose migrations
     networks:
       - pagasa-network
 
@@ -29,21 +28,6 @@ services:
       - db
     ports:
       - "8080:8080"
-    networks:
-      - pagasa-network
-
-  goose:
-    image: kukymbr/goose-docker:3.24.1
-    container_name: goose_migrator
-    depends_on:
-      - db
-    entrypoint: >
-      /bin/sh -c "
-        sleep 5 &&
-        goose -dir=/migrations postgres 'postgres://pcappuser:PagasaWarrior23@db:5432/pagasa-centre-db?sslmode=disable' up
-      "
-    volumes:
-      - ./migrations:/migrations
     networks:
       - pagasa-network
 

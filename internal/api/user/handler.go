@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commonlibrary/context"
 	"net/http"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/request"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commoncontext"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
@@ -172,7 +172,7 @@ func (h *userHandler) UpdateDetails() http.HandlerFunc {
 		}
 
 		// Get the user ID from the context
-		userID, err := commoncontext.GetUserID(ctx)
+		userID, err := context.GetUserID(ctx)
 		if err != nil {
 			h.logger.Errorw("user ID not found in session", "error", err)
 			render.Json(w, http.StatusUnauthorized, "unauthorized")
@@ -214,7 +214,7 @@ func (h *userHandler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		userID, err := commoncontext.GetUserID(ctx)
+		userID, err := context.GetUserID(ctx)
 		if err != nil {
 			h.logger.Errorw("user ID not found in session", "error", err)
 			render.Json(w, http.StatusUnauthorized, "unauthorized")

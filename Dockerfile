@@ -20,6 +20,7 @@ WORKDIR /root/
 COPY --from=builder /app/server .
 COPY --from=builder /app/internal/config ./internal/config
 COPY --from=builder /app/.env .env
+COPY --from=builder /app/migrations ./migrations
 
 EXPOSE 8080
 
