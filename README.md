@@ -1,12 +1,18 @@
 # Pagasa-Centre-Mobile-App-API
 Backend for the Pag-Asa Centre mobile app
 
-## Setup
+## How to run
 
-To run the service locally, simply run:
+### Prerequisites
 
-```shell
+- Docker installed on your machine.
+- Git installed on your machine.
+
+### How to run the whole application
+
+1. Clone the repository
+2. Open a terminal and run the following command. Make sure you're in the root of the repository:
+
+```
 docker-compose up --build
 ```
-
-You may want to install some extra dependencies, by running `make deps`.
