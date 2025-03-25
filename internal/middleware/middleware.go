@@ -2,12 +2,11 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commonlibrary/context"
 	"net/http"
 	"strings"
 
 	"github.com/golang-jwt/jwt"
-
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commoncontext"
 )
 
 // AuthMiddleware returns an HTTP middleware that authenticates a request using a JWT.
@@ -62,7 +61,7 @@ func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 			userID := int(uidFloat)
 
 			// 5. Set the userID in the context.
-			ctx := commoncontext.SetUserID(r.Context(), userID)
+			ctx := context.SetUserID(r.Context(), userID)
 
 			// 6. Pass the updated request to the next handler.
 			next.ServeHTTP(w, r.WithContext(ctx))

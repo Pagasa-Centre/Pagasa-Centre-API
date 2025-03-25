@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: pagasa_db
+    restart: always
+    environment:
+      POSTGRES_USER: pcappuser
+      POSTGRES_PASSWORD: PagasaWarrior23
+      POSTGRES_DB: pagasa-centre-db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - pagasa-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pagasa_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+    networks:
+      - pagasa-network
+
+volumes:
+  pgdata:
+
+networks:
+  pagasa-network:
