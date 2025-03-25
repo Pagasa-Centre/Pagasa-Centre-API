@@ -1,2 +1,2 @@
 # Pagasa-Centre-Mobile-App-API
-Backend api for the Pag-Asa Centre mobile app
+Backend API for the Pag-Asa Centre mobile app
