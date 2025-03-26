@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS ministries (
                             description TEXT,
                             leader_id INTEGER REFERENCES users(id),
                             meeting_day VARCHAR(15),
-                            start_time TIMESTAMP,
+                            start_time TIMESTAMP NOT NULL,
                             end_time TIMESTAMP,
                             meeting_location VARCHAR(255)
 );

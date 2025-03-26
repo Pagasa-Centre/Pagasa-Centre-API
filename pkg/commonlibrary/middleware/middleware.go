@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
 	"net/http"
 	"strings"
 
 	"github.com/golang-jwt/jwt"
+
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
 )
 
 // AuthMiddleware returns an HTTP middleware that authenticates a request using a JWT.
