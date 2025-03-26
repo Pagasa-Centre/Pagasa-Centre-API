@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	commonDb "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/db"
-	logger2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/logger"
+	logger2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/logger"
 	"log"
 	"net/http"
 

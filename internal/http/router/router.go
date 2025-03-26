@@ -1,7 +1,7 @@
 package router
 
 import (
-	middleware2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/middleware"
+	middleware2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/middleware"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"

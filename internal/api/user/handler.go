@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/request"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
 	"net/http"
 	"time"
 
