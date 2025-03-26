@@ -20,7 +20,7 @@ func New(
 	logger zap.SugaredLogger,
 	userService userService.UserService,
 	rolesService roles.RolesService,
-	minstryService ministryService.MinistryService,
+	ministryService ministryService.MinistryService,
 	jwtSecret string,
 ) http.Handler {
 	// Create a new Chi router.
@@ -35,7 +35,7 @@ func New(
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 			userHandler := user.NewUserHandler(logger, userService, rolesService)
-			ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
+			ministryHandler := ministry.NewMinistryHandler(logger, ministryService)
 
 			r.Route(
 				"/user", func(r chi.Router) {
