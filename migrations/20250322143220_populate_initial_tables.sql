@@ -31,7 +31,7 @@ VALUES (
            'England'
        );
 
-INSERT INTO ministries (outreach_id, name, description, meeting_day, meeting_time, meeting_location)
+INSERT INTO ministries (outreach_id, name, description, meeting_day, start_time, meeting_location)
 VALUES
     (
         1,

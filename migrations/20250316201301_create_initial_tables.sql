@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS ministries (
                             description TEXT,
                             leader_id INTEGER REFERENCES users(id),
                             meeting_day VARCHAR(15),
-                            meeting_time TIMESTAMP,
+                            start_time TIMESTAMP,
+                            end_time TIMESTAMP,
                             meeting_location VARCHAR(255)
 );
 -- +goose StatementEnd
