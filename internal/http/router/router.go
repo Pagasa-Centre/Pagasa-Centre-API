@@ -7,17 +7,20 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 
+	ministry "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
-	middleware2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/middleware"
+	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
+	middleware2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/middleware"
 )
 
 func New(
 	logger zap.SugaredLogger,
 	userService userService.UserService,
 	rolesService roles.RolesService,
+	minstryService ministryService.MinistryService,
 	jwtSecret string,
 ) http.Handler {
 	// Create a new Chi router.
@@ -32,6 +35,7 @@ func New(
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 			userHandler := user.NewUserHandler(logger, userService, rolesService)
+			ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
 
 			r.Route(
 				"/user", func(r chi.Router) {
@@ -44,6 +48,11 @@ func New(
 						r.Post("/update-details", userHandler.UpdateDetails())
 						r.Delete("/", userHandler.Delete())
 					})
+				},
+			)
+			r.Route(
+				"/ministry", func(r chi.Router) {
+					r.Get("/", ministryHandler.All())
 				},
 			)
 		},

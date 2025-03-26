@@ -9,7 +9,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 )
 
-func New(cfg *config.Config) *zap.SugaredLogger {
+func New(cfg *config.Config) zap.SugaredLogger {
 	var logger *zap.Logger
 
 	var err error
@@ -32,5 +32,5 @@ func New(cfg *config.Config) *zap.SugaredLogger {
 	// Convert the logger to a sugared logger for a more ergonomic API.
 	sugaredLogger := logger.Sugar()
 
-	return sugaredLogger
+	return *sugaredLogger
 }

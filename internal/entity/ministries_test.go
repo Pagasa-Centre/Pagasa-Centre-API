@@ -857,7 +857,7 @@ func testMinistriesSelect(t *testing.T) {
 }
 
 var (
-	ministryDBTypes = map[string]string{`ID`: `integer`, `OutreachID`: `integer`, `Name`: `character varying`, `Description`: `text`, `LeaderID`: `integer`, `MeetingDay`: `character varying`, `MeetingTime`: `timestamp without time zone`, `MeetingLocation`: `character varying`}
+	ministryDBTypes = map[string]string{`ID`: `integer`, `OutreachID`: `integer`, `Name`: `character varying`, `Description`: `text`, `LeaderID`: `integer`, `MeetingDay`: `character varying`, `StartTime`: `timestamp without time zone`, `EndTime`: `timestamp without time zone`, `MeetingLocation`: `character varying`}
 	_               = bytes.MinRead
 )
 

@@ -29,7 +29,7 @@ type userService struct {
 	jwtSecret string
 }
 
-func NewService(
+func NewUserService(
 	logger zap.SugaredLogger,
 	userRepo userStorage.UserRepository,
 	jwtSecret string,

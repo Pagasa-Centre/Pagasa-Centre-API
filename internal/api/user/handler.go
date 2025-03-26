@@ -1,7 +1,6 @@
 package user
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commonlibrary/context"
 	"net/http"
 	"time"
 
@@ -9,13 +8,14 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/request"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
 )
 
 type UserHandler interface {
@@ -71,7 +71,7 @@ func (h *userHandler) Register() http.HandlerFunc {
 		if err != nil {
 			h.logger.Errorw("Error registering new user", "error", err)
 
-			render.Json(w, http.StatusInternalServerError, "internal server error")
+			render.Json(w, http.StatusInternalServerError, err.Error())
 
 			return
 		}
