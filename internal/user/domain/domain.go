@@ -30,12 +30,6 @@ func RegisterRequestToUserDomain(req dto.RegisterRequest) (user *User, err error
 		return nil, err
 	}
 
-	// Only set CellLeaderID if it's non-zero, otherwise leave it nil.
-	var cellLeaderID *int
-	if req.CellLeaderID != 0 {
-		cellLeaderID = &req.CellLeaderID
-	}
-
 	return &User{
 		FirstName:      req.FirstName,
 		LastName:       req.LastName,
@@ -43,7 +37,7 @@ func RegisterRequestToUserDomain(req dto.RegisterRequest) (user *User, err error
 		Email:          req.Email,
 		PhoneNumber:    req.PhoneNumber,
 		Birthday:       parsedBirthday,
-		CellLeaderID:   cellLeaderID,
+		CellLeaderID:   req.CellLeaderID,
 		OutreachID:     req.OutreachID,
 	}, nil
 }
