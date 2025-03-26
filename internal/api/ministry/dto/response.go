@@ -10,8 +10,8 @@ type Ministry struct {
 	Name            string  `json:"name"`
 	Description     string  `json:"description"`
 	Day             string  `json:"day"`
-	StartTime       *string `json:"start_time"`
-	EndTime         *string `json:"end_time"`
+	StartTime       *string `json:"start_time,omitempty"`
+	EndTime         *string `json:"end_time,omitempty"`
 	MeetingLocation string  `json:"meeting_location,omitempty"`
 }
 
