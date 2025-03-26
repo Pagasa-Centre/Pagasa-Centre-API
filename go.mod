@@ -11,6 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kat-co/vala v0.0.0-20170210184112-42e1d8b61f12
 	github.com/lib/pq v1.10.9
+	github.com/pressly/goose/v3 v3.24.1
 	github.com/spf13/viper v1.20.0
 	github.com/volatiletech/null/v8 v8.1.2
 	github.com/volatiletech/randomize v0.0.1
@@ -30,7 +31,6 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
-	github.com/pressly/goose/v3 v3.24.1 // indirect
 	github.com/sagikazarmark/locafero v0.8.0 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect

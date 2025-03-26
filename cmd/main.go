@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	commonDb "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commonlibrary/db"
+	commonDb "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/db"
+	logger2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/logger"
 	"log"
 	"net/http"
 
@@ -12,7 +13,8 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
-	logger2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/logger"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
+	ministryStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	rolesStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
@@ -37,17 +39,21 @@ func main() {
 	if err != nil {
 		logger.Fatalf("failed to connect to database: %v", err)
 	}
+
 	if err := commonDb.RunMigrations(db.DB); err != nil {
 		logger.Fatalf("failed to run migrations: %v", err)
 	}
 
 	userRepo := userStorage.NewUserRepository(db)
-	userService := user.NewUserService(*logger, userRepo, cfg.JwtSecret)
+	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret)
 
 	rolesRepo := rolesStorage.NewRolesRepository(db)
-	rolesService := roles.NewRoleService(*logger, rolesRepo)
+	rolesService := roles.NewRoleService(logger, rolesRepo)
 
-	mux := router.New(*logger, userService, rolesService, cfg.JwtSecret)
+	ministryRepo := ministryStorage.NewMinistryRepository(db)
+	ministryService := ministry.NewMinistryService(logger, ministryRepo, cfg.JwtSecret)
+
+	mux := router.New(logger, userService, rolesService, ministryService, cfg.JwtSecret)
 
 	logger.Infof("Server starting on port %s", cfg.Port)
 

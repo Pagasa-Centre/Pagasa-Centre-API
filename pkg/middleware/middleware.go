@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/commonlibrary/context"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
 	"net/http"
 	"strings"
 
