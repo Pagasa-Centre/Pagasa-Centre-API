@@ -18,11 +18,6 @@ type Ministry struct {
 }
 
 func ToDomain(ministry *entity.Ministry) *Ministry {
-	var startTime *time.Time
-	if ministry.StartTime.Valid {
-		startTime = &ministry.StartTime.Time
-	}
-
 	var endTime *time.Time
 	if ministry.EndTime.Valid {
 		endTime = &ministry.EndTime.Time
@@ -39,7 +34,7 @@ func ToDomain(ministry *entity.Ministry) *Ministry {
 		Name:            ministry.Name,
 		Description:     description,
 		Day:             ministry.MeetingDay.String,
-		StartTime:       startTime,
+		StartTime:       &ministry.StartTime,
 		EndTime:         endTime,
 		MeetingLocation: ministry.MeetingLocation.String,
 	}

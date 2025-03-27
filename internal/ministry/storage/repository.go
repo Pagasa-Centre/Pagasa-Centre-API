@@ -12,17 +12,17 @@ type MinistryRepository interface {
 	GetAll(ctx context.Context) (entity.MinistrySlice, error)
 }
 
-type ministryRepository struct {
+type repository struct {
 	db *sqlx.DB
 }
 
 func NewMinistryRepository(db *sqlx.DB) MinistryRepository {
-	return &ministryRepository{
+	return &repository{
 		db: db,
 	}
 }
 
-func (repo *ministryRepository) GetAll(ctx context.Context) (entity.MinistrySlice, error) {
+func (repo *repository) GetAll(ctx context.Context) (entity.MinistrySlice, error) {
 	// sqlx.DB -> *sql.DB (for sqlboiler)
 	db := repo.db.DB
 

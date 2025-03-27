@@ -13,19 +13,19 @@ import (
 type MinistryHandler interface {
 	All() http.HandlerFunc
 }
-type ministryHandler struct {
+type handler struct {
 	logger          zap.SugaredLogger
 	MinistryService ministry.MinistryService
 }
 
 func NewMinistryHandler(logger zap.SugaredLogger, ministryService ministry.MinistryService) MinistryHandler {
-	return &ministryHandler{
+	return &handler{
 		logger:          logger,
 		MinistryService: ministryService,
 	}
 }
 
-func (mh *ministryHandler) All() http.HandlerFunc {
+func (mh *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
