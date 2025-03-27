@@ -38,9 +38,6 @@ func main() {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
-	fmt.Println("YouTube API Key:", cfg.YoutubeAPIKey)
-	fmt.Println("Channel ID:", cfg.YoutubeChannelID)
-
 	logger := logger2.New(cfg)
 
 	// Connect to the PostgreSQL database using sqlx.
