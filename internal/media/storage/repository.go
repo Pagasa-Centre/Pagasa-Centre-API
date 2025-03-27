@@ -38,6 +38,7 @@ func (r *repository) BulkInsert(ctx context.Context, media []*entity.Medium) err
 		if err != nil {
 			return err
 		}
+
 		if exists {
 			continue
 		}

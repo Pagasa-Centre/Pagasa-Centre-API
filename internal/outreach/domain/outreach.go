@@ -12,6 +12,7 @@ type Outreach struct {
 	Country      string
 	VenueName    string
 	Region       string
+	ThumbnailURL string
 }
 
 func EntitiesToDomain(outreachEntities []*entity.Outreach) []*Outreach {
@@ -32,6 +33,8 @@ func ToDomain(outreachEntity *entity.Outreach) *Outreach {
 
 	var region string
 
+	var thumbnailURL string
+
 	if outreachEntity.AddressLine2.Valid {
 		addressLine2 = outreachEntity.AddressLine2.String
 	}
@@ -48,6 +51,10 @@ func ToDomain(outreachEntity *entity.Outreach) *Outreach {
 		region = outreachEntity.Region.String
 	}
 
+	if outreachEntity.ThumbnailURL.Valid {
+		thumbnailURL = outreachEntity.ThumbnailURL.String
+	}
+
 	outreach := Outreach{
 		ID:           outreachEntity.ID,
 		Name:         outreachEntity.Name,
@@ -58,6 +65,7 @@ func ToDomain(outreachEntity *entity.Outreach) *Outreach {
 		Country:      outreachEntity.Country,
 		VenueName:    venueName,
 		Region:       region,
+		ThumbnailURL: thumbnailURL,
 	}
 
 	return &outreach

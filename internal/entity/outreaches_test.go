@@ -1049,7 +1049,7 @@ func testOutreachesSelect(t *testing.T) {
 }
 
 var (
-	outreachDBTypes = map[string]string{`ID`: `integer`, `Name`: `character varying`, `AddressLine1`: `character varying`, `AddressLine2`: `character varying`, `PostCode`: `character varying`, `City`: `character varying`, `Country`: `character varying`, `Region`: `character varying`, `VenueName`: `character varying`}
+	outreachDBTypes = map[string]string{`ID`: `integer`, `Name`: `character varying`, `AddressLine1`: `character varying`, `AddressLine2`: `character varying`, `PostCode`: `character varying`, `City`: `character varying`, `Country`: `character varying`, `Region`: `character varying`, `VenueName`: `character varying`, `ThumbnailURL`: `text`}
 	_               = bytes.MinRead
 )
 
