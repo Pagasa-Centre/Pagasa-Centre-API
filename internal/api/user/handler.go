@@ -11,6 +11,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
@@ -26,20 +27,23 @@ type UserHandler interface {
 }
 
 type handler struct {
-	logger       zap.SugaredLogger
-	userService  user.UserService
-	rolesService roles.RolesService
+	logger          zap.SugaredLogger
+	userService     user.UserService
+	rolesService    roles.RolesService
+	ministryService ministry.MinistryService
 }
 
 func NewUserHandler(
 	logger zap.SugaredLogger,
 	userService user.UserService,
 	rolesService roles.RolesService,
+	ministryService ministry.MinistryService,
 ) UserHandler {
 	return &handler{
-		logger:       logger,
-		userService:  userService,
-		rolesService: rolesService,
+		logger:          logger,
+		userService:     userService,
+		rolesService:    rolesService,
+		ministryService: ministryService,
 	}
 }
 
@@ -101,6 +105,24 @@ func (h *handler) Register() http.HandlerFunc {
 			err = h.rolesService.AssignPastorRole(ctx, *userID)
 			if err != nil {
 				h.logger.Errorw("failed to assign pastor role", "error", err)
+				render.Json(w, http.StatusInternalServerError, err.Error())
+
+				return
+			}
+		}
+
+		if req.IsMinistryLeader {
+			err = h.rolesService.AssignMinistryLeaderRole(ctx, *userID)
+			if err != nil {
+				h.logger.Errorw("failed to assign pastor role", "error", err)
+				render.Json(w, http.StatusInternalServerError, err.Error())
+
+				return
+			}
+
+			err = h.ministryService.AssignLeaderToMinistry(ctx, *req.MinistryID, *userID)
+			if err != nil {
+				h.logger.Errorw("failed to assign leader to ministry", "error", err)
 				render.Json(w, http.StatusInternalServerError, err.Error())
 
 				return
