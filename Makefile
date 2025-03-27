@@ -15,7 +15,7 @@ migrate-down:
 .PHONY: migrate-down
 
 migrate-create:
-	@cd ./migrations && goose create insert_outreaches sql
+	@cd ./migrations && goose create create_media_table sql
 .PHONY: migrate-create
 
 

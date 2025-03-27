@@ -10,6 +10,8 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("GooseDBVersions", testGooseDBVersionsUpsert)
 
+	t.Run("Media", testMediaUpsert)
+
 	t.Run("Ministries", testMinistriesUpsert)
 
 	t.Run("Outreaches", testOutreachesUpsert)

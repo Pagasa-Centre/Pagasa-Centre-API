@@ -8,11 +8,13 @@ import (
 )
 
 type Config struct {
-	Port        string `mapstructure:"PORT" yaml:"port" validate:"required"`
-	DatabaseURL string `mapstructure:"DATABASE_URL" yaml:"database_url" validate:"required"`
-	LogLevel    string `mapstructure:"LOG_LEVEL" yaml:"log_level"`
-	Env         string `mapstructure:"ENV" yaml:"env" validate:"required"`
-	JwtSecret   string `mapstructure:"JWT_SECRET" yaml:"jwt_secret" validate:"required"`
+	Port             string `mapstructure:"PORT" yaml:"port" validate:"required"`
+	DatabaseURL      string `mapstructure:"DATABASE_URL" yaml:"database_url" validate:"required"`
+	LogLevel         string `mapstructure:"LOG_LEVEL" yaml:"log_level"`
+	Env              string `mapstructure:"ENV" yaml:"env" validate:"required"`
+	JwtSecret        string `mapstructure:"JWT_SECRET" yaml:"jwt_secret" validate:"required"`
+	YoutubeAPIKey    string `mapstructure:"YOUTUBE_API_KEY" yaml:"youtube_api_key" validate:"required"`
+	YoutubeChannelID string `mapstructure:"YOUTUBE_CHANNEL_ID" yaml:"youtube_channel_id" validate:"required"`
 }
 
 // LoadConfig reads configuration from file and environment variables.
@@ -35,6 +37,16 @@ func LoadConfig() (*Config, error) {
 	}
 
 	err = viper.BindEnv("JWT_SECRET")
+	if err != nil {
+		return nil, err
+	}
+
+	err = viper.BindEnv("YOUTUBE_API_KEY")
+	if err != nil {
+		return nil, err
+	}
+
+	err = viper.BindEnv("YOUTUBE_CHANNEL_ID")
 	if err != nil {
 		return nil, err
 	}

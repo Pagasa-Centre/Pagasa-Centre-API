@@ -10,7 +10,11 @@ import (
 	_ "github.com/lib/pq" // <-- Add this line to register the Postgres driver
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
+	cron2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/cron"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
+	mediaStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/youtube"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	ministryStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
@@ -33,6 +37,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
+
+	fmt.Println("YouTube API Key:", cfg.YoutubeAPIKey)
+	fmt.Println("Channel ID:", cfg.YoutubeChannelID)
 
 	logger := logger2.New(cfg)
 
@@ -58,7 +65,17 @@ func main() {
 	outreachRepo := outreachStorage.NewOutreachRepository(db)
 	outreachService := outreach.NewOutreachService(logger, outreachRepo)
 
-	mux := router.New(logger, cfg.JwtSecret, userService, rolesService, ministryService, outreachService)
+	mediaRepo := mediaStorage.NewMediaRepository(db)
+	mediaService := media.NewMediaService(logger, mediaRepo)
+
+	ytClient := youtube.NewYouTubeClient(cfg.YoutubeAPIKey, cfg.YoutubeChannelID)
+	mediaCronJob := cron2.NewMediaCronJob(logger, ytClient, mediaService)
+
+	mediaCronJob.RunOnce() // add this method and call it once during startup
+
+	mediaCronJob.Start()
+
+	mux := router.New(logger, cfg.JwtSecret, userService, rolesService, ministryService, outreachService, mediaService)
 
 	logger.Infof("Server starting on port %s", cfg.Port)
 

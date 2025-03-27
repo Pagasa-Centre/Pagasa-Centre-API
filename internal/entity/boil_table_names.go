@@ -7,6 +7,7 @@ var TableNames = struct {
 	CellGroupMembers string
 	CellGroups       string
 	GooseDBVersion   string
+	Media            string
 	Ministries       string
 	Outreaches       string
 	Roles            string
@@ -16,6 +17,7 @@ var TableNames = struct {
 	CellGroupMembers: "cell_group_members",
 	CellGroups:       "cell_groups",
 	GooseDBVersion:   "goose_db_version",
+	Media:            "media",
 	Ministries:       "ministries",
 	Outreaches:       "outreaches",
 	Roles:            "roles",
