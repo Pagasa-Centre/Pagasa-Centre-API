@@ -8,9 +8,11 @@ import (
 	"go.uber.org/zap"
 
 	ministry "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
+	outreachService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	middleware2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/middleware"
@@ -18,10 +20,11 @@ import (
 
 func New(
 	logger zap.SugaredLogger,
+	jwtSecret string,
 	userService userService.UserService,
 	rolesService roles.RolesService,
 	minstryService ministryService.MinistryService,
-	jwtSecret string,
+	outreachService outreachService.OutreachService,
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
@@ -36,6 +39,7 @@ func New(
 		"/api/v1", func(r chi.Router) {
 			userHandler := user.NewUserHandler(logger, userService, rolesService)
 			ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
+			outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
 
 			r.Route(
 				"/user", func(r chi.Router) {
@@ -53,6 +57,11 @@ func New(
 			r.Route(
 				"/ministry", func(r chi.Router) {
 					r.Get("/", ministryHandler.All())
+				},
+			)
+			r.Route(
+				"/outreach", func(r chi.Router) {
+					r.Get("/", outreachHandler.All())
 				},
 			)
 		},

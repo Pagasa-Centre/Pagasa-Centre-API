@@ -14,35 +14,30 @@ type MinistryService interface {
 	All(ctx context.Context) ([]*domain.Ministry, error)
 }
 
-type ministryService struct {
+type service struct {
 	logger       zap.SugaredLogger
 	ministryRepo storage.MinistryRepository
-	jwtSecret    string
 }
 
 func NewMinistryService(
 	logger zap.SugaredLogger,
 	ministryRepo storage.MinistryRepository,
-	jwtSecret string,
 ) MinistryService {
-	return &ministryService{
+	return &service{
 		logger:       logger,
 		ministryRepo: ministryRepo,
-		jwtSecret:    jwtSecret,
 	}
 }
 
-func (ms *ministryService) All(ctx context.Context) ([]*domain.Ministry, error) {
-	ministries := []*domain.Ministry{}
-
+func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 	ministryEntities, err := ms.ministryRepo.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all ministries: %s", err)
 	}
 
+	var ministries []*domain.Ministry
 	for _, entity := range ministryEntities {
-		ministry := domain.ToDomain(entity)
-		ministries = append(ministries, ministry)
+		ministries = append(ministries, domain.ToDomain(entity))
 	}
 
 	return ministries, nil
