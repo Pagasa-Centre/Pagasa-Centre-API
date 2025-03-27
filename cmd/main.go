@@ -13,6 +13,8 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	ministryStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
+	outreachStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	rolesStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
@@ -51,9 +53,12 @@ func main() {
 	rolesService := roles.NewRoleService(logger, rolesRepo)
 
 	ministryRepo := ministryStorage.NewMinistryRepository(db)
-	ministryService := ministry.NewMinistryService(logger, ministryRepo, cfg.JwtSecret)
+	ministryService := ministry.NewMinistryService(logger, ministryRepo)
 
-	mux := router.New(logger, userService, rolesService, ministryService, cfg.JwtSecret)
+	outreachRepo := outreachStorage.NewOutreachRepository(db)
+	outreachService := outreach.NewOutreachService(logger, outreachRepo)
+
+	mux := router.New(logger, cfg.JwtSecret, userService, rolesService, ministryService, outreachService)
 
 	logger.Infof("Server starting on port %s", cfg.Port)
 

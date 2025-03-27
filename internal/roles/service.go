@@ -15,19 +15,19 @@ type RolesService interface {
 	AssignPastorRole(ctx context.Context, userID int) error
 }
 
-type roleService struct {
+type service struct {
 	logger     zap.SugaredLogger
 	repository storage.RolesRepository
 }
 
 func NewRoleService(logger zap.SugaredLogger, repository storage.RolesRepository) RolesService {
-	return &roleService{
+	return &service{
 		logger:     logger,
 		repository: repository,
 	}
 }
 
-func (s *roleService) AssignLeaderRole(ctx context.Context, userID int) error {
+func (s *service) AssignLeaderRole(ctx context.Context, userID int) error {
 	s.logger.Info("Assigning Leader role")
 
 	err := s.repository.AssignLeaderRole(ctx, userID)
@@ -40,7 +40,7 @@ func (s *roleService) AssignLeaderRole(ctx context.Context, userID int) error {
 	return nil
 }
 
-func (s *roleService) AssignPrimaryRole(ctx context.Context, userID int) error {
+func (s *service) AssignPrimaryRole(ctx context.Context, userID int) error {
 	s.logger.Info("Assigning Primary role")
 
 	err := s.repository.AssignPrimaryRole(ctx, userID)
@@ -53,7 +53,7 @@ func (s *roleService) AssignPrimaryRole(ctx context.Context, userID int) error {
 	return nil
 }
 
-func (s *roleService) AssignPastorRole(ctx context.Context, userID int) error {
+func (s *service) AssignPastorRole(ctx context.Context, userID int) error {
 	s.logger.Info("Assigning Pastor role")
 
 	err := s.repository.AssignPastorRole(ctx, userID)

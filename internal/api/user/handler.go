@@ -25,7 +25,7 @@ type UserHandler interface {
 	Delete() http.HandlerFunc
 }
 
-type userHandler struct {
+type handler struct {
 	logger       zap.SugaredLogger
 	userService  user.UserService
 	rolesService roles.RolesService
@@ -36,19 +36,20 @@ func NewUserHandler(
 	userService user.UserService,
 	rolesService roles.RolesService,
 ) UserHandler {
-	return &userHandler{
+	return &handler{
 		logger:       logger,
 		userService:  userService,
 		rolesService: rolesService,
 	}
 }
 
-func (h *userHandler) Register() http.HandlerFunc {
+func (h *handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		var req dto.RegisterRequest
 
+		// Validates and decodes request
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
 			h.logger.Errorw("failed to decode and validate register request body",
 				"context", ctx, "error", err)
@@ -110,7 +111,7 @@ func (h *userHandler) Register() http.HandlerFunc {
 	}
 }
 
-func (h *userHandler) Login() http.HandlerFunc {
+func (h *handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -159,7 +160,7 @@ func (h *userHandler) Login() http.HandlerFunc {
 	}
 }
 
-func (h *userHandler) UpdateDetails() http.HandlerFunc {
+func (h *handler) UpdateDetails() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		// Decode and validate the update request.
@@ -210,7 +211,7 @@ func (h *userHandler) UpdateDetails() http.HandlerFunc {
 	}
 }
 
-func (h *userHandler) Delete() http.HandlerFunc {
+func (h *handler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
@@ -236,7 +237,7 @@ func (h *userHandler) Delete() http.HandlerFunc {
 }
 
 // updateUserFields updates the provided user entity with the values from the update request.
-func (h *userHandler) updateUserFields(user *entity.User, req dto.UpdateDetailsRequest) {
+func (h *handler) updateUserFields(user *entity.User, req dto.UpdateDetailsRequest) {
 	if req.FirstName != "" {
 		user.FirstName = req.FirstName
 	}
