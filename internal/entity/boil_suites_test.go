@@ -14,6 +14,7 @@ import "testing"
 func TestParent(t *testing.T) {
 	t.Run("CellGroups", testCellGroups)
 	t.Run("GooseDBVersions", testGooseDBVersions)
+	t.Run("Media", testMedia)
 	t.Run("Ministries", testMinistries)
 	t.Run("Outreaches", testOutreaches)
 	t.Run("Roles", testRoles)
@@ -24,6 +25,7 @@ func TestParent(t *testing.T) {
 func TestDelete(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsDelete)
 	t.Run("GooseDBVersions", testGooseDBVersionsDelete)
+	t.Run("Media", testMediaDelete)
 	t.Run("Ministries", testMinistriesDelete)
 	t.Run("Outreaches", testOutreachesDelete)
 	t.Run("Roles", testRolesDelete)
@@ -34,6 +36,7 @@ func TestDelete(t *testing.T) {
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsQueryDeleteAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsQueryDeleteAll)
+	t.Run("Media", testMediaQueryDeleteAll)
 	t.Run("Ministries", testMinistriesQueryDeleteAll)
 	t.Run("Outreaches", testOutreachesQueryDeleteAll)
 	t.Run("Roles", testRolesQueryDeleteAll)
@@ -44,6 +47,7 @@ func TestQueryDeleteAll(t *testing.T) {
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsSliceDeleteAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsSliceDeleteAll)
+	t.Run("Media", testMediaSliceDeleteAll)
 	t.Run("Ministries", testMinistriesSliceDeleteAll)
 	t.Run("Outreaches", testOutreachesSliceDeleteAll)
 	t.Run("Roles", testRolesSliceDeleteAll)
@@ -54,6 +58,7 @@ func TestSliceDeleteAll(t *testing.T) {
 func TestExists(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsExists)
 	t.Run("GooseDBVersions", testGooseDBVersionsExists)
+	t.Run("Media", testMediaExists)
 	t.Run("Ministries", testMinistriesExists)
 	t.Run("Outreaches", testOutreachesExists)
 	t.Run("Roles", testRolesExists)
@@ -64,6 +69,7 @@ func TestExists(t *testing.T) {
 func TestFind(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsFind)
 	t.Run("GooseDBVersions", testGooseDBVersionsFind)
+	t.Run("Media", testMediaFind)
 	t.Run("Ministries", testMinistriesFind)
 	t.Run("Outreaches", testOutreachesFind)
 	t.Run("Roles", testRolesFind)
@@ -74,6 +80,7 @@ func TestFind(t *testing.T) {
 func TestBind(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsBind)
 	t.Run("GooseDBVersions", testGooseDBVersionsBind)
+	t.Run("Media", testMediaBind)
 	t.Run("Ministries", testMinistriesBind)
 	t.Run("Outreaches", testOutreachesBind)
 	t.Run("Roles", testRolesBind)
@@ -84,6 +91,7 @@ func TestBind(t *testing.T) {
 func TestOne(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsOne)
 	t.Run("GooseDBVersions", testGooseDBVersionsOne)
+	t.Run("Media", testMediaOne)
 	t.Run("Ministries", testMinistriesOne)
 	t.Run("Outreaches", testOutreachesOne)
 	t.Run("Roles", testRolesOne)
@@ -94,6 +102,7 @@ func TestOne(t *testing.T) {
 func TestAll(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsAll)
+	t.Run("Media", testMediaAll)
 	t.Run("Ministries", testMinistriesAll)
 	t.Run("Outreaches", testOutreachesAll)
 	t.Run("Roles", testRolesAll)
@@ -104,6 +113,7 @@ func TestAll(t *testing.T) {
 func TestCount(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsCount)
 	t.Run("GooseDBVersions", testGooseDBVersionsCount)
+	t.Run("Media", testMediaCount)
 	t.Run("Ministries", testMinistriesCount)
 	t.Run("Outreaches", testOutreachesCount)
 	t.Run("Roles", testRolesCount)
@@ -114,6 +124,7 @@ func TestCount(t *testing.T) {
 func TestHooks(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsHooks)
 	t.Run("GooseDBVersions", testGooseDBVersionsHooks)
+	t.Run("Media", testMediaHooks)
 	t.Run("Ministries", testMinistriesHooks)
 	t.Run("Outreaches", testOutreachesHooks)
 	t.Run("Roles", testRolesHooks)
@@ -126,6 +137,8 @@ func TestInsert(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsInsertWhitelist)
 	t.Run("GooseDBVersions", testGooseDBVersionsInsert)
 	t.Run("GooseDBVersions", testGooseDBVersionsInsertWhitelist)
+	t.Run("Media", testMediaInsert)
+	t.Run("Media", testMediaInsertWhitelist)
 	t.Run("Ministries", testMinistriesInsert)
 	t.Run("Ministries", testMinistriesInsertWhitelist)
 	t.Run("Outreaches", testOutreachesInsert)
@@ -141,6 +154,7 @@ func TestInsert(t *testing.T) {
 func TestReload(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsReload)
 	t.Run("GooseDBVersions", testGooseDBVersionsReload)
+	t.Run("Media", testMediaReload)
 	t.Run("Ministries", testMinistriesReload)
 	t.Run("Outreaches", testOutreachesReload)
 	t.Run("Roles", testRolesReload)
@@ -151,6 +165,7 @@ func TestReload(t *testing.T) {
 func TestReloadAll(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsReloadAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsReloadAll)
+	t.Run("Media", testMediaReloadAll)
 	t.Run("Ministries", testMinistriesReloadAll)
 	t.Run("Outreaches", testOutreachesReloadAll)
 	t.Run("Roles", testRolesReloadAll)
@@ -161,6 +176,7 @@ func TestReloadAll(t *testing.T) {
 func TestSelect(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsSelect)
 	t.Run("GooseDBVersions", testGooseDBVersionsSelect)
+	t.Run("Media", testMediaSelect)
 	t.Run("Ministries", testMinistriesSelect)
 	t.Run("Outreaches", testOutreachesSelect)
 	t.Run("Roles", testRolesSelect)
@@ -171,6 +187,7 @@ func TestSelect(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsUpdate)
 	t.Run("GooseDBVersions", testGooseDBVersionsUpdate)
+	t.Run("Media", testMediaUpdate)
 	t.Run("Ministries", testMinistriesUpdate)
 	t.Run("Outreaches", testOutreachesUpdate)
 	t.Run("Roles", testRolesUpdate)
@@ -181,6 +198,7 @@ func TestUpdate(t *testing.T) {
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("CellGroups", testCellGroupsSliceUpdateAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsSliceUpdateAll)
+	t.Run("Media", testMediaSliceUpdateAll)
 	t.Run("Ministries", testMinistriesSliceUpdateAll)
 	t.Run("Outreaches", testOutreachesSliceUpdateAll)
 	t.Run("Roles", testRolesSliceUpdateAll)

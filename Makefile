@@ -15,7 +15,7 @@ migrate-down:
 .PHONY: migrate-down
 
 migrate-create:
-	@cd ./migrations && goose create insert_outreaches sql
+	@cd ./migrations && goose create set_dagenham_outreach_thumbnail sql
 .PHONY: migrate-create
 
 

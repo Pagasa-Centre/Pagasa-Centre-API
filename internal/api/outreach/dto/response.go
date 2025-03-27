@@ -14,6 +14,7 @@ type Outreach struct {
 	Country      string `json:"country"`
 	VenueName    string `json:"venue_name"`
 	Region       string `json:"region"`
+	ThumbnailURL string `json:"thumbnail_url"`
 }
 
 func ToResponse(outreach *domain.Outreach) *Outreach {
@@ -27,6 +28,7 @@ func ToResponse(outreach *domain.Outreach) *Outreach {
 		Country:      outreach.Country,
 		VenueName:    outreach.VenueName,
 		Region:       outreach.Region,
+		ThumbnailURL: outreach.ThumbnailURL,
 	}
 }
 

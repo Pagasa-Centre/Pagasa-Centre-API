@@ -33,6 +33,7 @@ type Outreach struct {
 	Country      string      `boil:"country" json:"country" toml:"country" yaml:"country"`
 	Region       null.String `boil:"region" json:"region,omitempty" toml:"region" yaml:"region,omitempty"`
 	VenueName    null.String `boil:"venue_name" json:"venue_name,omitempty" toml:"venue_name" yaml:"venue_name,omitempty"`
+	ThumbnailURL null.String `boil:"thumbnail_url" json:"thumbnail_url,omitempty" toml:"thumbnail_url" yaml:"thumbnail_url,omitempty"`
 
 	R *outreachR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L outreachL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -48,6 +49,7 @@ var OutreachColumns = struct {
 	Country      string
 	Region       string
 	VenueName    string
+	ThumbnailURL string
 }{
 	ID:           "id",
 	Name:         "name",
@@ -58,6 +60,7 @@ var OutreachColumns = struct {
 	Country:      "country",
 	Region:       "region",
 	VenueName:    "venue_name",
+	ThumbnailURL: "thumbnail_url",
 }
 
 var OutreachTableColumns = struct {
@@ -70,6 +73,7 @@ var OutreachTableColumns = struct {
 	Country      string
 	Region       string
 	VenueName    string
+	ThumbnailURL string
 }{
 	ID:           "outreaches.id",
 	Name:         "outreaches.name",
@@ -80,6 +84,7 @@ var OutreachTableColumns = struct {
 	Country:      "outreaches.country",
 	Region:       "outreaches.region",
 	VenueName:    "outreaches.venue_name",
+	ThumbnailURL: "outreaches.thumbnail_url",
 }
 
 // Generated where
@@ -94,6 +99,7 @@ var OutreachWhere = struct {
 	Country      whereHelperstring
 	Region       whereHelpernull_String
 	VenueName    whereHelpernull_String
+	ThumbnailURL whereHelpernull_String
 }{
 	ID:           whereHelperint{field: "\"outreaches\".\"id\""},
 	Name:         whereHelperstring{field: "\"outreaches\".\"name\""},
@@ -104,6 +110,7 @@ var OutreachWhere = struct {
 	Country:      whereHelperstring{field: "\"outreaches\".\"country\""},
 	Region:       whereHelpernull_String{field: "\"outreaches\".\"region\""},
 	VenueName:    whereHelpernull_String{field: "\"outreaches\".\"venue_name\""},
+	ThumbnailURL: whereHelpernull_String{field: "\"outreaches\".\"thumbnail_url\""},
 }
 
 // OutreachRels is where relationship names are stored.
@@ -144,9 +151,9 @@ func (r *outreachR) GetUsers() UserSlice {
 type outreachL struct{}
 
 var (
-	outreachAllColumns            = []string{"id", "name", "address_line1", "address_line2", "post_code", "city", "country", "region", "venue_name"}
+	outreachAllColumns            = []string{"id", "name", "address_line1", "address_line2", "post_code", "city", "country", "region", "venue_name", "thumbnail_url"}
 	outreachColumnsWithoutDefault = []string{"name", "address_line1", "city", "country"}
-	outreachColumnsWithDefault    = []string{"id", "address_line2", "post_code", "region", "venue_name"}
+	outreachColumnsWithDefault    = []string{"id", "address_line2", "post_code", "region", "venue_name", "thumbnail_url"}
 	outreachPrimaryKeyColumns     = []string{"id"}
 	outreachGeneratedColumns      = []string{}
 )

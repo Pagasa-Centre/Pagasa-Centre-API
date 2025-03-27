@@ -7,10 +7,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/media"
 	ministry "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
+	mediaService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	outreachService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
@@ -25,6 +27,7 @@ func New(
 	rolesService roles.RolesService,
 	minstryService ministryService.MinistryService,
 	outreachService outreachService.OutreachService,
+	mediaService mediaService.MediaService,
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
@@ -40,6 +43,7 @@ func New(
 			userHandler := user.NewUserHandler(logger, userService, rolesService, minstryService)
 			ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
 			outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
+			mediaHandler := media.NewMediaHandler(logger, mediaService)
 
 			r.Route(
 				"/user", func(r chi.Router) {
@@ -62,6 +66,11 @@ func New(
 			r.Route(
 				"/outreach", func(r chi.Router) {
 					r.Get("/", outreachHandler.All())
+				},
+			)
+			r.Route(
+				"/media", func(r chi.Router) {
+					r.Get("/", mediaHandler.All())
 				},
 			)
 		},
