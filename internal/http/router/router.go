@@ -37,7 +37,7 @@ func New(
 	registerAliveEndpoint(router)
 	router.Route(
 		"/api/v1", func(r chi.Router) {
-			userHandler := user.NewUserHandler(logger, userService, rolesService)
+			userHandler := user.NewUserHandler(logger, userService, rolesService, minstryService)
 			ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
 			outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
 

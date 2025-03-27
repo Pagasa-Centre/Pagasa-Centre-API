@@ -12,6 +12,7 @@ import (
 
 type MinistryService interface {
 	All(ctx context.Context) ([]*domain.Ministry, error)
+	AssignLeaderToMinistry(ctx context.Context, ministryID int, userID int) error
 }
 
 type service struct {
@@ -27,6 +28,15 @@ func NewMinistryService(
 		logger:       logger,
 		ministryRepo: ministryRepo,
 	}
+}
+
+func (ms *service) AssignLeaderToMinistry(ctx context.Context, ministryID int, userID int) error {
+	err := ms.ministryRepo.AssignLeaderToMinistry(ctx, ministryID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {

@@ -13,6 +13,7 @@ type RolesService interface {
 	AssignLeaderRole(ctx context.Context, userID int) error
 	AssignPrimaryRole(ctx context.Context, userID int) error
 	AssignPastorRole(ctx context.Context, userID int) error
+	AssignMinistryLeaderRole(ctx context.Context, userID int) error
 }
 
 type service struct {
@@ -25,6 +26,19 @@ func NewRoleService(logger zap.SugaredLogger, repository storage.RolesRepository
 		logger:     logger,
 		repository: repository,
 	}
+}
+
+func (s *service) AssignMinistryLeaderRole(ctx context.Context, userID int) error {
+	s.logger.Info("Assigning Ministry Leader role")
+
+	err := s.repository.AssignPastorRole(ctx, userID)
+	if err != nil {
+		s.logger.Error("Failed to assign Ministry Leader role", zap.Error(err))
+
+		return fmt.Errorf("failed to assign Ministry Leader role: %w", err)
+	}
+
+	return nil
 }
 
 func (s *service) AssignLeaderRole(ctx context.Context, userID int) error {

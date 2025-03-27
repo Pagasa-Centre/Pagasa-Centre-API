@@ -14,6 +14,7 @@ type RolesRepository interface {
 	AssignLeaderRole(ctx context.Context, userID int) error
 	AssignPrimaryRole(ctx context.Context, userID int) error
 	AssignPastorRole(ctx context.Context, userID int) error
+	AssignMinistryLeaderRole(ctx context.Context, userID int) error
 }
 
 type repository struct {
@@ -24,6 +25,16 @@ func NewRolesRepository(db *sqlx.DB) RolesRepository {
 	return &repository{
 		db: db,
 	}
+}
+
+// AssignMinistryLeaderRole assigns the Ministry Leader role to the given user.
+func (r *repository) AssignMinistryLeaderRole(ctx context.Context, userID int) error {
+	roleID, err := r.getRoleID(ctx, "Ministry Leader")
+	if err != nil {
+		return err
+	}
+
+	return r.assignRole(ctx, userID, roleID)
 }
 
 // AssignLeaderRole assigns the Leader role to the given user.
