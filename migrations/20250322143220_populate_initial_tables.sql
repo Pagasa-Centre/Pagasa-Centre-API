@@ -26,7 +26,7 @@ INSERT INTO roles (role_name) VALUES
 -- Insert outreach and get its ID
 WITH inserted_outreach AS (
 INSERT INTO outreaches (name, address_line1, address_line2, post_code, city, country)
-VALUES ('Pagasa Centre Dagenham', 'Castle Green, Gale St', 'Dagenham', 'RM9 4UN', 'London', 'England')
+VALUES ('Pagasa Centre Dagenham', 'Castle Green, Gale St', 'Dagenham', 'RM9 4UN', 'London', 'UK')
     RETURNING id
     )
 

@@ -15,7 +15,7 @@ migrate-down:
 .PHONY: migrate-down
 
 migrate-create:
-	@cd ./migrations && goose create populate_initial_tables sql
+	@cd ./migrations && goose create insert_outreaches sql
 .PHONY: migrate-create
 
 
@@ -26,6 +26,14 @@ mock:
 entity:
 	@sqlboiler psql -c ./sqlboiler.toml
 .PHONY: entity
+
+down:
+	docker-compose down -v
+.PHONY: down
+
+build:
+	docker-compose up --build
+.PHONY: build
 
 lint:
 	go mod tidy

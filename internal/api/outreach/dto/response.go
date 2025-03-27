@@ -12,6 +12,8 @@ type Outreach struct {
 	Postcode     string `json:"postcode"`
 	City         string `json:"city"`
 	Country      string `json:"country"`
+	VenueName    string `json:"venue_name"`
+	Region       string `json:"region"`
 }
 
 func ToResponse(outreach *domain.Outreach) *Outreach {
@@ -23,6 +25,8 @@ func ToResponse(outreach *domain.Outreach) *Outreach {
 		Postcode:     outreach.Postcode,
 		City:         outreach.City,
 		Country:      outreach.Country,
+		VenueName:    outreach.VenueName,
+		Region:       outreach.Region,
 	}
 }
 

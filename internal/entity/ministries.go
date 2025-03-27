@@ -30,7 +30,7 @@ type Ministry struct {
 	Description     null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
 	LeaderID        null.Int    `boil:"leader_id" json:"leader_id,omitempty" toml:"leader_id" yaml:"leader_id,omitempty"`
 	MeetingDay      null.String `boil:"meeting_day" json:"meeting_day,omitempty" toml:"meeting_day" yaml:"meeting_day,omitempty"`
-	StartTime       null.Time   `boil:"start_time" json:"start_time,omitempty" toml:"start_time" yaml:"start_time,omitempty"`
+	StartTime       time.Time   `boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
 	EndTime         null.Time   `boil:"end_time" json:"end_time,omitempty" toml:"end_time" yaml:"end_time,omitempty"`
 	MeetingLocation null.String `boil:"meeting_location" json:"meeting_location,omitempty" toml:"meeting_location" yaml:"meeting_location,omitempty"`
 
@@ -146,7 +146,7 @@ var MinistryWhere = struct {
 	Description     whereHelpernull_String
 	LeaderID        whereHelpernull_Int
 	MeetingDay      whereHelpernull_String
-	StartTime       whereHelpernull_Time
+	StartTime       whereHelpertime_Time
 	EndTime         whereHelpernull_Time
 	MeetingLocation whereHelpernull_String
 }{
@@ -156,7 +156,7 @@ var MinistryWhere = struct {
 	Description:     whereHelpernull_String{field: "\"ministries\".\"description\""},
 	LeaderID:        whereHelpernull_Int{field: "\"ministries\".\"leader_id\""},
 	MeetingDay:      whereHelpernull_String{field: "\"ministries\".\"meeting_day\""},
-	StartTime:       whereHelpernull_Time{field: "\"ministries\".\"start_time\""},
+	StartTime:       whereHelpertime_Time{field: "\"ministries\".\"start_time\""},
 	EndTime:         whereHelpernull_Time{field: "\"ministries\".\"end_time\""},
 	MeetingLocation: whereHelpernull_String{field: "\"ministries\".\"meeting_location\""},
 }
@@ -200,8 +200,8 @@ type ministryL struct{}
 
 var (
 	ministryAllColumns            = []string{"id", "outreach_id", "name", "description", "leader_id", "meeting_day", "start_time", "end_time", "meeting_location"}
-	ministryColumnsWithoutDefault = []string{"outreach_id", "name"}
-	ministryColumnsWithDefault    = []string{"id", "description", "leader_id", "meeting_day", "start_time", "end_time", "meeting_location"}
+	ministryColumnsWithoutDefault = []string{"outreach_id", "name", "start_time"}
+	ministryColumnsWithDefault    = []string{"id", "description", "leader_id", "meeting_day", "end_time", "meeting_location"}
 	ministryPrimaryKeyColumns     = []string{"id"}
 	ministryGeneratedColumns      = []string{}
 )

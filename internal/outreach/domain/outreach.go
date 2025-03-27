@@ -10,6 +10,8 @@ type Outreach struct {
 	Postcode     string
 	City         string
 	Country      string
+	VenueName    string
+	Region       string
 }
 
 func EntitiesToDomain(outreachEntities []*entity.Outreach) []*Outreach {
@@ -24,8 +26,26 @@ func EntitiesToDomain(outreachEntities []*entity.Outreach) []*Outreach {
 func ToDomain(outreachEntity *entity.Outreach) *Outreach {
 	var addressLine2 string
 
+	var postcode string
+
+	var venueName string
+
+	var region string
+
 	if outreachEntity.AddressLine2.Valid {
 		addressLine2 = outreachEntity.AddressLine2.String
+	}
+
+	if outreachEntity.PostCode.Valid {
+		postcode = outreachEntity.PostCode.String
+	}
+
+	if outreachEntity.VenueName.Valid {
+		venueName = outreachEntity.VenueName.String
+	}
+
+	if outreachEntity.Region.Valid {
+		region = outreachEntity.Region.String
 	}
 
 	outreach := Outreach{
@@ -33,9 +53,11 @@ func ToDomain(outreachEntity *entity.Outreach) *Outreach {
 		Name:         outreachEntity.Name,
 		AddressLine1: outreachEntity.AddressLine1,
 		AddressLine2: addressLine2,
-		Postcode:     outreachEntity.PostCode,
+		Postcode:     postcode,
 		City:         outreachEntity.City,
 		Country:      outreachEntity.Country,
+		VenueName:    venueName,
+		Region:       region,
 	}
 
 	return &outreach

@@ -28,9 +28,11 @@ type Outreach struct {
 	Name         string      `boil:"name" json:"name" toml:"name" yaml:"name"`
 	AddressLine1 string      `boil:"address_line1" json:"address_line1" toml:"address_line1" yaml:"address_line1"`
 	AddressLine2 null.String `boil:"address_line2" json:"address_line2,omitempty" toml:"address_line2" yaml:"address_line2,omitempty"`
-	PostCode     string      `boil:"post_code" json:"post_code" toml:"post_code" yaml:"post_code"`
+	PostCode     null.String `boil:"post_code" json:"post_code,omitempty" toml:"post_code" yaml:"post_code,omitempty"`
 	City         string      `boil:"city" json:"city" toml:"city" yaml:"city"`
 	Country      string      `boil:"country" json:"country" toml:"country" yaml:"country"`
+	Region       null.String `boil:"region" json:"region,omitempty" toml:"region" yaml:"region,omitempty"`
+	VenueName    null.String `boil:"venue_name" json:"venue_name,omitempty" toml:"venue_name" yaml:"venue_name,omitempty"`
 
 	R *outreachR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L outreachL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -44,6 +46,8 @@ var OutreachColumns = struct {
 	PostCode     string
 	City         string
 	Country      string
+	Region       string
+	VenueName    string
 }{
 	ID:           "id",
 	Name:         "name",
@@ -52,6 +56,8 @@ var OutreachColumns = struct {
 	PostCode:     "post_code",
 	City:         "city",
 	Country:      "country",
+	Region:       "region",
+	VenueName:    "venue_name",
 }
 
 var OutreachTableColumns = struct {
@@ -62,6 +68,8 @@ var OutreachTableColumns = struct {
 	PostCode     string
 	City         string
 	Country      string
+	Region       string
+	VenueName    string
 }{
 	ID:           "outreaches.id",
 	Name:         "outreaches.name",
@@ -70,6 +78,8 @@ var OutreachTableColumns = struct {
 	PostCode:     "outreaches.post_code",
 	City:         "outreaches.city",
 	Country:      "outreaches.country",
+	Region:       "outreaches.region",
+	VenueName:    "outreaches.venue_name",
 }
 
 // Generated where
@@ -79,17 +89,21 @@ var OutreachWhere = struct {
 	Name         whereHelperstring
 	AddressLine1 whereHelperstring
 	AddressLine2 whereHelpernull_String
-	PostCode     whereHelperstring
+	PostCode     whereHelpernull_String
 	City         whereHelperstring
 	Country      whereHelperstring
+	Region       whereHelpernull_String
+	VenueName    whereHelpernull_String
 }{
 	ID:           whereHelperint{field: "\"outreaches\".\"id\""},
 	Name:         whereHelperstring{field: "\"outreaches\".\"name\""},
 	AddressLine1: whereHelperstring{field: "\"outreaches\".\"address_line1\""},
 	AddressLine2: whereHelpernull_String{field: "\"outreaches\".\"address_line2\""},
-	PostCode:     whereHelperstring{field: "\"outreaches\".\"post_code\""},
+	PostCode:     whereHelpernull_String{field: "\"outreaches\".\"post_code\""},
 	City:         whereHelperstring{field: "\"outreaches\".\"city\""},
 	Country:      whereHelperstring{field: "\"outreaches\".\"country\""},
+	Region:       whereHelpernull_String{field: "\"outreaches\".\"region\""},
+	VenueName:    whereHelpernull_String{field: "\"outreaches\".\"venue_name\""},
 }
 
 // OutreachRels is where relationship names are stored.
@@ -130,9 +144,9 @@ func (r *outreachR) GetUsers() UserSlice {
 type outreachL struct{}
 
 var (
-	outreachAllColumns            = []string{"id", "name", "address_line1", "address_line2", "post_code", "city", "country"}
-	outreachColumnsWithoutDefault = []string{"name", "address_line1", "post_code", "city", "country"}
-	outreachColumnsWithDefault    = []string{"id", "address_line2"}
+	outreachAllColumns            = []string{"id", "name", "address_line1", "address_line2", "post_code", "city", "country", "region", "venue_name"}
+	outreachColumnsWithoutDefault = []string{"name", "address_line1", "city", "country"}
+	outreachColumnsWithDefault    = []string{"id", "address_line2", "post_code", "region", "venue_name"}
 	outreachPrimaryKeyColumns     = []string{"id"}
 	outreachGeneratedColumns      = []string{}
 )

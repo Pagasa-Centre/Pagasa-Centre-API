@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS outreaches (
                         name VARCHAR(255) NOT NULL,
                         address_line1 VARCHAR(255) NOT NULL,
                         address_line2 VARCHAR(255),
-                        post_code VARCHAR(50) NOT NULL,
+                        post_code VARCHAR(50) ,
                         city VARCHAR(100) NOT NULL,
                         country VARCHAR(100) NOT NULL
     );
