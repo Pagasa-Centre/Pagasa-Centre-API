@@ -1,12 +1,12 @@
 package outreach
 
 import (
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"net/http"
 
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach/dto"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 )
 

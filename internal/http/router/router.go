@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,7 +12,6 @@ import (
 	ministry "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	mediaService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	outreachService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"

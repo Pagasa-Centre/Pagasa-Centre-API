@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"net/http"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
