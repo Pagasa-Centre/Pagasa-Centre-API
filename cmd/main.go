@@ -68,7 +68,7 @@ func main() {
 	ytClient := youtube.NewYouTubeClient(cfg.YoutubeAPIKey, cfg.YoutubeChannelID)
 	mediaCronJob := cron2.NewMediaCronJob(logger, ytClient, mediaService)
 
-	mediaCronJob.RunOnce() // add this method and call it once during startup
+	mediaCronJob.RunOnce()
 
 	mediaCronJob.Start()
 
