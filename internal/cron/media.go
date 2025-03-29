@@ -11,12 +11,12 @@ import (
 )
 
 type MediaCronJob struct {
-	Logger        zap.SugaredLogger
+	Logger        *zap.Logger
 	YouTubeClient *youtube.YouTubeClient
 	MediaService  media.MediaService
 }
 
-func NewMediaCronJob(logger zap.SugaredLogger, ytClient *youtube.YouTubeClient, mediaService media.MediaService) *MediaCronJob {
+func NewMediaCronJob(logger *zap.Logger, ytClient *youtube.YouTubeClient, mediaService media.MediaService) *MediaCronJob {
 	return &MediaCronJob{
 		Logger:        logger,
 		YouTubeClient: ytClient,
@@ -37,52 +37,52 @@ func (job *MediaCronJob) Start() {
 	spec := "0 23 */3 * *"
 
 	_, err := c.AddFunc(spec, func() {
-		job.Logger.Infow("Starting media fetch cron job")
+		job.Logger.Info("Starting media fetch cron job")
 
 		ctx := context.Background()
 
 		for category, playlistID := range playlistMap {
 			videos, err := job.YouTubeClient.FetchVideosFromPlaylist(ctx, playlistID, category)
 			if err != nil {
-				job.Logger.Errorw("Error fetching YouTube videos", "category", category, "error", err)
+				job.Logger.Sugar().Errorw("Error fetching YouTube videos", "category", category, "error", err)
 				continue
 			}
 
 			if len(videos) == 0 {
-				job.Logger.Infow("No new videos found", "category", category)
+				job.Logger.Sugar().Infow("No new videos found", "category", category)
 				continue
 			}
 
 			err = job.MediaService.BulkInsert(ctx, videos)
 			if err != nil {
-				job.Logger.Errorw("Error storing videos in DB", "error", err)
+				job.Logger.Sugar().Errorw("Error storing videos in DB", "error", err)
 			}
 		}
 	})
 	if err != nil {
-		job.Logger.Errorw("Failed to schedule media cron job", "error", err)
+		job.Logger.Sugar().Errorw("Failed to schedule media cron job", "error", err)
 		return
 	}
 
-	job.Logger.Infow("Media cron job scheduled")
+	job.Logger.Sugar().Infow("Media cron job scheduled")
 	c.Start()
 }
 
 func (job *MediaCronJob) RunOnce() {
-	job.Logger.Infow("Manually running media fetch job")
+	job.Logger.Sugar().Infow("Manually running media fetch job")
 
 	ctx := context.Background()
 
 	for category, playlistID := range playlistMap {
 		videos, err := job.YouTubeClient.FetchVideosFromPlaylist(ctx, playlistID, category)
 		if err != nil {
-			job.Logger.Errorw("Error fetching YouTube videos", "category", category, "error", err)
+			job.Logger.Sugar().Errorw("Error fetching YouTube videos", "category", category, "error", err)
 			continue
 		}
 
 		err = job.MediaService.BulkInsert(ctx, videos)
 		if err != nil {
-			job.Logger.Errorw("Error storing videos in DB", "error", err)
+			job.Logger.Sugar().Errorw("Error storing videos in DB", "error", err)
 		}
 	}
 }

@@ -21,7 +21,7 @@ import (
 )
 
 func New(
-	logger zap.SugaredLogger,
+	logger *zap.Logger,
 	jwtSecret string,
 	userService userService.UserService,
 	rolesService roles.RolesService,

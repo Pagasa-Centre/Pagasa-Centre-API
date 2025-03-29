@@ -14,11 +14,11 @@ type MediaHandler interface {
 }
 
 type handler struct {
-	logger  zap.SugaredLogger
+	logger  *zap.Logger
 	service media.MediaService
 }
 
-func NewMediaHandler(logger zap.SugaredLogger, service media.MediaService) MediaHandler {
+func NewMediaHandler(logger *zap.Logger, service media.MediaService) MediaHandler {
 	return &handler{
 		service: service,
 		logger:  logger,
@@ -31,7 +31,7 @@ func (h *handler) All() http.HandlerFunc {
 
 		media, err := h.service.All(ctx)
 		if err != nil {
-			h.logger.Errorw("Failed to get all medias", "error", err)
+			h.logger.Sugar().Errorw("Failed to get all medias", "error", err)
 			render.Json(w, http.StatusInternalServerError, err.Error())
 
 			return

@@ -15,12 +15,12 @@ type OutreachService interface {
 }
 
 type service struct {
-	logger       zap.SugaredLogger
+	logger       *zap.Logger
 	outreachRepo storage.OutreachRepository
 }
 
 func NewOutreachService(
-	logger zap.SugaredLogger,
+	logger *zap.Logger,
 	outreachRepo storage.OutreachRepository,
 ) OutreachService {
 	return &service{

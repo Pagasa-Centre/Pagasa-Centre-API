@@ -24,7 +24,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
 	commonDb "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/db"
-	logger2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/logger"
+	commonlogger "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/logger"
 )
 
 func main() {
@@ -38,16 +38,16 @@ func main() {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
-	logger := logger2.New(cfg)
+	logger := commonlogger.New(cfg)
 
 	// Connect to the PostgreSQL database using sqlx.
 	db, err := sqlx.Connect("postgres", cfg.DatabaseURL)
 	if err != nil {
-		logger.Fatalf("failed to connect to database: %v", err)
+		logger.Sugar().Fatalf("failed to connect to database: %v", err)
 	}
 
 	if err := commonDb.RunMigrations(db.DB); err != nil {
-		logger.Fatalf("failed to run migrations: %v", err)
+		logger.Sugar().Fatalf("failed to run migrations: %v", err)
 	}
 
 	userRepo := userStorage.NewUserRepository(db)
@@ -74,7 +74,7 @@ func main() {
 
 	mux := router.New(logger, cfg.JwtSecret, userService, rolesService, ministryService, outreachService, mediaService)
 
-	logger.Infof("Server starting on port %s", cfg.Port)
+	logger.Sugar().Infof("Server starting on port %s", cfg.Port)
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 
