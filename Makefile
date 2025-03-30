@@ -31,9 +31,9 @@ down:
 	docker-compose down -v
 .PHONY: down
 
-build:
+start:
 	docker-compose up --build
-.PHONY: build
+.PHONY: start
 
 lint:
 	go mod tidy
