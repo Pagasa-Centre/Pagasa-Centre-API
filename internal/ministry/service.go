@@ -14,6 +14,7 @@ import (
 type MinistryService interface {
 	All(ctx context.Context) ([]*domain.Ministry, error)
 	AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error
+	SendApplication(ctx context.Context, userID string) error
 }
 
 type service struct {
@@ -55,4 +56,19 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 	}
 
 	return ministries, nil
+}
+
+func (ms *service) SendApplication(ctx context.Context, userID string) error {
+
+	//1. Fetch Ministry Leader details(phone number & userid) via ministryID
+
+	//2. Fetch User details(name, email and number)
+
+	//3. Create New Approval (Type,requester_id, approver_id,state)
+
+	//4. Construct and send Message to notify ministry leader that an application has been made
+
+	//5. Let applicant know that their application has been sent.
+
+	return nil
 }

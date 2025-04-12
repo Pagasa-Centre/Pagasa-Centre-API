@@ -79,14 +79,26 @@ func (mh *handler) Apply() http.HandlerFunc {
 			return
 		}
 
-		//1. Fetch Ministry Leader details(phone number & userid) via ministryID
+		err = mh.MinistryService.SendApplication(ctx, userID)
+		if err != nil {
+			mh.logger.Sugar().Errorw("Failed to send application", "error", err)
+			render.Json(
+				w,
+				http.StatusInternalServerError,
+				dto.ToMinistryApplicationResponse(
+					"Failed to send application",
+				),
+			)
 
-		//2. Fetch User details(name, email and number)
+			return
+		}
 
-		//3. Create New Approval (Type,requester_id, approver_id,state)
-
-		//4. Construct and send Message to notify ministry leader that an application has been made
-
-		//5. Let applicant know that their application has been sent.
+		render.Json(
+			w,
+			http.StatusOK,
+			dto.ToMinistryApplicationResponse(
+				"Your application was successfully sent.",
+			),
+		)
 	}
 }
