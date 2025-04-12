@@ -33,15 +33,24 @@ func ToResponse(outreach *domain.Outreach) *Outreach {
 }
 
 type GetAllOutreachesResponse struct {
-	Outreaches []*Outreach `json:"outreaches"`
+	Message    string      `json:"message"`
+	Outreaches []*Outreach `json:"outreaches,omitempty"`
 }
 
-func ToGetAllOutreachesResponse(outreaches []*domain.Outreach) GetAllOutreachesResponse {
+func ToGetAllOutreachesResponse(outreaches []*domain.Outreach, message string) GetAllOutreachesResponse {
 	var outreachesResp GetAllOutreachesResponse
 
-	for _, ministry := range outreaches {
-		outreachesResp.Outreaches = append(outreachesResp.Outreaches, ToResponse(ministry))
+	for _, outreach := range outreaches {
+		outreachesResp.Outreaches = append(outreachesResp.Outreaches, ToResponse(outreach))
 	}
 
+	outreachesResp.Message = message
+
 	return outreachesResp
+}
+
+func ToErrorOutreachesResponse(message string) GetAllOutreachesResponse {
+	return GetAllOutreachesResponse{
+		Message: message,
+	}
 }

@@ -33,13 +33,12 @@ func (oh *handler) All() http.HandlerFunc {
 		outreaches, err := oh.outreachService.All(ctx)
 		if err != nil {
 			oh.logger.Sugar().Infow("Failed to get all outreaches", "error", err)
-			render.Json(w, http.StatusInternalServerError, err.Error())
+			render.Json(w, http.StatusInternalServerError, dto.ToErrorOutreachesResponse("Failed to fetch outreaches"))
 
 			return
 		}
 
-		resp := dto.ToGetAllOutreachesResponse(outreaches)
-
+		resp := dto.ToGetAllOutreachesResponse(outreaches, "Successfully fetched outreaches")
 		render.Json(w, http.StatusOK, resp)
 	}
 }
