@@ -1,12 +1,12 @@
 package media
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"net/http"
 
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 )
 
 type MediaHandler interface {
@@ -29,7 +29,7 @@ func (h *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		media, err := h.service.All(ctx)
+		m, err := h.service.All(ctx)
 		if err != nil {
 			h.logger.Sugar().Errorw("Failed to get all medias", "error", err)
 			render.Json(w, http.StatusInternalServerError, err.Error())
@@ -37,6 +37,6 @@ func (h *handler) All() http.HandlerFunc {
 			return
 		}
 
-		render.Json(w, http.StatusOK, map[string]any{"media": media})
+		render.Json(w, http.StatusOK, map[string]any{"media": m})
 	}
 }

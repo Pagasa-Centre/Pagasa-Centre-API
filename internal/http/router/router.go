@@ -1,7 +1,6 @@
 package router
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -18,6 +17,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	middleware2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/middleware"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 )
 
 func New(

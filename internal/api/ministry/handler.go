@@ -1,13 +1,13 @@
 package ministry
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"net/http"
 
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 )
 
 type MinistryHandler interface {
