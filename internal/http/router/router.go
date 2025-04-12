@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/go-chi/cors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -29,6 +30,15 @@ func New(
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
+
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"}, // 👈 allow frontend origin
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
 
 	// Add middleware.
 	router.Use(middleware.Logger)    // logs every request
