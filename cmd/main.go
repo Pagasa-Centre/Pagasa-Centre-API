@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"log"
 	"net/http"
 
@@ -64,6 +65,12 @@ func main() {
 
 	mediaRepo := mediaStorage.NewMediaRepository(db)
 	mediaService := media.NewMediaService(logger, mediaRepo)
+
+	communicationService := communication.NewCommunicationService(
+		cfg.TwilioAccountSID,
+		cfg.TwilioAuthToken,
+		cfg.TwilioNumber,
+	)
 
 	ytClient := youtube.NewYouTubeClient(cfg.YoutubeAPIKey, cfg.YoutubeChannelID)
 	mediaCronJob := cron2.NewMediaCronJob(logger, ytClient, mediaService)
