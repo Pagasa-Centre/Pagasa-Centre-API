@@ -1,12 +1,12 @@
 package outreach
 
 import (
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"net/http"
 
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach/dto"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 )
 
@@ -15,11 +15,11 @@ type OutreachHandler interface {
 }
 
 type handler struct {
-	logger          zap.SugaredLogger
+	logger          *zap.Logger
 	outreachService outreach.OutreachService
 }
 
-func NewOutreachHandler(logger zap.SugaredLogger, outreachService outreach.OutreachService) OutreachHandler {
+func NewOutreachHandler(logger *zap.Logger, outreachService outreach.OutreachService) OutreachHandler {
 	return &handler{
 		logger:          logger,
 		outreachService: outreachService,
@@ -32,7 +32,7 @@ func (oh *handler) All() http.HandlerFunc {
 
 		outreaches, err := oh.outreachService.All(ctx)
 		if err != nil {
-			oh.logger.Infow("Failed to get all outreaches", "error", err)
+			oh.logger.Sugar().Infow("Failed to get all outreaches", "error", err)
 			render.Json(w, http.StatusInternalServerError, err.Error())
 
 			return

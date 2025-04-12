@@ -17,11 +17,11 @@ type RolesService interface {
 }
 
 type service struct {
-	logger     zap.SugaredLogger
+	logger     *zap.Logger
 	repository storage.RolesRepository
 }
 
-func NewRoleService(logger zap.SugaredLogger, repository storage.RolesRepository) RolesService {
+func NewRoleService(logger *zap.Logger, repository storage.RolesRepository) RolesService {
 	return &service{
 		logger:     logger,
 		repository: repository,

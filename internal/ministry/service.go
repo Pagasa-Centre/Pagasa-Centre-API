@@ -16,12 +16,12 @@ type MinistryService interface {
 }
 
 type service struct {
-	logger       zap.SugaredLogger
+	logger       *zap.Logger
 	ministryRepo storage.MinistryRepository
 }
 
 func NewMinistryService(
-	logger zap.SugaredLogger,
+	logger *zap.Logger,
 	ministryRepo storage.MinistryRepository,
 ) MinistryService {
 	return &service{

@@ -15,11 +15,11 @@ type MediaService interface {
 }
 
 type service struct {
-	logger zap.SugaredLogger
+	logger *zap.Logger
 	repo   storage.MediaRepository
 }
 
-func NewMediaService(logger zap.SugaredLogger, repo storage.MediaRepository) MediaService {
+func NewMediaService(logger *zap.Logger, repo storage.MediaRepository) MediaService {
 	return &service{
 		repo:   repo,
 		logger: logger,
