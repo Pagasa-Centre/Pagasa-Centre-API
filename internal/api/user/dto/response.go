@@ -5,13 +5,13 @@ import (
 )
 
 type UserDetailsResponse struct {
-	FirstName    string `json:"first_name,omitempty"`
-	LastName     string `json:"last_name,omitempty"`
-	Email        string `json:"email,omitempty" validate:"omitempty,email"`
-	Birthday     string `json:"birthday,omitempty"`
-	PhoneNumber  string `json:"phone_number,omitempty"`
-	CellLeaderID *int   `json:"cell_leader_id,omitempty"`
-	OutreachID   int    `json:"outreach_id,omitempty"`
+	FirstName    string  `json:"first_name,omitempty"`
+	LastName     string  `json:"last_name,omitempty"`
+	Email        string  `json:"email,omitempty" validate:"omitempty,email"`
+	Birthday     string  `json:"birthday,omitempty"`
+	PhoneNumber  string  `json:"phone_number,omitempty"`
+	CellLeaderID *string `json:"cell_leader_id,omitempty"`
+	OutreachID   string  `json:"outreach_id,omitempty"`
 }
 
 func ToResponse(user *entity.User) UserDetailsResponse {
@@ -26,17 +26,17 @@ func ToResponse(user *entity.User) UserDetailsResponse {
 		phone = user.Phone.String
 	}
 
-	var cellLeaderID *int
+	var cellLeaderID *string
 
 	if user.CellLeaderID.Valid {
 		// Convert null.Int to int and assign its address.
-		v := user.CellLeaderID.Int
+		v := user.CellLeaderID.String
 		cellLeaderID = &v
 	}
 
-	var outreachID int
+	var outreachID string
 	if user.OutreachID.Valid {
-		outreachID = user.OutreachID.Int
+		outreachID = user.OutreachID.String
 	}
 
 	return UserDetailsResponse{

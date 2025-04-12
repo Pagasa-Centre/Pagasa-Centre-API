@@ -11,11 +11,11 @@ import (
 )
 
 type UserRepository interface {
-	InsertUser(ctx context.Context, user *entity.User) (*int, error)
+	InsertUser(ctx context.Context, user *entity.User) (*string, error)
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
-	GetUserById(ctx context.Context, id int) (*entity.User, error)
+	GetUserById(ctx context.Context, id string) (*entity.User, error)
 	UpdateUser(ctx context.Context, user *entity.User) (*entity.User, error)
-	DeleteUser(ctx context.Context, id int) error
+	DeleteUser(ctx context.Context, id string) error
 }
 
 type userRepository struct {
@@ -28,7 +28,7 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
 	}
 }
 
-func (r *userRepository) InsertUser(ctx context.Context, user *entity.User) (*int, error) {
+func (r *userRepository) InsertUser(ctx context.Context, user *entity.User) (*string, error) {
 	if err := user.Insert(ctx, r.db, boil.Infer()); err != nil {
 		return nil, fmt.Errorf("failed inserting user entity: %w", err)
 	}
@@ -46,7 +46,7 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*ent
 	return user, nil
 }
 
-func (r *userRepository) GetUserById(ctx context.Context, id int) (*entity.User, error) {
+func (r *userRepository) GetUserById(ctx context.Context, id string) (*entity.User, error) {
 	return entity.Users(entity.UserWhere.ID.EQ(id)).One(ctx, r.db)
 }
 
@@ -60,17 +60,17 @@ func (r *userRepository) UpdateUser(ctx context.Context, user *entity.User) (*en
 }
 
 // DeleteUser deletes a user with the given id.
-func (r *userRepository) DeleteUser(ctx context.Context, id int) error {
+func (r *userRepository) DeleteUser(ctx context.Context, id string) error {
 	// Create an entity with the ID to delete.
 	user := &entity.User{ID: id}
 	// SQLBoiler's Delete method will execute a DELETE query using the user's primary key.
 	rowsAffected, err := user.Delete(ctx, r.db)
 	if err != nil {
-		return fmt.Errorf("failed to delete user with id %d: %w", id, err)
+		return fmt.Errorf("failed to delete user with id %s: %w", id, err)
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("no user found with id %d", id)
+		return fmt.Errorf("no user found with id %s", id)
 	}
 
 	return nil

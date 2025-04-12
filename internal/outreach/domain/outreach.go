@@ -3,7 +3,7 @@ package domain
 import "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 
 type Outreach struct {
-	ID           int
+	ID           string
 	Name         string
 	AddressLine1 string
 	AddressLine2 string

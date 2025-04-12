@@ -5,7 +5,7 @@ import (
 )
 
 type Outreach struct {
-	ID           int    `json:"id"`
+	ID           string `json:"id"`
 	Name         string `json:"name"`
 	AddressLine1 string `json:"address_line_1"`
 	AddressLine2 string `json:"address_line_2"`

@@ -7,8 +7,8 @@ import (
 )
 
 type Ministry struct {
-	ID              int
-	OutreachID      int
+	ID              string
+	OutreachID      string
 	Name            string
 	Description     string
 	Day             string

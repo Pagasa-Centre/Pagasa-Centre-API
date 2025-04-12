@@ -5,8 +5,8 @@ import (
 )
 
 type Ministry struct {
-	ID              int     `json:"id"`
-	OutreachID      int     `json:"outreach_id"`
+	ID              string  `json:"id"`
+	OutreachID      string  `json:"outreach_id"`
 	Name            string  `json:"name"`
 	Description     string  `json:"description"`
 	Day             string  `json:"day"`

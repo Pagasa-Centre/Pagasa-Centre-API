@@ -16,11 +16,11 @@ import (
 
 type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
-	RegisterNewUser(ctx context.Context, user *domain.User) (*int, error)
+	RegisterNewUser(ctx context.Context, user *domain.User) (*string, error)
 	GenerateToken(user *entity.User) (string, error)
 	UpdateUserDetails(ctx context.Context, user *entity.User) (*entity.User, error)
-	GetUserById(ctx context.Context, id int) (*entity.User, error)
-	DeleteUser(ctx context.Context, id int) error
+	GetUserById(ctx context.Context, id string) (*entity.User, error)
+	DeleteUser(ctx context.Context, id string) error
 }
 
 type userService struct {
@@ -41,7 +41,7 @@ func NewUserService(
 	}
 }
 
-func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User) (*int, error) {
+func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User) (*string, error) {
 	s.logger.Infow("Registering new user")
 
 	userEntity := mappers.ToUserEntity(*user)
@@ -85,7 +85,7 @@ func (s *userService) GenerateToken(user *entity.User) (string, error) {
 	return signedToken, nil
 }
 
-func (s *userService) GetUserById(ctx context.Context, id int) (*entity.User, error) {
+func (s *userService) GetUserById(ctx context.Context, id string) (*entity.User, error) {
 	s.logger.Infow("Getting user by id")
 
 	user, err := s.userRepo.GetUserById(ctx, id)
@@ -109,7 +109,7 @@ func (s *userService) UpdateUserDetails(ctx context.Context, user *entity.User) 
 }
 
 // DeleteUser deletes a user by their ID.
-func (s *userService) DeleteUser(ctx context.Context, id int) error {
+func (s *userService) DeleteUser(ctx context.Context, id string) error {
 	s.logger.Infow("Deleting user")
 
 	if err := s.userRepo.DeleteUser(ctx, id); err != nil {

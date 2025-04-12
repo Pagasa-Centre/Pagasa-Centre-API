@@ -10,10 +10,10 @@ import (
 )
 
 type RolesService interface {
-	AssignLeaderRole(ctx context.Context, userID int) error
-	AssignPrimaryRole(ctx context.Context, userID int) error
-	AssignPastorRole(ctx context.Context, userID int) error
-	AssignMinistryLeaderRole(ctx context.Context, userID int) error
+	AssignLeaderRole(ctx context.Context, userID string) error
+	AssignPrimaryRole(ctx context.Context, userID string) error
+	AssignPastorRole(ctx context.Context, userID string) error
+	AssignMinistryLeaderRole(ctx context.Context, userID string) error
 }
 
 type service struct {
@@ -28,7 +28,7 @@ func NewRoleService(logger zap.SugaredLogger, repository storage.RolesRepository
 	}
 }
 
-func (s *service) AssignMinistryLeaderRole(ctx context.Context, userID int) error {
+func (s *service) AssignMinistryLeaderRole(ctx context.Context, userID string) error {
 	s.logger.Info("Assigning Ministry Leader role")
 
 	err := s.repository.AssignPastorRole(ctx, userID)
@@ -41,7 +41,7 @@ func (s *service) AssignMinistryLeaderRole(ctx context.Context, userID int) erro
 	return nil
 }
 
-func (s *service) AssignLeaderRole(ctx context.Context, userID int) error {
+func (s *service) AssignLeaderRole(ctx context.Context, userID string) error {
 	s.logger.Info("Assigning Leader role")
 
 	err := s.repository.AssignLeaderRole(ctx, userID)
@@ -54,7 +54,7 @@ func (s *service) AssignLeaderRole(ctx context.Context, userID int) error {
 	return nil
 }
 
-func (s *service) AssignPrimaryRole(ctx context.Context, userID int) error {
+func (s *service) AssignPrimaryRole(ctx context.Context, userID string) error {
 	s.logger.Info("Assigning Primary role")
 
 	err := s.repository.AssignPrimaryRole(ctx, userID)
@@ -67,7 +67,7 @@ func (s *service) AssignPrimaryRole(ctx context.Context, userID int) error {
 	return nil
 }
 
-func (s *service) AssignPastorRole(ctx context.Context, userID int) error {
+func (s *service) AssignPastorRole(ctx context.Context, userID string) error {
 	s.logger.Info("Assigning Pastor role")
 
 	err := s.repository.AssignPastorRole(ctx, userID)

@@ -36,15 +36,15 @@ func New(
 	router.Use(middleware.Logger)    // logs every request
 	router.Use(middleware.Recoverer) // recovers from panics
 
+	userHandler := user.NewUserHandler(logger, userService, rolesService, minstryService)
+	ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
+	outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
+	mediaHandler := media.NewMediaHandler(logger, mediaService)
+
 	// Define the /alive endpoint.
 	registerAliveEndpoint(router)
 	router.Route(
 		"/api/v1", func(r chi.Router) {
-			userHandler := user.NewUserHandler(logger, userService, rolesService, minstryService)
-			ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
-			outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
-			mediaHandler := media.NewMediaHandler(logger, mediaService)
-
 			r.Route(
 				"/user", func(r chi.Router) {
 					r.Post("/register", userHandler.Register())
@@ -52,7 +52,7 @@ func New(
 
 					// Protected endpoints: wrap these with auth middleware.
 					r.Group(func(r chi.Router) {
-						r.Use(middleware2.AuthMiddleware([]byte(jwtSecret)))
+						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
 						r.Post("/update-details", userHandler.UpdateDetails())
 						r.Delete("/", userHandler.Delete())
 					})

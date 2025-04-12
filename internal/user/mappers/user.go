@@ -15,7 +15,7 @@ func ToUserEntity(user domain.User) *entity.User {
 		HashedPassword: user.HashedPassword,
 		Birthday:       null.TimeFrom(user.Birthday),
 		Phone:          null.StringFrom(user.PhoneNumber),
-		CellLeaderID:   null.IntFromPtr(user.CellLeaderID),
-		OutreachID:     null.IntFrom(user.OutreachID),
+		CellLeaderID:   null.StringFromPtr(user.CellLeaderID),
+		OutreachID:     null.StringFrom(user.OutreachID),
 	}
 }

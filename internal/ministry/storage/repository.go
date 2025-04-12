@@ -12,7 +12,7 @@ import (
 
 type MinistryRepository interface {
 	GetAll(ctx context.Context) (entity.MinistrySlice, error)
-	AssignLeaderToMinistry(ctx context.Context, ministryID int, userID int) error
+	AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error
 }
 
 type repository struct {
@@ -25,7 +25,7 @@ func NewMinistryRepository(db *sqlx.DB) MinistryRepository {
 	}
 }
 
-func (repo *repository) AssignLeaderToMinistry(ctx context.Context, ministryID int, userID int) error {
+func (repo *repository) AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error {
 	db := repo.db.DB
 
 	// Fetch the ministry to update
@@ -34,7 +34,7 @@ func (repo *repository) AssignLeaderToMinistry(ctx context.Context, ministryID i
 		return err // returns sql.ErrNoRows if not found
 	}
 
-	ministry.LeaderID = null.IntFrom(userID)
+	ministry.LeaderID = null.StringFrom(userID)
 
 	// Update the record in the DB
 	_, err = ministry.Update(ctx, db, boil.Whitelist("leader_id"))

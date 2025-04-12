@@ -15,8 +15,8 @@ type User struct {
 	Email          string
 	PhoneNumber    string
 	Birthday       time.Time
-	CellLeaderID   *int
-	OutreachID     int
+	CellLeaderID   *string
+	OutreachID     string
 }
 
 func RegisterRequestToUserDomain(req dto.RegisterRequest) (user *User, err error) {
