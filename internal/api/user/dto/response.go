@@ -5,8 +5,8 @@ import (
 )
 
 type UpdateUserDetailsResponse struct {
-	Message string
-	User    *UserDetails
+	Message string       `json:"message"`
+	User    *UserDetails `json:"user,omitempty"`
 }
 
 type UserDetails struct {
@@ -42,116 +42,71 @@ func ToDeleteUserResponse(message string) *DeleteUserResponse {
 }
 
 func ToRegisterResponse(user *entity.User, token *string, message string) *RegisterResponse {
-	var birthday string
-	if user.Birthday.Valid {
-		birthday = user.Birthday.Time.Format("2006-01-02") // Format date to YYYY-MM-DD
-	}
-
-	var phone string
-	if user.Phone.Valid {
-		phone = user.Phone.String
-	}
-
-	var outreachID string
-	if user.OutreachID.Valid {
-		outreachID = user.OutreachID.String
-	}
-
-	var cellLeaderID *string
-	if user.CellLeaderID.Valid {
-		cellLeaderID = &user.CellLeaderID.String
+	var userDetails *UserDetails
+	if user != nil {
+		userDetails = extractUserDetails(user)
 	}
 
 	return &RegisterResponse{
-		Token: token,
-		User: &UserDetails{
-			FirstName:    user.FirstName,
-			LastName:     user.LastName,
-			Email:        user.Email,
-			Birthday:     birthday,
-			PhoneNumber:  phone,
-			OutreachID:   outreachID,
-			CellLeaderID: cellLeaderID,
-		},
+		Token:   token,
+		User:    userDetails,
 		Message: message,
 	}
 }
 
 func ToLoginResponse(user *entity.User, token string, message string) *LoginResponse {
-	var birthday string
-	if user.Birthday.Valid {
-		// Format the birthday as YYYY-MM-DD
-		birthday = user.Birthday.Time.Format("2006-01-02")
-	}
-
-	var phone string
-	if user.Phone.Valid {
-		phone = user.Phone.String
-	}
-
-	var cellLeaderID *string
-
-	if user.CellLeaderID.Valid {
-		// Convert null.Int to int and assign its address.
-		v := user.CellLeaderID.String
-		cellLeaderID = &v
-	}
-
-	var outreachID string
-	if user.OutreachID.Valid {
-		outreachID = user.OutreachID.String
+	var userDetails *UserDetails
+	if user != nil {
+		userDetails = extractUserDetails(user)
 	}
 
 	return &LoginResponse{
-		Token: &token,
-		User: &UserDetails{
-			FirstName:    user.FirstName,
-			LastName:     user.LastName,
-			Email:        user.Email,
-			Birthday:     birthday,
-			PhoneNumber:  phone,
-			CellLeaderID: cellLeaderID,
-			OutreachID:   outreachID,
-		},
+		Token:   &token,
+		User:    userDetails,
 		Message: message,
 	}
 }
 
 func ToUpdateUserDetailsResponse(user *entity.User, message string) *UpdateUserDetailsResponse {
-	var birthday string
-	if user.Birthday.Valid {
-		// Format the birthday as YYYY-MM-DD
-		birthday = user.Birthday.Time.Format("2006-01-02")
-	}
-
-	var phone string
-	if user.Phone.Valid {
-		phone = user.Phone.String
-	}
-
-	var cellLeaderID *string
-
-	if user.CellLeaderID.Valid {
-		// Convert null.Int to int and assign its address.
-		v := user.CellLeaderID.String
-		cellLeaderID = &v
-	}
-
-	var outreachID string
-	if user.OutreachID.Valid {
-		outreachID = user.OutreachID.String
+	var userDetails *UserDetails
+	if user != nil {
+		userDetails = extractUserDetails(user)
 	}
 
 	return &UpdateUserDetailsResponse{
 		Message: message,
-		User: &UserDetails{
-			FirstName:    user.FirstName,
-			LastName:     user.LastName,
-			Email:        user.Email,
-			Birthday:     birthday,
-			PhoneNumber:  phone,
-			CellLeaderID: cellLeaderID,
-			OutreachID:   outreachID,
-		},
+		User:    userDetails,
+	}
+}
+
+func extractUserDetails(user *entity.User) *UserDetails {
+	var birthday, phone, outreachID string
+
+	var cellLeaderID *string
+
+	if user.Birthday.Valid {
+		birthday = user.Birthday.Time.Format("2006-01-02")
+	}
+
+	if user.Phone.Valid {
+		phone = user.Phone.String
+	}
+
+	if user.OutreachID.Valid {
+		outreachID = user.OutreachID.String
+	}
+
+	if user.CellLeaderID.Valid {
+		cellLeaderID = &user.CellLeaderID.String
+	}
+
+	return &UserDetails{
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Email:        user.Email,
+		Birthday:     birthday,
+		PhoneNumber:  phone,
+		OutreachID:   outreachID,
+		CellLeaderID: cellLeaderID,
 	}
 }
