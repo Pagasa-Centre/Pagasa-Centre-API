@@ -1,14 +1,16 @@
 package user
 
 import (
+	"net/http"
+
+	"go.uber.org/zap"
+
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
-	"go.uber.org/zap"
-	"net/http"
 )
 
 type UserHandler interface {
@@ -137,6 +139,7 @@ func (h *handler) Login() http.HandlerFunc {
 			render.Json(w, http.StatusUnauthorized,
 				dto.ToRegisterResponse(nil, nil, InvalidCredentialsMsg),
 			)
+
 			return
 		}
 

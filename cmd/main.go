@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"log"
 	"net/http"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // <-- Add this line to register the Postgres driver
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 	cron2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/cron"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"

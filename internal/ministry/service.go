@@ -3,10 +3,10 @@ package ministry
 import (
 	"context"
 	"fmt"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 
 	"go.uber.org/zap"
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
 )
@@ -59,16 +59,10 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 }
 
 func (ms *service) SendApplication(ctx context.Context, userID string) error {
-
-	//1. Fetch Ministry Leader details(phone number & userid) via ministryID
-
-	//2. Fetch User details(name, email and number)
-
-	//3. Create New Approval (Type,requester_id, approver_id,state)
-
-	//4. Construct and send Message to notify ministry leader that an application has been made
-
-	//5. Let applicant know that their application has been sent.
-
+	// 1. Fetch Ministry Leader details(phone number & userid) via ministryID
+	// 2. Fetch User details(name, email and number)
+	// 3. Create New Approval (Type,requester_id, approver_id,state)
+	// 4. Construct and send Message to notify ministry leader that an application has been made
+	// 5. Let applicant know that their application has been sent.
 	return nil
 }

@@ -3,6 +3,7 @@ package communication
 import (
 	"context"
 	"fmt"
+
 	"github.com/twilio/twilio-go"
 	twilioApi "github.com/twilio/twilio-go/rest/api/v2010"
 )
@@ -42,5 +43,6 @@ func (s *service) SendSMS(ctx context.Context, to string, message string) error 
 	if err != nil {
 		return fmt.Errorf("failed to send SMS: %w", err)
 	}
+
 	return nil
 }
