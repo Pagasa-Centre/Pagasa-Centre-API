@@ -71,6 +71,9 @@ func New(
 			r.Route(
 				"/ministry", func(r chi.Router) {
 					r.Get("/", ministryHandler.All())
+
+					r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
+					r.Post("/application", ministryHandler.Apply())
 				},
 			)
 			r.Route(

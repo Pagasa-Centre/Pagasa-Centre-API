@@ -3,6 +3,7 @@ package ministry
 import (
 	"context"
 	"fmt"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 
 	"go.uber.org/zap"
 
@@ -16,17 +17,20 @@ type MinistryService interface {
 }
 
 type service struct {
-	logger       *zap.Logger
-	ministryRepo storage.MinistryRepository
+	logger               *zap.Logger
+	ministryRepo         storage.MinistryRepository
+	communicationService communication.CommunicationService
 }
 
 func NewMinistryService(
 	logger *zap.Logger,
 	ministryRepo storage.MinistryRepository,
+	communicationService communication.CommunicationService,
 ) MinistryService {
 	return &service{
-		logger:       logger,
-		ministryRepo: ministryRepo,
+		logger:               logger,
+		ministryRepo:         ministryRepo,
+		communicationService: communicationService,
 	}
 }
 

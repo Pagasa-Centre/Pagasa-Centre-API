@@ -57,20 +57,20 @@ func main() {
 	rolesRepo := rolesStorage.NewRolesRepository(db)
 	rolesService := roles.NewRoleService(logger, rolesRepo)
 
+	communicationService := communication.NewCommunicationService(
+		cfg.TwilioAccountSID,
+		cfg.TwilioAuthToken,
+		cfg.TwilioNumber,
+	)
+
 	ministryRepo := ministryStorage.NewMinistryRepository(db)
-	ministryService := ministry.NewMinistryService(logger, ministryRepo)
+	ministryService := ministry.NewMinistryService(logger, ministryRepo, communicationService)
 
 	outreachRepo := outreachStorage.NewOutreachRepository(db)
 	outreachService := outreach.NewOutreachService(logger, outreachRepo)
 
 	mediaRepo := mediaStorage.NewMediaRepository(db)
 	mediaService := media.NewMediaService(logger, mediaRepo)
-
-	communicationService := communication.NewCommunicationService(
-		cfg.TwilioAccountSID,
-		cfg.TwilioAuthToken,
-		cfg.TwilioNumber,
-	)
 
 	ytClient := youtube.NewYouTubeClient(cfg.YoutubeAPIKey, cfg.YoutubeChannelID)
 	mediaCronJob := cron2.NewMediaCronJob(logger, ytClient, mediaService)
@@ -79,7 +79,15 @@ func main() {
 
 	mediaCronJob.Start()
 
-	mux := router.New(logger, cfg.JwtSecret, userService, rolesService, ministryService, outreachService, mediaService)
+	mux := router.New(
+		logger,
+		cfg.JwtSecret,
+		userService,
+		rolesService,
+		ministryService,
+		outreachService,
+		mediaService,
+	)
 
 	logger.Sugar().Infof("Server starting on port %s", cfg.Port)
 
