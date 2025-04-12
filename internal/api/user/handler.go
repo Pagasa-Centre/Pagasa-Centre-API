@@ -47,6 +47,12 @@ func NewUserHandler(
 	}
 }
 
+const (
+	InvalidInputMsg        = "Please check your input. Some required fields might be missing or incorrectly formatted."
+	InternalServerErrorMsg = "Internal server error. Please try again later."
+	InvalidCredentialsMsg  = "Please check your username and password."
+)
+
 func (h *handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -58,7 +64,14 @@ func (h *handler) Register() http.HandlerFunc {
 			h.logger.Sugar().Errorw("failed to decode and validate register request body",
 				"context", ctx, "error", err)
 
-			render.Json(w, http.StatusBadRequest, err.Error())
+			render.Json(
+				w,
+				http.StatusBadRequest,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InvalidInputMsg,
+				))
 
 			return
 		}
@@ -67,7 +80,13 @@ func (h *handler) Register() http.HandlerFunc {
 		if err != nil {
 			h.logger.Sugar().Errorw("failed to map register request to user domain",
 				"context", ctx, "error", err)
-			render.Json(w, http.StatusBadRequest, err.Error())
+			render.Json(w, http.StatusBadRequest,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InvalidInputMsg,
+				),
+			)
 
 			return
 		}
@@ -76,7 +95,13 @@ func (h *handler) Register() http.HandlerFunc {
 		if err != nil {
 			h.logger.Sugar().Errorw("Error registering new user", "error", err)
 
-			render.Json(w, http.StatusInternalServerError, err.Error())
+			render.Json(w, http.StatusInternalServerError,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InternalServerErrorMsg,
+				),
+			)
 
 			return
 		}
@@ -85,7 +110,13 @@ func (h *handler) Register() http.HandlerFunc {
 			err = h.rolesService.AssignLeaderRole(ctx, *userID)
 			if err != nil {
 				h.logger.Sugar().Errorw("failed to assign leader role", "error", err)
-				render.Json(w, http.StatusInternalServerError, err.Error())
+				render.Json(w, http.StatusInternalServerError,
+					dto.ToRegisterResponse(
+						nil,
+						nil,
+						InternalServerErrorMsg,
+					),
+				)
 
 				return
 			}
@@ -95,7 +126,15 @@ func (h *handler) Register() http.HandlerFunc {
 			err = h.rolesService.AssignPrimaryRole(ctx, *userID)
 			if err != nil {
 				h.logger.Sugar().Errorw("failed to assign primary role", "error", err)
-				render.Json(w, http.StatusInternalServerError, err.Error())
+				render.Json(
+					w,
+					http.StatusInternalServerError,
+					dto.ToRegisterResponse(
+						nil,
+						nil,
+						InternalServerErrorMsg,
+					),
+				)
 
 				return
 			}
@@ -105,7 +144,15 @@ func (h *handler) Register() http.HandlerFunc {
 			err = h.rolesService.AssignPastorRole(ctx, *userID)
 			if err != nil {
 				h.logger.Sugar().Errorw("failed to assign pastor role", "error", err)
-				render.Json(w, http.StatusInternalServerError, err.Error())
+				render.Json(
+					w,
+					http.StatusInternalServerError,
+					dto.ToRegisterResponse(
+						nil,
+						nil,
+						InternalServerErrorMsg,
+					),
+				)
 
 				return
 			}
@@ -115,7 +162,15 @@ func (h *handler) Register() http.HandlerFunc {
 			err = h.rolesService.AssignMinistryLeaderRole(ctx, *userID)
 			if err != nil {
 				h.logger.Sugar().Errorw("failed to assign pastor role", "error", err)
-				render.Json(w, http.StatusInternalServerError, err.Error())
+				render.Json(
+					w,
+					http.StatusInternalServerError,
+					dto.ToRegisterResponse(
+						nil,
+						nil,
+						InternalServerErrorMsg,
+					),
+				)
 
 				return
 			}
@@ -123,13 +178,50 @@ func (h *handler) Register() http.HandlerFunc {
 			err = h.ministryService.AssignLeaderToMinistry(ctx, *req.MinistryID, *userID)
 			if err != nil {
 				h.logger.Sugar().Errorw("failed to assign leader to ministry", "error", err)
-				render.Json(w, http.StatusInternalServerError, err.Error())
+				render.Json(
+					w,
+					http.StatusInternalServerError,
+					dto.ToRegisterResponse(
+						nil,
+						nil,
+						InternalServerErrorMsg,
+					),
+				)
 
 				return
 			}
 		}
 
-		render.Json(w, http.StatusCreated, "Successfully created user")
+		userEntity, err := h.userService.GetUserById(ctx, *userID)
+		if err != nil {
+			h.logger.Sugar().Errorw("failed to get user by id", "error", err)
+			render.Json(w, http.StatusInternalServerError,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InternalServerErrorMsg,
+				),
+			)
+		}
+
+		// Generate an authentication token (e.g., JWT)
+		token, err := h.userService.GenerateToken(userEntity)
+		if err != nil {
+			h.logger.Sugar().Errorw("failed to generate token", "error", err)
+			render.Json(w, http.StatusInternalServerError,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InternalServerErrorMsg,
+				),
+			)
+
+			return
+		}
+
+		resp := dto.ToRegisterResponse(userEntity, &token, "Registration successful")
+
+		render.Json(w, http.StatusCreated, resp)
 	}
 }
 
@@ -140,7 +232,13 @@ func (h *handler) Login() http.HandlerFunc {
 		var req dto.LoginRequest
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
 			h.logger.Sugar().Errorw("failed to decode and validate login request body", "error", err)
-			render.Json(w, http.StatusBadRequest, err.Error())
+			render.Json(w, http.StatusBadRequest,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InvalidCredentialsMsg,
+				),
+			)
 
 			return
 		}
@@ -149,7 +247,13 @@ func (h *handler) Login() http.HandlerFunc {
 		if err != nil {
 			h.logger.Sugar().Errorw("failed to find user", "error", err)
 			// For security, use the same error for "not found" or "wrong password"
-			render.Json(w, http.StatusUnauthorized, "invalid credentials")
+			render.Json(w, http.StatusUnauthorized,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InvalidCredentialsMsg,
+				),
+			)
 
 			return
 		}
@@ -158,7 +262,13 @@ func (h *handler) Login() http.HandlerFunc {
 		err = bcrypt.CompareHashAndPassword([]byte(userEntity.HashedPassword), []byte(req.Password))
 		if err != nil {
 			h.logger.Sugar().Errorw("password mismatch", "error", err)
-			render.Json(w, http.StatusUnauthorized, "invalid credentials")
+			render.Json(w, http.StatusUnauthorized,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InvalidCredentialsMsg,
+				),
+			)
 
 			return
 		}
@@ -167,18 +277,20 @@ func (h *handler) Login() http.HandlerFunc {
 		token, err := h.userService.GenerateToken(userEntity)
 		if err != nil {
 			h.logger.Sugar().Errorw("failed to generate token", "error", err)
-			render.Json(w, http.StatusInternalServerError, "internal server error")
+			render.Json(w, http.StatusInternalServerError,
+				dto.ToRegisterResponse(
+					nil,
+					nil,
+					InternalServerErrorMsg,
+				),
+			)
 
 			return
 		}
 
-		resp := dto.ToResponse(userEntity)
+		resp := dto.ToLoginResponse(userEntity, token, "Successfully logged in")
 
-		// Step 2e: Return the token in the response.
-		render.Json(w, http.StatusOK, map[string]interface{}{
-			"token":        token,
-			"user-details": resp,
-		})
+		render.Json(w, http.StatusOK, resp)
 	}
 }
 
@@ -189,7 +301,14 @@ func (h *handler) UpdateDetails() http.HandlerFunc {
 		var req dto.UpdateDetailsRequest
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
 			h.logger.Sugar().Errorw("failed to decode update details request", "error", err)
-			render.Json(w, http.StatusBadRequest, err.Error())
+			render.Json(
+				w,
+				http.StatusBadRequest,
+				dto.ToUpdateUserDetailsResponse(
+					nil,
+					InvalidInputMsg,
+				),
+			)
 
 			return
 		}
@@ -198,7 +317,14 @@ func (h *handler) UpdateDetails() http.HandlerFunc {
 		userID, err := context.GetUserIDString(ctx)
 		if err != nil {
 			h.logger.Sugar().Errorw("user ID not found in session", "error", err)
-			render.Json(w, http.StatusUnauthorized, "unauthorized")
+			render.Json(
+				w,
+				http.StatusUnauthorized,
+				dto.ToUpdateUserDetailsResponse(
+					nil,
+					"unauthorized",
+				),
+			)
 
 			return
 		}
@@ -207,7 +333,13 @@ func (h *handler) UpdateDetails() http.HandlerFunc {
 		currentUser, err := h.userService.GetUserById(ctx, userID)
 		if err != nil {
 			h.logger.Sugar().Errorw("failed to retrieve user", "error", err)
-			render.Json(w, http.StatusInternalServerError, "internal server error")
+			render.Json(
+				w,
+				http.StatusInternalServerError,
+				dto.ToUpdateUserDetailsResponse(
+					nil,
+					InternalServerErrorMsg,
+				))
 
 			return
 		}
@@ -219,17 +351,20 @@ func (h *handler) UpdateDetails() http.HandlerFunc {
 		updatedUserDetails, err := h.userService.UpdateUserDetails(ctx, currentUser)
 		if err != nil {
 			h.logger.Sugar().Errorw("failed to update user details", "error", err)
-			render.Json(w, http.StatusInternalServerError, "failed to update user")
+			render.Json(
+				w,
+				http.StatusInternalServerError,
+				dto.ToUpdateUserDetailsResponse(
+					nil,
+					"failed to update user details",
+				))
 
 			return
 		}
 
-		resp := dto.ToResponse(updatedUserDetails)
+		resp := dto.ToUpdateUserDetailsResponse(updatedUserDetails, "Successfully updated user details")
 
-		render.Json(w, http.StatusOK, map[string]interface{}{
-			"message": "user details updated successfully",
-			"data":    resp,
-		})
+		render.Json(w, http.StatusOK, resp)
 	}
 }
 
@@ -240,7 +375,10 @@ func (h *handler) Delete() http.HandlerFunc {
 		userID, err := context.GetUserIDString(ctx)
 		if err != nil {
 			h.logger.Sugar().Errorw("user ID not found in session", "error", err)
-			render.Json(w, http.StatusUnauthorized, "unauthorized")
+			render.Json(
+				w,
+				http.StatusUnauthorized,
+				dto.ToDeleteUserResponse("unauthorized"))
 
 			return
 		}
@@ -248,13 +386,17 @@ func (h *handler) Delete() http.HandlerFunc {
 		// Call the service to delete the user.
 		if err := h.userService.DeleteUser(ctx, userID); err != nil {
 			h.logger.Sugar().Errorw("failed to delete user", "error", err)
-			render.Json(w, http.StatusInternalServerError, "failed to delete user")
+			render.Json(
+				w,
+				http.StatusInternalServerError,
+				dto.ToDeleteUserResponse("failed to delete user"),
+			)
 
 			return
 		}
 
 		// Return a success response.
-		render.Json(w, http.StatusOK, map[string]string{"message": "user deleted successfully"})
+		render.Json(w, http.StatusOK, dto.ToDeleteUserResponse("user deleted successfully"))
 	}
 }
 
