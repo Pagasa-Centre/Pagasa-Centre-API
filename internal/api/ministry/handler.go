@@ -33,6 +33,7 @@ func (mh *handler) All() http.HandlerFunc {
 		if err != nil {
 			mh.logger.Sugar().Infow("Failed to get all ministries", "error", err)
 			render.Json(w, http.StatusInternalServerError, dto.ToErrorMinistriesResponse("Failed to fetch ministries"))
+
 			return
 		}
 
