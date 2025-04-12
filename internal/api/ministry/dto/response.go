@@ -42,16 +42,25 @@ func ToResponse(ministry *domain.Ministry) *Ministry {
 	}
 }
 
-type GetAllMinistriesResponse struct {
-	Ministries []*Ministry `json:"ministries"`
+func ToErrorMinistriesResponse(message string) GetAllMinistriesResponse {
+	return GetAllMinistriesResponse{
+		Message: message,
+	}
 }
 
-func ToGetAllMinistriesResponse(ministries []*domain.Ministry) GetAllMinistriesResponse {
+type GetAllMinistriesResponse struct {
+	Ministries []*Ministry `json:"ministries,omitempty"`
+	Message    string      `json:"message,"`
+}
+
+func ToGetAllMinistriesResponse(ministries []*domain.Ministry, message string) GetAllMinistriesResponse {
 	var ministriesResp GetAllMinistriesResponse
 
 	for _, ministry := range ministries {
 		ministriesResp.Ministries = append(ministriesResp.Ministries, ToResponse(ministry))
 	}
+
+	ministriesResp.Message = message
 
 	return ministriesResp
 }

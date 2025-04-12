@@ -32,13 +32,11 @@ func (mh *handler) All() http.HandlerFunc {
 		ministries, err := mh.MinistryService.All(ctx)
 		if err != nil {
 			mh.logger.Sugar().Infow("Failed to get all ministries", "error", err)
-			render.Json(w, http.StatusInternalServerError, err.Error())
-
+			render.Json(w, http.StatusInternalServerError, dto.ToErrorMinistriesResponse("Failed to fetch ministries"))
 			return
 		}
 
-		resp := dto.ToGetAllMinistriesResponse(ministries)
-
+		resp := dto.ToGetAllMinistriesResponse(ministries, "Successfully fetched ministries")
 		render.Json(w, http.StatusOK, resp)
 	}
 }
