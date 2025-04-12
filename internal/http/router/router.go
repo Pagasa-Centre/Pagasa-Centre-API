@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/media"
@@ -15,7 +14,6 @@ import (
 	mediaService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	outreachService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	middleware2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/middleware"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
@@ -25,29 +23,19 @@ func New(
 	logger *zap.Logger,
 	jwtSecret string,
 	userService userService.UserService,
-	rolesService roles.RolesService,
-	minstryService ministryService.MinistryService,
+	ministryService ministryService.MinistryService,
 	outreachService outreachService.OutreachService,
 	mediaService mediaService.MediaService,
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
 
-	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"}, // 👈 allow frontend origin
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	}))
-
 	// Add middleware.
 	router.Use(middleware.Logger)    // logs every request
 	router.Use(middleware.Recoverer) // recovers from panics
 
-	userHandler := user.NewUserHandler(logger, userService, rolesService, minstryService)
-	ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
+	userHandler := user.NewUserHandler(logger, userService)
+	ministryHandler := ministry.NewMinistryHandler(logger, ministryService)
 	outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
 	mediaHandler := media.NewMediaHandler(logger, mediaService)
 

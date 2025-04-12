@@ -10,8 +10,6 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
@@ -27,23 +25,17 @@ type UserHandler interface {
 }
 
 type handler struct {
-	logger          *zap.Logger
-	userService     user.UserService
-	rolesService    roles.RolesService
-	ministryService ministry.MinistryService
+	logger      *zap.Logger
+	userService user.UserService
 }
 
 func NewUserHandler(
 	logger *zap.Logger,
 	userService user.UserService,
-	rolesService roles.RolesService,
-	ministryService ministry.MinistryService,
 ) UserHandler {
 	return &handler{
-		logger:          logger,
-		userService:     userService,
-		rolesService:    rolesService,
-		ministryService: ministryService,
+		logger:      logger,
+		userService: userService,
 	}
 }
 
@@ -91,7 +83,7 @@ func (h *handler) Register() http.HandlerFunc {
 			return
 		}
 
-		userID, err := h.userService.RegisterNewUser(ctx, userDomain)
+		userEntity, err := h.userService.RegisterNewUser(ctx, userDomain, req)
 		if err != nil {
 			h.logger.Sugar().Errorw("Error registering new user", "error", err)
 
@@ -104,104 +96,6 @@ func (h *handler) Register() http.HandlerFunc {
 			)
 
 			return
-		}
-
-		if req.IsLeader {
-			err = h.rolesService.AssignLeaderRole(ctx, *userID)
-			if err != nil {
-				h.logger.Sugar().Errorw("failed to assign leader role", "error", err)
-				render.Json(w, http.StatusInternalServerError,
-					dto.ToRegisterResponse(
-						nil,
-						nil,
-						InternalServerErrorMsg,
-					),
-				)
-
-				return
-			}
-		}
-
-		if req.IsPrimary {
-			err = h.rolesService.AssignPrimaryRole(ctx, *userID)
-			if err != nil {
-				h.logger.Sugar().Errorw("failed to assign primary role", "error", err)
-				render.Json(
-					w,
-					http.StatusInternalServerError,
-					dto.ToRegisterResponse(
-						nil,
-						nil,
-						InternalServerErrorMsg,
-					),
-				)
-
-				return
-			}
-		}
-
-		if req.IsPastor {
-			err = h.rolesService.AssignPastorRole(ctx, *userID)
-			if err != nil {
-				h.logger.Sugar().Errorw("failed to assign pastor role", "error", err)
-				render.Json(
-					w,
-					http.StatusInternalServerError,
-					dto.ToRegisterResponse(
-						nil,
-						nil,
-						InternalServerErrorMsg,
-					),
-				)
-
-				return
-			}
-		}
-
-		if req.IsMinistryLeader {
-			err = h.rolesService.AssignMinistryLeaderRole(ctx, *userID)
-			if err != nil {
-				h.logger.Sugar().Errorw("failed to assign pastor role", "error", err)
-				render.Json(
-					w,
-					http.StatusInternalServerError,
-					dto.ToRegisterResponse(
-						nil,
-						nil,
-						InternalServerErrorMsg,
-					),
-				)
-
-				return
-			}
-
-			err = h.ministryService.AssignLeaderToMinistry(ctx, *req.MinistryID, *userID)
-			if err != nil {
-				h.logger.Sugar().Errorw("failed to assign leader to ministry", "error", err)
-				render.Json(
-					w,
-					http.StatusInternalServerError,
-					dto.ToRegisterResponse(
-						nil,
-						nil,
-						InternalServerErrorMsg,
-					),
-				)
-
-				return
-			}
-		}
-
-		userEntity, err := h.userService.GetUserById(ctx, *userID)
-		if err != nil {
-			h.logger.Sugar().Errorw("failed to get user by id", "error", err)
-			render.Json(w, http.StatusInternalServerError,
-				dto.ToRegisterResponse(
-					nil,
-					nil,
-					InternalServerErrorMsg,
-				),
-			)
 		}
 
 		// Generate an authentication token (e.g., JWT)

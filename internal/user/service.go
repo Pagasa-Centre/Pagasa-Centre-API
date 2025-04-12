@@ -3,6 +3,9 @@ package user
 import (
 	"context"
 	"fmt"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -16,7 +19,7 @@ import (
 
 type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
-	RegisterNewUser(ctx context.Context, user *domain.User) (*string, error)
+	RegisterNewUser(ctx context.Context, user *domain.User, req dto.RegisterRequest) (*entity.User, error)
 	GenerateToken(user *entity.User) (string, error)
 	UpdateUserDetails(ctx context.Context, user *entity.User) (*entity.User, error)
 	GetUserById(ctx context.Context, id string) (*entity.User, error)
@@ -24,24 +27,31 @@ type UserService interface {
 }
 
 type userService struct {
-	logger    *zap.Logger
-	userRepo  userStorage.UserRepository
-	jwtSecret string
+	logger          *zap.Logger
+	userRepo        userStorage.UserRepository
+	jwtSecret       string
+	rolesService    roles.RolesService
+	ministryService ministry.MinistryService
 }
 
 func NewUserService(
 	logger *zap.Logger,
 	userRepo userStorage.UserRepository,
 	jwtSecret string,
+	rolesService roles.RolesService,
+	ministryService ministry.MinistryService,
 ) UserService {
 	return &userService{
-		logger:    logger,
-		userRepo:  userRepo,
-		jwtSecret: jwtSecret,
+		logger:          logger,
+		userRepo:        userRepo,
+		jwtSecret:       jwtSecret,
+		rolesService:    rolesService,
+		ministryService: ministryService,
 	}
 }
 
-func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User) (*string, error) {
+// RegisterNewUser inserts a new user into the user table and applies any roles that were provided by the user
+func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, req dto.RegisterRequest) (*entity.User, error) {
 	s.logger.Info("Registering new user")
 
 	userEntity := mappers.ToUserEntity(*user)
@@ -51,7 +61,45 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User) (*
 		return nil, err
 	}
 
-	return userID, nil
+	if req.IsLeader {
+		err = s.rolesService.AssignLeaderRole(ctx, *userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to assign leader role: %w", err)
+		}
+	}
+
+	if req.IsPrimary {
+		err = s.rolesService.AssignPrimaryRole(ctx, *userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to assign primary role: %w", err)
+		}
+	}
+
+	if req.IsPastor {
+		err = s.rolesService.AssignPastorRole(ctx, *userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to assign pastor role: %w", err)
+		}
+	}
+
+	if req.IsMinistryLeader {
+		err = s.rolesService.AssignMinistryLeaderRole(ctx, *userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to assign ministry leader role: %w", err)
+		}
+
+		err = s.ministryService.AssignLeaderToMinistry(ctx, *req.MinistryID, *userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to assign leader to ministry: %w", err)
+		}
+	}
+
+	u, err := s.GetUserById(ctx, *userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by id: %w", err)
+	}
+
+	return u, nil
 }
 
 // GetUserByEmail retrieves a user by their email.

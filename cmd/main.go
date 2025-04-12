@@ -51,9 +51,6 @@ func main() {
 		logger.Sugar().Fatalf("failed to run migrations: %v", err)
 	}
 
-	userRepo := userStorage.NewUserRepository(db)
-	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret)
-
 	rolesRepo := rolesStorage.NewRolesRepository(db)
 	rolesService := roles.NewRoleService(logger, rolesRepo)
 
@@ -65,6 +62,9 @@ func main() {
 
 	ministryRepo := ministryStorage.NewMinistryRepository(db)
 	ministryService := ministry.NewMinistryService(logger, ministryRepo, communicationService)
+
+	userRepo := userStorage.NewUserRepository(db)
+	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret, rolesService, ministryService)
 
 	outreachRepo := outreachStorage.NewOutreachRepository(db)
 	outreachService := outreach.NewOutreachService(logger, outreachRepo)
@@ -83,7 +83,6 @@ func main() {
 		logger,
 		cfg.JwtSecret,
 		userService,
-		rolesService,
 		ministryService,
 		outreachService,
 		mediaService,
