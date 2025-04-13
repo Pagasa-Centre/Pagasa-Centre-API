@@ -11,6 +11,7 @@ import (
 
 type ApprovalRepository interface {
 	Insert(ctx context.Context, approval *entity.Approval) error
+	GetAll(ctx context.Context, userID string) (entity.ApprovalSlice, error)
 }
 
 type repository struct {
@@ -28,4 +29,13 @@ func (r *repository) Insert(ctx context.Context, approval *entity.Approval) erro
 	}
 
 	return nil
+}
+
+func (r *repository) GetAll(ctx context.Context, userID string) (entity.ApprovalSlice, error) {
+	approvals, err := entity.Approvals(entity.ApprovalWhere.ApproverID.EQ(userID)).All(ctx, r.db)
+	if err != nil {
+		return nil, err
+	}
+
+	return approvals, nil
 }

@@ -14,7 +14,7 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/contracts"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/mappers"
@@ -31,7 +31,7 @@ type UserService interface {
 	DeleteUser(ctx context.Context, id string) error
 	AuthenticateUser(ctx context.Context, email, password string) (*entity.User, error)
 	AuthenticateAndGenerateToken(ctx context.Context, email, password string) (*AuthResult, error)
-	SetMinistryService(ms ministry.MinistryService)
+	SetMinistryService(ms contracts.MinistryService)
 }
 
 type userService struct {
@@ -39,7 +39,7 @@ type userService struct {
 	userRepo        userStorage.UserRepository
 	jwtSecret       string
 	rolesService    roles.RolesService
-	ministryService ministry.MinistryService
+	ministryService contracts.MinistryService
 }
 
 func NewUserService(
@@ -47,7 +47,7 @@ func NewUserService(
 	userRepo userStorage.UserRepository,
 	jwtSecret string,
 	rolesService roles.RolesService,
-	ministryService ministry.MinistryService,
+	ministryService contracts.MinistryService,
 ) UserService {
 	return &userService{
 		logger:          logger,
@@ -63,7 +63,7 @@ type AuthResult struct {
 	Token string
 }
 
-func (s *userService) SetMinistryService(ms ministry.MinistryService) {
+func (s *userService) SetMinistryService(ms contracts.MinistryService) {
 	s.ministryService = ms
 }
 
