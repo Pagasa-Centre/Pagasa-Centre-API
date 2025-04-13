@@ -64,14 +64,14 @@ func (s *service) GetAllApprovals(ctx context.Context) ([]dto.Approval, error) {
 	}
 
 	// 1. Get all approvals by requesterID
-	aprrovalsSlice, err := s.approvalRepo.GetAll(ctx, userID)
+	approvalsSlice, err := s.approvalRepo.GetAll(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get approvals: %w", err)
 	}
 	// 2. For each Approval, get userDetails and add to response
 	var approvals []dto.Approval
 
-	for _, apr := range aprrovalsSlice {
+	for _, apr := range approvalsSlice {
 		u, err := s.userService.GetUserById(ctx, apr.RequesterID)
 		if err != nil {
 			return nil, fmt.Errorf("user does not exist or has been deleted: %w", err)
