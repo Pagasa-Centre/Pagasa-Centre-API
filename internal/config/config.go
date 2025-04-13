@@ -18,6 +18,9 @@ type Config struct {
 	JwtSecret        string `mapstructure:"JWT_SECRET" yaml:"jwt_secret" validate:"required"`
 	YoutubeAPIKey    string `mapstructure:"YOUTUBE_API_KEY" yaml:"youtube_api_key" validate:"required"`
 	YoutubeChannelID string `mapstructure:"YOUTUBE_CHANNEL_ID" yaml:"youtube_channel_id" validate:"required"`
+	TwilioAccountSID string `mapstructure:"TWILIO_ACCOUNT_SID" yaml:"twilio_account_sid"`
+	TwilioAuthToken  string `mapstructure:"TWILIO_AUTH_TOKEN" yaml:"twilio_auth_token"`
+	TwilioNumber     string `mapstructure:"TWILIO_NUMBER" yaml:"twilio_number"`
 }
 
 // LoadConfig loads configuration from the OS environment and, if not in production,
@@ -49,6 +52,9 @@ func LoadConfig() (*Config, error) {
 		YoutubeAPIKey:    viper.GetString("YOUTUBE_API_KEY"),
 		YoutubeChannelID: viper.GetString("YOUTUBE_CHANNEL_ID"),
 		Env:              viper.GetString("ENV"),
+		TwilioAccountSID: viper.GetString("TWILIO_ACCOUNT_SID"),
+		TwilioAuthToken:  viper.GetString("TWILIO_AUTH_TOKEN"),
+		TwilioNumber:     viper.GetString("TWILIO_NUMBER"),
 	}
 
 	// Validate the config.

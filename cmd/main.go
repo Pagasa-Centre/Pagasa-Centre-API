@@ -9,6 +9,9 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // <-- Add this line to register the Postgres driver
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
+	approvalStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 	cron2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/cron"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
@@ -50,14 +53,34 @@ func main() {
 		logger.Sugar().Fatalf("failed to run migrations: %v", err)
 	}
 
-	userRepo := userStorage.NewUserRepository(db)
-	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret)
-
 	rolesRepo := rolesStorage.NewRolesRepository(db)
 	rolesService := roles.NewRoleService(logger, rolesRepo)
 
+	communicationService := communication.NewCommunicationService(
+		cfg.TwilioAccountSID,
+		cfg.TwilioAuthToken,
+		cfg.TwilioNumber,
+	)
+
+	approvalRepository := approvalStorage.NewApprovalRepository(db)
+	approvalService := approvals.NewApprovalService(logger, approvalRepository)
+
+	// Declare ministryService early so we can pass it into userService
+	var ministryService ministry.MinistryService
+
+	userRepo := userStorage.NewUserRepository(db)
+	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret, rolesService, nil)
+
 	ministryRepo := ministryStorage.NewMinistryRepository(db)
-	ministryService := ministry.NewMinistryService(logger, ministryRepo)
+	ministryService = ministry.NewMinistryService(
+		logger,
+		ministryRepo,
+		communicationService,
+		userService, // uses interface, no cycle
+		approvalService,
+	)
+
+	userService.SetMinistryService(ministryService)
 
 	outreachRepo := outreachStorage.NewOutreachRepository(db)
 	outreachService := outreach.NewOutreachService(logger, outreachRepo)
@@ -72,7 +95,14 @@ func main() {
 
 	mediaCronJob.Start()
 
-	mux := router.New(logger, cfg.JwtSecret, userService, rolesService, ministryService, outreachService, mediaService)
+	mux := router.New(
+		logger,
+		cfg.JwtSecret,
+		userService,
+		ministryService,
+		outreachService,
+		mediaService,
+	)
 
 	logger.Sugar().Infof("Server starting on port %s", cfg.Port)
 

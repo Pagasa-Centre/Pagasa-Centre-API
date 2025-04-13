@@ -12,6 +12,7 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
+	t.Run("Approvals", testApprovals)
 	t.Run("CellGroups", testCellGroups)
 	t.Run("GooseDBVersions", testGooseDBVersions)
 	t.Run("Media", testMedia)
@@ -23,6 +24,7 @@ func TestParent(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	t.Run("Approvals", testApprovalsDelete)
 	t.Run("CellGroups", testCellGroupsDelete)
 	t.Run("GooseDBVersions", testGooseDBVersionsDelete)
 	t.Run("Media", testMediaDelete)
@@ -34,6 +36,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestQueryDeleteAll(t *testing.T) {
+	t.Run("Approvals", testApprovalsQueryDeleteAll)
 	t.Run("CellGroups", testCellGroupsQueryDeleteAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsQueryDeleteAll)
 	t.Run("Media", testMediaQueryDeleteAll)
@@ -45,6 +48,7 @@ func TestQueryDeleteAll(t *testing.T) {
 }
 
 func TestSliceDeleteAll(t *testing.T) {
+	t.Run("Approvals", testApprovalsSliceDeleteAll)
 	t.Run("CellGroups", testCellGroupsSliceDeleteAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsSliceDeleteAll)
 	t.Run("Media", testMediaSliceDeleteAll)
@@ -56,6 +60,7 @@ func TestSliceDeleteAll(t *testing.T) {
 }
 
 func TestExists(t *testing.T) {
+	t.Run("Approvals", testApprovalsExists)
 	t.Run("CellGroups", testCellGroupsExists)
 	t.Run("GooseDBVersions", testGooseDBVersionsExists)
 	t.Run("Media", testMediaExists)
@@ -67,6 +72,7 @@ func TestExists(t *testing.T) {
 }
 
 func TestFind(t *testing.T) {
+	t.Run("Approvals", testApprovalsFind)
 	t.Run("CellGroups", testCellGroupsFind)
 	t.Run("GooseDBVersions", testGooseDBVersionsFind)
 	t.Run("Media", testMediaFind)
@@ -78,6 +84,7 @@ func TestFind(t *testing.T) {
 }
 
 func TestBind(t *testing.T) {
+	t.Run("Approvals", testApprovalsBind)
 	t.Run("CellGroups", testCellGroupsBind)
 	t.Run("GooseDBVersions", testGooseDBVersionsBind)
 	t.Run("Media", testMediaBind)
@@ -89,6 +96,7 @@ func TestBind(t *testing.T) {
 }
 
 func TestOne(t *testing.T) {
+	t.Run("Approvals", testApprovalsOne)
 	t.Run("CellGroups", testCellGroupsOne)
 	t.Run("GooseDBVersions", testGooseDBVersionsOne)
 	t.Run("Media", testMediaOne)
@@ -100,6 +108,7 @@ func TestOne(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
+	t.Run("Approvals", testApprovalsAll)
 	t.Run("CellGroups", testCellGroupsAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsAll)
 	t.Run("Media", testMediaAll)
@@ -111,6 +120,7 @@ func TestAll(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
+	t.Run("Approvals", testApprovalsCount)
 	t.Run("CellGroups", testCellGroupsCount)
 	t.Run("GooseDBVersions", testGooseDBVersionsCount)
 	t.Run("Media", testMediaCount)
@@ -122,6 +132,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestHooks(t *testing.T) {
+	t.Run("Approvals", testApprovalsHooks)
 	t.Run("CellGroups", testCellGroupsHooks)
 	t.Run("GooseDBVersions", testGooseDBVersionsHooks)
 	t.Run("Media", testMediaHooks)
@@ -133,6 +144,8 @@ func TestHooks(t *testing.T) {
 }
 
 func TestInsert(t *testing.T) {
+	t.Run("Approvals", testApprovalsInsert)
+	t.Run("Approvals", testApprovalsInsertWhitelist)
 	t.Run("CellGroups", testCellGroupsInsert)
 	t.Run("CellGroups", testCellGroupsInsertWhitelist)
 	t.Run("GooseDBVersions", testGooseDBVersionsInsert)
@@ -152,6 +165,7 @@ func TestInsert(t *testing.T) {
 }
 
 func TestReload(t *testing.T) {
+	t.Run("Approvals", testApprovalsReload)
 	t.Run("CellGroups", testCellGroupsReload)
 	t.Run("GooseDBVersions", testGooseDBVersionsReload)
 	t.Run("Media", testMediaReload)
@@ -163,6 +177,7 @@ func TestReload(t *testing.T) {
 }
 
 func TestReloadAll(t *testing.T) {
+	t.Run("Approvals", testApprovalsReloadAll)
 	t.Run("CellGroups", testCellGroupsReloadAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsReloadAll)
 	t.Run("Media", testMediaReloadAll)
@@ -174,6 +189,7 @@ func TestReloadAll(t *testing.T) {
 }
 
 func TestSelect(t *testing.T) {
+	t.Run("Approvals", testApprovalsSelect)
 	t.Run("CellGroups", testCellGroupsSelect)
 	t.Run("GooseDBVersions", testGooseDBVersionsSelect)
 	t.Run("Media", testMediaSelect)
@@ -185,6 +201,7 @@ func TestSelect(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	t.Run("Approvals", testApprovalsUpdate)
 	t.Run("CellGroups", testCellGroupsUpdate)
 	t.Run("GooseDBVersions", testGooseDBVersionsUpdate)
 	t.Run("Media", testMediaUpdate)
@@ -196,6 +213,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestSliceUpdateAll(t *testing.T) {
+	t.Run("Approvals", testApprovalsSliceUpdateAll)
 	t.Run("CellGroups", testCellGroupsSliceUpdateAll)
 	t.Run("GooseDBVersions", testGooseDBVersionsSliceUpdateAll)
 	t.Run("Media", testMediaSliceUpdateAll)

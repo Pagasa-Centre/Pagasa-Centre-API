@@ -15,7 +15,6 @@ import (
 	mediaService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	outreachService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	middleware2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/middleware"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
@@ -25,8 +24,7 @@ func New(
 	logger *zap.Logger,
 	jwtSecret string,
 	userService userService.UserService,
-	rolesService roles.RolesService,
-	minstryService ministryService.MinistryService,
+	ministryService ministryService.MinistryService,
 	outreachService outreachService.OutreachService,
 	mediaService mediaService.MediaService,
 ) http.Handler {
@@ -46,8 +44,8 @@ func New(
 	router.Use(middleware.Logger)    // logs every request
 	router.Use(middleware.Recoverer) // recovers from panics
 
-	userHandler := user.NewUserHandler(logger, userService, rolesService, minstryService)
-	ministryHandler := ministry.NewMinistryHandler(logger, minstryService)
+	userHandler := user.NewUserHandler(logger, userService)
+	ministryHandler := ministry.NewMinistryHandler(logger, ministryService)
 	outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
 	mediaHandler := media.NewMediaHandler(logger, mediaService)
 
@@ -71,6 +69,11 @@ func New(
 			r.Route(
 				"/ministry", func(r chi.Router) {
 					r.Get("/", ministryHandler.All())
+
+					r.Group(func(r chi.Router) {
+						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
+						r.Post("/application", ministryHandler.Apply())
+					})
 				},
 			)
 			r.Route(

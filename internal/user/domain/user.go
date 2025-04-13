@@ -17,6 +17,7 @@ type User struct {
 	Birthday       time.Time
 	CellLeaderID   *string
 	OutreachID     string
+	MinistryID     *string
 }
 
 func RegisterRequestToUserDomain(req dto.RegisterRequest) (user *User, err error) {
@@ -30,6 +31,11 @@ func RegisterRequestToUserDomain(req dto.RegisterRequest) (user *User, err error
 		return nil, err
 	}
 
+	var ministryID *string
+	if req.MinistryID != nil {
+		ministryID = req.MinistryID
+	}
+
 	return &User{
 		FirstName:      req.FirstName,
 		LastName:       req.LastName,
@@ -39,5 +45,6 @@ func RegisterRequestToUserDomain(req dto.RegisterRequest) (user *User, err error
 		Birthday:       parsedBirthday,
 		CellLeaderID:   req.CellLeaderID,
 		OutreachID:     req.OutreachID,
+		MinistryID:     ministryID,
 	}, nil
 }

@@ -15,7 +15,17 @@ type Ministry struct {
 	MeetingLocation string  `json:"meeting_location,omitempty"`
 }
 
-func ToResponse(ministry *domain.Ministry) *Ministry {
+type MinistryApplicationResponse struct {
+	Message string `json:"message"`
+}
+
+func ToMinistryApplicationResponse(message string) MinistryApplicationResponse {
+	return MinistryApplicationResponse{
+		Message: message,
+	}
+}
+
+func ToMinistries(ministry *domain.Ministry) *Ministry {
 	var formattedStartTime *string
 
 	if ministry.StartTime != nil {
@@ -57,7 +67,7 @@ func ToGetAllMinistriesResponse(ministries []*domain.Ministry, message string) G
 	var ministriesResp GetAllMinistriesResponse
 
 	for _, ministry := range ministries {
-		ministriesResp.Ministries = append(ministriesResp.Ministries, ToResponse(ministry))
+		ministriesResp.Ministries = append(ministriesResp.Ministries, ToMinistries(ministry))
 	}
 
 	ministriesResp.Message = message
