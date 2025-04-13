@@ -4,6 +4,7 @@
 package entity
 
 var TableNames = struct {
+	Approvals        string
 	CellGroupMembers string
 	CellGroups       string
 	GooseDBVersion   string
@@ -14,6 +15,7 @@ var TableNames = struct {
 	UserRoles        string
 	Users            string
 }{
+	Approvals:        "approvals",
 	CellGroupMembers: "cell_group_members",
 	CellGroups:       "cell_groups",
 	GooseDBVersion:   "goose_db_version",

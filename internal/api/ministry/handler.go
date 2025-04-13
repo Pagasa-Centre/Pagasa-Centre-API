@@ -79,7 +79,7 @@ func (mh *handler) Apply() http.HandlerFunc {
 			return
 		}
 
-		err = mh.MinistryService.SendApplication(ctx, userID)
+		err = mh.MinistryService.SendApplication(ctx, userID, req.MinistryID)
 		if err != nil {
 			mh.logger.Sugar().Errorw("Failed to send application", "error", err)
 			render.Json(

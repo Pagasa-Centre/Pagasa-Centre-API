@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/null/v8"
@@ -13,6 +14,7 @@ import (
 type MinistryRepository interface {
 	GetAll(ctx context.Context) (entity.MinistrySlice, error)
 	AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error
+	GetMinistryLeaderByMinistryID(ctx context.Context, ministryID string) (*string, error)
 }
 
 type repository struct {
@@ -52,4 +54,22 @@ func (repo *repository) GetAll(ctx context.Context) (entity.MinistrySlice, error
 	}
 
 	return ministries, nil
+}
+
+func (repo *repository) GetMinistryLeaderByMinistryID(ctx context.Context, ministryID string) (*string, error) {
+	db := repo.db.DB
+
+	ministry, err := entity.FindMinistry(ctx, db, ministryID)
+	if err != nil {
+		return nil, err
+	}
+
+	var leaderID string
+	if ministry.LeaderID.Valid {
+		leaderID = ministry.LeaderID.String
+	} else {
+		return nil, errors.New("ministry has no leader")
+	}
+
+	return &leaderID, nil
 }

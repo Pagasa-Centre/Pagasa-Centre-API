@@ -31,7 +31,7 @@ func NewRoleService(logger *zap.Logger, repository storage.RolesRepository) Role
 func (s *service) AssignMinistryLeaderRole(ctx context.Context, userID string) error {
 	s.logger.Info("Assigning Ministry Leader role")
 
-	err := s.repository.AssignPastorRole(ctx, userID)
+	err := s.repository.AssignMinistryLeaderRole(ctx, userID)
 	if err != nil {
 		s.logger.Error("Failed to assign Ministry Leader role", zap.Error(err))
 

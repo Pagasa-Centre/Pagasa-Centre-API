@@ -1,7 +1,6 @@
 package communication
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/twilio/twilio-go"
@@ -9,7 +8,7 @@ import (
 )
 
 type CommunicationService interface {
-	SendSMS(ctx context.Context, to string, message string) error
+	SendSMS(to string, message string) error
 }
 
 type service struct {
@@ -33,7 +32,7 @@ func NewCommunicationService(
 	}
 }
 
-func (s *service) SendSMS(ctx context.Context, to string, message string) error {
+func (s *service) SendSMS(to string, message string) error {
 	params := &twilioApi.CreateMessageParams{}
 	params.SetTo(to)
 	params.SetFrom(s.fromNumber)

@@ -9,6 +9,8 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // <-- Add this line to register the Postgres driver
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
+	approvalStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 	cron2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/cron"
@@ -60,11 +62,25 @@ func main() {
 		cfg.TwilioNumber,
 	)
 
-	ministryRepo := ministryStorage.NewMinistryRepository(db)
-	ministryService := ministry.NewMinistryService(logger, ministryRepo, communicationService)
+	approvalRepository := approvalStorage.NewApprovalRepository(db)
+	approvalService := approvals.NewApprovalService(logger, approvalRepository)
+
+	// Declare ministryService early so we can pass it into userService
+	var ministryService ministry.MinistryService
 
 	userRepo := userStorage.NewUserRepository(db)
-	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret, rolesService, ministryService)
+	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret, rolesService, nil)
+
+	ministryRepo := ministryStorage.NewMinistryRepository(db)
+	ministryService = ministry.NewMinistryService(
+		logger,
+		ministryRepo,
+		communicationService,
+		userService, // uses interface, no cycle
+		approvalService,
+	)
+
+	userService.SetMinistryService(ministryService)
 
 	outreachRepo := outreachStorage.NewOutreachRepository(db)
 	outreachService := outreach.NewOutreachService(logger, outreachRepo)

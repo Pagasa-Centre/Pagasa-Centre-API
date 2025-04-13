@@ -16,12 +16,12 @@ type Ministry struct {
 }
 
 type MinistryApplicationResponse struct {
-	message string
+	Message string `json:"message"`
 }
 
 func ToMinistryApplicationResponse(message string) MinistryApplicationResponse {
 	return MinistryApplicationResponse{
-		message: message,
+		Message: message,
 	}
 }
 

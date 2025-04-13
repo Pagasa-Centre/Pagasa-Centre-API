@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -30,6 +31,7 @@ type UserService interface {
 	DeleteUser(ctx context.Context, id string) error
 	AuthenticateUser(ctx context.Context, email, password string) (*entity.User, error)
 	AuthenticateAndGenerateToken(ctx context.Context, email, password string) (*AuthResult, error)
+	SetMinistryService(ms ministry.MinistryService)
 }
 
 type userService struct {
@@ -59,6 +61,10 @@ func NewUserService(
 type AuthResult struct {
 	User  *entity.User
 	Token string
+}
+
+func (s *userService) SetMinistryService(ms ministry.MinistryService) {
+	s.ministryService = ms
 }
 
 func (s *userService) AuthenticateAndGenerateToken(ctx context.Context, email, password string) (*AuthResult, error) {
@@ -97,6 +103,8 @@ func (s *userService) AuthenticateUser(ctx context.Context, email, password stri
 func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, req dto.RegisterRequest) (*entity.User, error) {
 	s.logger.Info("Registering new user")
 
+	user.PhoneNumber = NormalizePhoneNumber(user.PhoneNumber)
+
 	userEntity := mappers.ToUserEntity(*user)
 
 	userID, err := s.userRepo.InsertUser(ctx, userEntity)
@@ -104,40 +112,52 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 		return nil, err
 	}
 
+	var uID string
+	if userID != nil {
+		uID = *userID
+	}
+
 	if req.IsLeader {
-		err = s.rolesService.AssignLeaderRole(ctx, *userID)
+		err = s.rolesService.AssignLeaderRole(ctx, uID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign leader role: %w", err)
 		}
 	}
 
 	if req.IsPrimary {
-		err = s.rolesService.AssignPrimaryRole(ctx, *userID)
+		err = s.rolesService.AssignPrimaryRole(ctx, uID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign primary role: %w", err)
 		}
 	}
 
 	if req.IsPastor {
-		err = s.rolesService.AssignPastorRole(ctx, *userID)
+		err = s.rolesService.AssignPastorRole(ctx, uID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign pastor role: %w", err)
 		}
 	}
 
 	if req.IsMinistryLeader {
-		err = s.rolesService.AssignMinistryLeaderRole(ctx, *userID)
+		err = s.rolesService.AssignMinistryLeaderRole(ctx, uID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign ministry leader role: %w", err)
 		}
 
-		err = s.ministryService.AssignLeaderToMinistry(ctx, *req.MinistryID, *userID)
+		var MinID string
+		if req.MinistryID != nil {
+			MinID = *req.MinistryID
+		} else {
+			return nil, fmt.Errorf("ministry_id is required for ministry leader role")
+		}
+
+		err = s.ministryService.AssignLeaderToMinistry(ctx, MinID, uID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign leader to ministry: %w", err)
 		}
 	}
 
-	u, err := s.GetUserById(ctx, *userID)
+	u, err := s.GetUserById(ctx, uID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by id: %w", err)
 	}
@@ -240,7 +260,7 @@ func (s *userService) updateUserFields(user *entity.User, req dto.UpdateDetailsR
 	}
 
 	if req.PhoneNumber != "" {
-		user.Phone = null.StringFrom(req.PhoneNumber)
+		user.Phone = null.StringFrom(NormalizePhoneNumber(req.PhoneNumber))
 	}
 
 	if req.Birthday != "" {
@@ -268,4 +288,13 @@ func (s *userService) updateUserFields(user *entity.User, req dto.UpdateDetailsR
 	if req.OutreachID != "" {
 		user.OutreachID = null.StringFrom(req.OutreachID)
 	}
+}
+
+func NormalizePhoneNumber(phone string) string {
+	if strings.HasPrefix(phone, "07") {
+		// Convert UK local (07...) to E.164 (+44...)
+		return "+44" + phone[1:]
+	}
+
+	return phone
 }
