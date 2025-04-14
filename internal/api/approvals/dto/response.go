@@ -11,6 +11,10 @@ type Approval struct {
 	RequesterDetails dto.UserDetails `json:"requester_details"`
 }
 
+type UpdateApprovalStatusResponse struct {
+	Message string `json:"message"`
+}
+
 type GetAllApprovalsResponse struct {
 	Approvals *[]Approval `json:"approvals"`
 	Message   string      `json:"message"`
@@ -20,5 +24,11 @@ func ToGetAllApprovalsResponse(approvals *[]Approval, message string) *GetAllApp
 	return &GetAllApprovalsResponse{
 		Approvals: approvals,
 		Message:   message,
+	}
+}
+
+func ToUpdateApprovalStatusResponse(message string) *UpdateApprovalStatusResponse {
+	return &UpdateApprovalStatusResponse{
+		Message: message,
 	}
 }

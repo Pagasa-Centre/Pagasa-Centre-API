@@ -68,6 +68,7 @@ func New(
 						r.Post("/update-details", userHandler.UpdateDetails())
 						r.Delete("/", userHandler.Delete())
 						r.Get("/approvals", approvalsHandler.GetAll())
+						r.Post("/approvals/{id}", approvalsHandler.UpdateApprovalStatus())
 					})
 				},
 			)

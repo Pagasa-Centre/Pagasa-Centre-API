@@ -16,6 +16,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/contracts"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
+	domain2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/mappers"
 	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
@@ -118,40 +119,40 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 	}
 
 	if req.IsLeader {
-		err = s.rolesService.AssignLeaderRole(ctx, uID)
+		err = s.rolesService.AssignRole(ctx, uID, domain2.RoleLeader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign leader role: %w", err)
 		}
 	}
 
 	if req.IsPrimary {
-		err = s.rolesService.AssignPrimaryRole(ctx, uID)
+		err = s.rolesService.AssignRole(ctx, uID, domain2.RolePrimary)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign primary role: %w", err)
 		}
 	}
 
 	if req.IsPastor {
-		err = s.rolesService.AssignPastorRole(ctx, uID)
+		err = s.rolesService.AssignRole(ctx, uID, domain2.RolePastor)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign pastor role: %w", err)
 		}
 	}
 
 	if req.IsMinistryLeader {
-		err = s.rolesService.AssignMinistryLeaderRole(ctx, uID)
+		err = s.rolesService.AssignRole(ctx, uID, domain2.RoleMinistryLeader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign ministry leader role: %w", err)
 		}
 
-		var MinID string
+		var ministryID string
 		if req.MinistryID != nil {
-			MinID = *req.MinistryID
+			ministryID = *req.MinistryID
 		} else {
 			return nil, fmt.Errorf("ministry_id is required for ministry leader role")
 		}
 
-		err = s.ministryService.AssignLeaderToMinistry(ctx, MinID, uID)
+		err = s.ministryService.AssignLeaderToMinistry(ctx, ministryID, uID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign leader to ministry: %w", err)
 		}

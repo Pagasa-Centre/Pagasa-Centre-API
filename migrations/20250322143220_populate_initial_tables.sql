@@ -46,7 +46,7 @@ FROM inserted_outreach,
           ('Media Ministry', 'The Media Ministry is the Church''s evangelistic extension that focuses on using media to spread the word of God.', 'Sunday', TIMESTAMP '1970-01-01 14:00:00', 'Jo Richardson Community School'),
           ('Creative Arts Ministry', 'Our Creative Arts Ministry is dedicated to creating a vibrant space where these gifts can flourish, and where we can collectively use them to glorify the Lord.', 'Sunday', TIMESTAMP '1970-01-01 14:30:00', 'Jo Richardson Community School - Drama Studio 2'),
           ('Music Ministry', 'In this ministry, we understand that genuine worship goes beyond external performances.', 'Saturday', TIMESTAMP '1970-01-01 09:00:00', 'Jo Richardson Community School - Drama Studio 2'),
-          ('Ushering & Security', 'The Ushers are the first representative of Jesus Christ for a worship service.', 'Sunday', TIMESTAMP '1970-01-01 14:00:00', 'Jo Richardson Community School - Drama Studio 2')
+          ('Ushering & Security Ministry', 'The Ushers are the first representative of Jesus Christ for a worship service.', 'Sunday', TIMESTAMP '1970-01-01 14:00:00', 'Jo Richardson Community School - Drama Studio 2')
      ) AS ministry(name, description, meeting_day, start_time, meeting_location);
 
 -- +goose StatementEnd

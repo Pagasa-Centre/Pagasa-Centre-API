@@ -63,7 +63,7 @@ func main() {
 	)
 
 	approvalRepository := approvalStorage.NewApprovalRepository(db)
-	approvalService := approvals.NewApprovalService(logger, approvalRepository, nil)
+	approvalService := approvals.NewApprovalService(logger, approvalRepository, nil, rolesService)
 
 	// Declare ministryService early so we can pass it into userService
 	var ministryService ministry.MinistryService

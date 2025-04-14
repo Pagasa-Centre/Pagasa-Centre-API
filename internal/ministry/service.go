@@ -11,6 +11,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
+	domain2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
 	usercontracts "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/contracts"
 )
 
@@ -70,21 +71,45 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 func (ms *service) SendApplication(ctx context.Context, userID, ministryID string) error {
 	ms.logger.Info("Sending application to Ministry Leader")
 	// 1. Fetch Ministry Leader details(phone number & userID) via ministryID
-	leaderID, err := ms.ministryRepo.GetMinistryLeaderByMinistryID(ctx, ministryID)
+	ministryDetails, err := ms.ministryRepo.GetMinistryByID(ctx, ministryID)
 	if err != nil {
 		return err
 	}
 
-	leaderDetails, err := ms.userService.GetUserById(ctx, *leaderID)
+	var leaderID string
+	if ministryDetails.LeaderID.Valid {
+		leaderID = ministryDetails.LeaderID.String
+	}
+
+	leaderDetails, err := ms.userService.GetUserById(ctx, leaderID)
 	if err != nil {
 		return err
+	}
+
+	var approvalType string
+
+	switch ministryDetails.Name {
+	case domain2.RoleMediaMinistry:
+		approvalType = domain2.RoleMediaMinistry
+	case domain2.RoleChildrensMinistry:
+		approvalType = domain2.RoleChildrensMinistry
+	case domain2.RoleCreativeArtsMinistry:
+		approvalType = domain2.RoleCreativeArtsMinistry
+	case domain2.RoleMusicMinistry:
+		approvalType = domain2.RoleMusicMinistry
+	case domain2.RoleProductionMinistry:
+		approvalType = domain2.RoleProductionMinistry
+	case domain2.RoleUsheringSecurity:
+		approvalType = domain2.RoleUsheringSecurity
+	default:
+		return fmt.Errorf("unknown ministry %s", ministryDetails.Name)
 	}
 
 	// 2. Create New Approval (Type,requester_id, approver_id,status)
 	approval := &approvalDomain.Approval{
 		RequesterID: userID,
 		ApproverID:  leaderDetails.ID,
-		Type:        approvalDomain.MinistryApplicationType,
+		Type:        approvalType,
 		Status:      approvalDomain.Pending,
 	}
 

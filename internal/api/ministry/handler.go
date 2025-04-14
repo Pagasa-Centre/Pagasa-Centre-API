@@ -54,10 +54,10 @@ func (mh *handler) Apply() http.HandlerFunc {
 
 		var req dto.MinistryApplicationRequest
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
-			mh.logger.Sugar().Errorw("failed to decode and validate login request body", "error", err)
+			mh.logger.Sugar().Errorw("failed to decode and validate ministry application request", "error", err)
 			render.Json(w, http.StatusBadRequest,
 				dto.ToMinistryApplicationResponse(
-					"",
+					"Please double check your application and try again",
 				),
 			)
 
@@ -67,12 +67,12 @@ func (mh *handler) Apply() http.HandlerFunc {
 		// Get the user ID from the context
 		userID, err := context.GetUserIDString(ctx)
 		if err != nil {
-			mh.logger.Sugar().Errorw("user ID not found in session", "error", err)
+			mh.logger.Sugar().Errorw("User ID not found in session", "error", err)
 			render.Json(
 				w,
 				http.StatusUnauthorized,
 				dto.ToMinistryApplicationResponse(
-					"unauthorized",
+					"Unauthorized",
 				),
 			)
 
