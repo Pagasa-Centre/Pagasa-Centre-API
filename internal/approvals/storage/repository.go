@@ -11,6 +11,9 @@ import (
 
 type ApprovalRepository interface {
 	Insert(ctx context.Context, approval *entity.Approval) error
+	GetAll(ctx context.Context, userID string) (entity.ApprovalSlice, error)
+	GetApprovalByID(ctx context.Context, approvalID string) (*entity.Approval, error)
+	Update(ctx context.Context, approval *entity.Approval) error
 }
 
 type repository struct {
@@ -23,6 +26,33 @@ func NewApprovalRepository(db *sqlx.DB) ApprovalRepository {
 
 func (r *repository) Insert(ctx context.Context, approval *entity.Approval) error {
 	err := approval.Insert(ctx, r.db, boil.Infer())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *repository) GetAll(ctx context.Context, userID string) (entity.ApprovalSlice, error) {
+	approvals, err := entity.Approvals(entity.ApprovalWhere.ApproverID.EQ(userID)).All(ctx, r.db)
+	if err != nil {
+		return nil, err
+	}
+
+	return approvals, nil
+}
+
+func (r *repository) GetApprovalByID(ctx context.Context, approvalID string) (*entity.Approval, error) {
+	approval, err := entity.Approvals(entity.ApprovalWhere.ID.EQ(approvalID)).One(ctx, r.db)
+	if err != nil {
+		return nil, err
+	}
+
+	return approval, nil
+}
+
+func (r *repository) Update(ctx context.Context, approval *entity.Approval) error {
+	_, err := approval.Update(ctx, r.db, boil.Infer())
 	if err != nil {
 		return err
 	}

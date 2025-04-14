@@ -63,7 +63,7 @@ func main() {
 	)
 
 	approvalRepository := approvalStorage.NewApprovalRepository(db)
-	approvalService := approvals.NewApprovalService(logger, approvalRepository)
+	approvalService := approvals.NewApprovalService(logger, approvalRepository, nil, rolesService)
 
 	// Declare ministryService early so we can pass it into userService
 	var ministryService ministry.MinistryService
@@ -81,6 +81,7 @@ func main() {
 	)
 
 	userService.SetMinistryService(ministryService)
+	approvalService.SetUserService(userService)
 
 	outreachRepo := outreachStorage.NewOutreachRepository(db)
 	outreachService := outreach.NewOutreachService(logger, outreachRepo)
@@ -102,6 +103,7 @@ func main() {
 		ministryService,
 		outreachService,
 		mediaService,
+		approvalService,
 	)
 
 	logger.Sugar().Infof("Server starting on port %s", cfg.Port)

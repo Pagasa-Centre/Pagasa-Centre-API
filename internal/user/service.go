@@ -14,8 +14,9 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/contracts"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
+	domain2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/mappers"
 	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
@@ -31,7 +32,7 @@ type UserService interface {
 	DeleteUser(ctx context.Context, id string) error
 	AuthenticateUser(ctx context.Context, email, password string) (*entity.User, error)
 	AuthenticateAndGenerateToken(ctx context.Context, email, password string) (*AuthResult, error)
-	SetMinistryService(ms ministry.MinistryService)
+	SetMinistryService(ms contracts.MinistryService)
 }
 
 type userService struct {
@@ -39,7 +40,7 @@ type userService struct {
 	userRepo        userStorage.UserRepository
 	jwtSecret       string
 	rolesService    roles.RolesService
-	ministryService ministry.MinistryService
+	ministryService contracts.MinistryService
 }
 
 func NewUserService(
@@ -47,7 +48,7 @@ func NewUserService(
 	userRepo userStorage.UserRepository,
 	jwtSecret string,
 	rolesService roles.RolesService,
-	ministryService ministry.MinistryService,
+	ministryService contracts.MinistryService,
 ) UserService {
 	return &userService{
 		logger:          logger,
@@ -63,7 +64,7 @@ type AuthResult struct {
 	Token string
 }
 
-func (s *userService) SetMinistryService(ms ministry.MinistryService) {
+func (s *userService) SetMinistryService(ms contracts.MinistryService) {
 	s.ministryService = ms
 }
 
@@ -118,40 +119,40 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 	}
 
 	if req.IsLeader {
-		err = s.rolesService.AssignLeaderRole(ctx, uID)
+		err = s.rolesService.AssignRole(ctx, uID, domain2.RoleLeader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign leader role: %w", err)
 		}
 	}
 
 	if req.IsPrimary {
-		err = s.rolesService.AssignPrimaryRole(ctx, uID)
+		err = s.rolesService.AssignRole(ctx, uID, domain2.RolePrimary)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign primary role: %w", err)
 		}
 	}
 
 	if req.IsPastor {
-		err = s.rolesService.AssignPastorRole(ctx, uID)
+		err = s.rolesService.AssignRole(ctx, uID, domain2.RolePastor)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign pastor role: %w", err)
 		}
 	}
 
 	if req.IsMinistryLeader {
-		err = s.rolesService.AssignMinistryLeaderRole(ctx, uID)
+		err = s.rolesService.AssignRole(ctx, uID, domain2.RoleMinistryLeader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign ministry leader role: %w", err)
 		}
 
-		var MinID string
+		var ministryID string
 		if req.MinistryID != nil {
-			MinID = *req.MinistryID
+			ministryID = *req.MinistryID
 		} else {
 			return nil, fmt.Errorf("ministry_id is required for ministry leader role")
 		}
 
-		err = s.ministryService.AssignLeaderToMinistry(ctx, MinID, uID)
+		err = s.ministryService.AssignLeaderToMinistry(ctx, ministryID, uID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to assign leader to ministry: %w", err)
 		}

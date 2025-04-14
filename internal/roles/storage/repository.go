@@ -11,10 +11,7 @@ import (
 )
 
 type RolesRepository interface {
-	AssignLeaderRole(ctx context.Context, userID string) error
-	AssignPrimaryRole(ctx context.Context, userID string) error
-	AssignPastorRole(ctx context.Context, userID string) error
-	AssignMinistryLeaderRole(ctx context.Context, userID string) error
+	AssignRole(ctx context.Context, userID, role string) error
 }
 
 type repository struct {
@@ -27,39 +24,9 @@ func NewRolesRepository(db *sqlx.DB) RolesRepository {
 	}
 }
 
-// AssignMinistryLeaderRole assigns the Ministry Leader role to the given user.
-func (r *repository) AssignMinistryLeaderRole(ctx context.Context, userID string) error {
-	roleID, err := r.getRoleID(ctx, "Ministry Leader")
-	if err != nil {
-		return err
-	}
-
-	return r.assignRole(ctx, userID, roleID)
-}
-
-// AssignLeaderRole assigns the Leader role to the given user.
-func (r *repository) AssignLeaderRole(ctx context.Context, userID string) error {
-	roleID, err := r.getRoleID(ctx, "Leader")
-	if err != nil {
-		return err
-	}
-
-	return r.assignRole(ctx, userID, roleID)
-}
-
-// AssignPrimaryRole assigns the Primary role to the given user.
-func (r *repository) AssignPrimaryRole(ctx context.Context, userID string) error {
-	roleID, err := r.getRoleID(ctx, "Primary")
-	if err != nil {
-		return err
-	}
-
-	return r.assignRole(ctx, userID, roleID)
-}
-
-// AssignPastorRole assigns the Pastor role to the given user.
-func (r *repository) AssignPastorRole(ctx context.Context, userID string) error {
-	roleID, err := r.getRoleID(ctx, "Pastor")
+// AssignRole assigns the provided role to the given user.
+func (r *repository) AssignRole(ctx context.Context, userID, role string) error {
+	roleID, err := r.getRoleID(ctx, role)
 	if err != nil {
 		return err
 	}

@@ -10,10 +10,7 @@ import (
 )
 
 type RolesService interface {
-	AssignLeaderRole(ctx context.Context, userID string) error
-	AssignPrimaryRole(ctx context.Context, userID string) error
-	AssignPastorRole(ctx context.Context, userID string) error
-	AssignMinistryLeaderRole(ctx context.Context, userID string) error
+	AssignRole(ctx context.Context, userID, role string) error
 }
 
 type service struct {
@@ -28,53 +25,14 @@ func NewRoleService(logger *zap.Logger, repository storage.RolesRepository) Role
 	}
 }
 
-func (s *service) AssignMinistryLeaderRole(ctx context.Context, userID string) error {
-	s.logger.Info("Assigning Ministry Leader role")
+func (s *service) AssignRole(ctx context.Context, userID, role string) error {
+	s.logger.Sugar().Infof("Assigning %s role", role)
 
-	err := s.repository.AssignMinistryLeaderRole(ctx, userID)
+	err := s.repository.AssignRole(ctx, userID, role)
 	if err != nil {
-		s.logger.Error("Failed to assign Ministry Leader role", zap.Error(err))
+		s.logger.Sugar().With("error", err).Errorf("failed to assign %s role", role)
 
-		return fmt.Errorf("failed to assign Ministry Leader role: %w", err)
-	}
-
-	return nil
-}
-
-func (s *service) AssignLeaderRole(ctx context.Context, userID string) error {
-	s.logger.Info("Assigning Leader role")
-
-	err := s.repository.AssignLeaderRole(ctx, userID)
-	if err != nil {
-		s.logger.Error("Failed to assign leader role", zap.Error(err))
-
-		return fmt.Errorf("failed to assign leader role: %w", err)
-	}
-
-	return nil
-}
-
-func (s *service) AssignPrimaryRole(ctx context.Context, userID string) error {
-	s.logger.Info("Assigning Primary role")
-
-	err := s.repository.AssignPrimaryRole(ctx, userID)
-	if err != nil {
-		s.logger.Error("Failed to assign primary role", zap.Error(err))
-
-		return fmt.Errorf("failed to assign primary role: %w", err)
-	}
-
-	return nil
-}
-
-func (s *service) AssignPastorRole(ctx context.Context, userID string) error {
-	s.logger.Info("Assigning Pastor role")
-
-	err := s.repository.AssignPastorRole(ctx, userID)
-	if err != nil {
-		s.logger.Error("Failed to assign Pastor role", zap.Error(err))
-
-		return fmt.Errorf("failed to assign Pastor role: %w", err)
+		return fmt.Errorf("failed to assign %s role: %w", role, err)
 	}
 
 	return nil

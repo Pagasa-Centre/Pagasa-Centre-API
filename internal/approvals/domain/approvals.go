@@ -11,11 +11,6 @@ type Approval struct {
 	Status      string
 }
 
-// Approval Types
-const (
-	MinistryApplicationType = "Ministry Application"
-)
-
 // Approval Status'
 const (
 	Pending  = "PENDING"

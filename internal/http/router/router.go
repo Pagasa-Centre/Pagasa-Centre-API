@@ -8,10 +8,12 @@ import (
 	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/approvals"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/media"
 	ministry "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
+	approvals2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
 	mediaService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	outreachService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
@@ -27,6 +29,7 @@ func New(
 	ministryService ministryService.MinistryService,
 	outreachService outreachService.OutreachService,
 	mediaService mediaService.MediaService,
+	approvalService approvals2.ApprovalService,
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
@@ -48,6 +51,7 @@ func New(
 	ministryHandler := ministry.NewMinistryHandler(logger, ministryService)
 	outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
 	mediaHandler := media.NewMediaHandler(logger, mediaService)
+	approvalsHandler := approvals.NewApprovalHandler(logger, approvalService)
 
 	// Define the /alive endpoint.
 	registerAliveEndpoint(router)
@@ -63,6 +67,8 @@ func New(
 						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
 						r.Post("/update-details", userHandler.UpdateDetails())
 						r.Delete("/", userHandler.Delete())
+						r.Get("/approvals", approvalsHandler.GetAll())
+						r.Post("/approvals/{id}", approvalsHandler.UpdateApprovalStatus())
 					})
 				},
 			)
