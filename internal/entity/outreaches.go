@@ -115,17 +115,20 @@ var OutreachWhere = struct {
 
 // OutreachRels is where relationship names are stored.
 var OutreachRels = struct {
-	Ministries string
-	Users      string
+	Ministries       string
+	OutreachServices string
+	Users            string
 }{
-	Ministries: "Ministries",
-	Users:      "Users",
+	Ministries:       "Ministries",
+	OutreachServices: "OutreachServices",
+	Users:            "Users",
 }
 
 // outreachR is where relationships are stored.
 type outreachR struct {
-	Ministries MinistrySlice `boil:"Ministries" json:"Ministries" toml:"Ministries" yaml:"Ministries"`
-	Users      UserSlice     `boil:"Users" json:"Users" toml:"Users" yaml:"Users"`
+	Ministries       MinistrySlice        `boil:"Ministries" json:"Ministries" toml:"Ministries" yaml:"Ministries"`
+	OutreachServices OutreachServiceSlice `boil:"OutreachServices" json:"OutreachServices" toml:"OutreachServices" yaml:"OutreachServices"`
+	Users            UserSlice            `boil:"Users" json:"Users" toml:"Users" yaml:"Users"`
 }
 
 // NewStruct creates a new relationship struct
@@ -138,6 +141,13 @@ func (r *outreachR) GetMinistries() MinistrySlice {
 		return nil
 	}
 	return r.Ministries
+}
+
+func (r *outreachR) GetOutreachServices() OutreachServiceSlice {
+	if r == nil {
+		return nil
+	}
+	return r.OutreachServices
 }
 
 func (r *outreachR) GetUsers() UserSlice {
@@ -477,6 +487,20 @@ func (o *Outreach) Ministries(mods ...qm.QueryMod) ministryQuery {
 	return Ministries(queryMods...)
 }
 
+// OutreachServices retrieves all the outreach_service's OutreachServices with an executor.
+func (o *Outreach) OutreachServices(mods ...qm.QueryMod) outreachServiceQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"outreach_services\".\"outreach_id\"=?", o.ID),
+	)
+
+	return OutreachServices(queryMods...)
+}
+
 // Users retrieves all the user's Users with an executor.
 func (o *Outreach) Users(mods ...qm.QueryMod) userQuery {
 	var queryMods []qm.QueryMod
@@ -594,6 +618,119 @@ func (outreachL) LoadMinistries(ctx context.Context, e boil.ContextExecutor, sin
 				local.R.Ministries = append(local.R.Ministries, foreign)
 				if foreign.R == nil {
 					foreign.R = &ministryR{}
+				}
+				foreign.R.Outreach = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadOutreachServices allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (outreachL) LoadOutreachServices(ctx context.Context, e boil.ContextExecutor, singular bool, maybeOutreach interface{}, mods queries.Applicator) error {
+	var slice []*Outreach
+	var object *Outreach
+
+	if singular {
+		var ok bool
+		object, ok = maybeOutreach.(*Outreach)
+		if !ok {
+			object = new(Outreach)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeOutreach)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeOutreach))
+			}
+		}
+	} else {
+		s, ok := maybeOutreach.(*[]*Outreach)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeOutreach)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeOutreach))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &outreachR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &outreachR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`outreach_services`),
+		qm.WhereIn(`outreach_services.outreach_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load outreach_services")
+	}
+
+	var resultSlice []*OutreachService
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice outreach_services")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on outreach_services")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for outreach_services")
+	}
+
+	if len(outreachServiceAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.OutreachServices = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &outreachServiceR{}
+			}
+			foreign.R.Outreach = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.OutreachID {
+				local.R.OutreachServices = append(local.R.OutreachServices, foreign)
+				if foreign.R == nil {
+					foreign.R = &outreachServiceR{}
 				}
 				foreign.R.Outreach = local
 				break
@@ -761,6 +898,59 @@ func (o *Outreach) AddMinistries(ctx context.Context, exec boil.ContextExecutor,
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &ministryR{
+				Outreach: o,
+			}
+		} else {
+			rel.R.Outreach = o
+		}
+	}
+	return nil
+}
+
+// AddOutreachServices adds the given related objects to the existing relationships
+// of the outreach, optionally inserting them as new records.
+// Appends related to o.R.OutreachServices.
+// Sets related.R.Outreach appropriately.
+func (o *Outreach) AddOutreachServices(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*OutreachService) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.OutreachID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"outreach_services\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"outreach_id"}),
+				strmangle.WhereClause("\"", "\"", 2, outreachServicePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.OutreachID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &outreachR{
+			OutreachServices: related,
+		}
+	} else {
+		o.R.OutreachServices = append(o.R.OutreachServices, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &outreachServiceR{
 				Outreach: o,
 			}
 		} else {

@@ -3,6 +3,7 @@ package outreach
 import (
 	"context"
 	"fmt"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 
 	"go.uber.org/zap"
 
@@ -11,7 +12,7 @@ import (
 )
 
 type OutreachService interface {
-	All(ctx context.Context) ([]*domain.Outreach, error)
+	GetAllOutreaches(ctx context.Context) ([]*domain.Outreach, []*domain.Service, error)
 }
 
 type service struct {
@@ -29,13 +30,28 @@ func NewOutreachService(
 	}
 }
 
-func (os *service) All(ctx context.Context) ([]*domain.Outreach, error) {
+func (os *service) GetAllOutreaches(ctx context.Context) ([]*domain.Outreach, []*domain.Service, error) {
 	outreachesEntities, err := os.outreachRepo.GetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all outreaches: %s", err)
+		return nil, nil, fmt.Errorf("failed to get all outreaches: %s", err)
 	}
 
-	outreaches := domain.EntitiesToDomain(outreachesEntities)
+	var services entity.OutreachServiceSlice
+	for _, ent := range outreachesEntities {
+		//1. Get services for each outreach
+		outreachServices, err := os.outreachRepo.GetServicesByOutreachID(ctx, ent.ID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get outreach services: %s", err)
+		}
+		if len(outreachServices) == 0 {
+			continue
+		}
+		//2. add to services slice
+		services = append(services, outreachServices...)
+	}
 
-	return outreaches, nil
+	outreaches := domain.OutreachEntitiesToDomain(outreachesEntities)
+	serv := domain.ServiceEntitiesToDomain(services)
+
+	return outreaches, serv, nil
 }

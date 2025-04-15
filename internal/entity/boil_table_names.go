@@ -10,6 +10,7 @@ var TableNames = struct {
 	GooseDBVersion   string
 	Media            string
 	Ministries       string
+	OutreachServices string
 	Outreaches       string
 	Roles            string
 	UserRoles        string
@@ -21,6 +22,7 @@ var TableNames = struct {
 	GooseDBVersion:   "goose_db_version",
 	Media:            "media",
 	Ministries:       "ministries",
+	OutreachServices: "outreach_services",
 	Outreaches:       "outreaches",
 	Roles:            "roles",
 	UserRoles:        "user_roles",

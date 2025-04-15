@@ -11,6 +11,7 @@ func TestToOne(t *testing.T) {
 	t.Run("CellGroupToUserUsingLeader", testCellGroupToOneUserUsingLeader)
 	t.Run("MinistryToUserUsingLeader", testMinistryToOneUserUsingLeader)
 	t.Run("MinistryToOutreachUsingOutreach", testMinistryToOneOutreachUsingOutreach)
+	t.Run("OutreachServiceToOutreachUsingOutreach", testOutreachServiceToOneOutreachUsingOutreach)
 	t.Run("UserRoleToRoleUsingRole", testUserRoleToOneRoleUsingRole)
 	t.Run("UserRoleToUserUsingUser", testUserRoleToOneUserUsingUser)
 	t.Run("UserToUserUsingCellLeader", testUserToOneUserUsingCellLeader)
@@ -26,6 +27,7 @@ func TestOneToOne(t *testing.T) {}
 func TestToMany(t *testing.T) {
 	t.Run("CellGroupToUsers", testCellGroupToManyUsers)
 	t.Run("OutreachToMinistries", testOutreachToManyMinistries)
+	t.Run("OutreachToOutreachServices", testOutreachToManyOutreachServices)
 	t.Run("OutreachToUsers", testOutreachToManyUsers)
 	t.Run("RoleToUserRoles", testRoleToManyUserRoles)
 	t.Run("UserToCellGroups", testUserToManyCellGroups)
@@ -41,6 +43,7 @@ func TestToOneSet(t *testing.T) {
 	t.Run("CellGroupToUserUsingLeaderCellGroups", testCellGroupToOneSetOpUserUsingLeader)
 	t.Run("MinistryToUserUsingLeaderMinistries", testMinistryToOneSetOpUserUsingLeader)
 	t.Run("MinistryToOutreachUsingMinistries", testMinistryToOneSetOpOutreachUsingOutreach)
+	t.Run("OutreachServiceToOutreachUsingOutreachServices", testOutreachServiceToOneSetOpOutreachUsingOutreach)
 	t.Run("UserRoleToRoleUsingUserRoles", testUserRoleToOneSetOpRoleUsingRole)
 	t.Run("UserRoleToUserUsingUserRoles", testUserRoleToOneSetOpUserUsingUser)
 	t.Run("UserToUserUsingCellLeaderUsers", testUserToOneSetOpUserUsingCellLeader)
@@ -69,6 +72,7 @@ func TestOneToOneRemove(t *testing.T) {}
 func TestToManyAdd(t *testing.T) {
 	t.Run("CellGroupToUsers", testCellGroupToManyAddOpUsers)
 	t.Run("OutreachToMinistries", testOutreachToManyAddOpMinistries)
+	t.Run("OutreachToOutreachServices", testOutreachToManyAddOpOutreachServices)
 	t.Run("OutreachToUsers", testOutreachToManyAddOpUsers)
 	t.Run("RoleToUserRoles", testRoleToManyAddOpUserRoles)
 	t.Run("UserToCellGroups", testUserToManyAddOpCellGroups)
