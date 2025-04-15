@@ -1,8 +1,9 @@
 package dto
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/domain"
 	"time"
+
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/domain"
 )
 
 type Outreach struct {

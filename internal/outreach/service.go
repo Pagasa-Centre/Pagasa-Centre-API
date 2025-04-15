@@ -3,10 +3,10 @@ package outreach
 import (
 	"context"
 	"fmt"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 
 	"go.uber.org/zap"
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	domain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/storage"
 )
@@ -37,16 +37,18 @@ func (os *service) GetAllOutreaches(ctx context.Context) ([]*domain.Outreach, []
 	}
 
 	var services entity.OutreachServiceSlice
+
 	for _, ent := range outreachesEntities {
-		//1. Get services for each outreach
+		// 1. Get services for each outreach
 		outreachServices, err := os.outreachRepo.GetServicesByOutreachID(ctx, ent.ID)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get outreach services: %s", err)
 		}
+
 		if len(outreachServices) == 0 {
 			continue
 		}
-		//2. add to services slice
+		// 2. add to services slice
 		services = append(services, outreachServices...)
 	}
 

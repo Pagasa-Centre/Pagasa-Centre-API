@@ -1,8 +1,9 @@
 package domain
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"time"
+
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 )
 
 type Outreach struct {
@@ -39,6 +40,7 @@ func ServiceEntitiesToDomain(serviceEntities entity.OutreachServiceSlice) []*Ser
 
 	return services
 }
+
 func OutreachEntitiesToDomain(outreachEntities []*entity.Outreach) []*Outreach {
 	var outreaches []*Outreach
 	for _, ent := range outreachEntities {

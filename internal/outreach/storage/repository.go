@@ -37,6 +37,7 @@ func (or *repository) GetAll(ctx context.Context) (entity.OutreachSlice, error) 
 
 func (os *repository) GetServicesByOutreachID(ctx context.Context, outreachID string) (entity.OutreachServiceSlice, error) {
 	db := os.db.DB
+
 	services, err := entity.OutreachServices(entity.OutreachServiceWhere.OutreachID.EQ(outreachID)).All(ctx, db)
 	if err != nil {
 		return nil, err
