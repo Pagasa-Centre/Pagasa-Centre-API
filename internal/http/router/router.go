@@ -84,7 +84,7 @@ func New(
 			)
 			r.Route(
 				"/outreach", func(r chi.Router) {
-					r.Get("/", outreachHandler.All())
+					r.Get("/", outreachHandler.GetAllOutreaches())
 				},
 			)
 			r.Route(

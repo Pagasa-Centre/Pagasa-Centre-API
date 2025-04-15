@@ -15,7 +15,7 @@ migrate-down:
 .PHONY: migrate-down
 
 migrate-create:
-	@cd ./migrations && goose create create_approvals_table sql
+	@cd ./migrations && goose create create_services_table sql
 .PHONY: migrate-create
 
 

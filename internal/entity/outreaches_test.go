@@ -572,6 +572,84 @@ func testOutreachToManyMinistries(t *testing.T) {
 	}
 }
 
+func testOutreachToManyOutreachServices(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Outreach
+	var b, c OutreachService
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, outreachDBTypes, true, outreachColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Outreach struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, outreachServiceDBTypes, false, outreachServiceColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, outreachServiceDBTypes, false, outreachServiceColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.OutreachID = a.ID
+	c.OutreachID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.OutreachServices().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.OutreachID == b.OutreachID {
+			bFound = true
+		}
+		if v.OutreachID == c.OutreachID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := OutreachSlice{&a}
+	if err = a.L.LoadOutreachServices(ctx, tx, false, (*[]*Outreach)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.OutreachServices); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.OutreachServices = nil
+	if err = a.L.LoadOutreachServices(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.OutreachServices); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testOutreachToManyUsers(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -716,6 +794,81 @@ func testOutreachToManyAddOpMinistries(t *testing.T) {
 		}
 
 		count, err := a.Ministries().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testOutreachToManyAddOpOutreachServices(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Outreach
+	var b, c, d, e OutreachService
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, outreachDBTypes, false, strmangle.SetComplement(outreachPrimaryKeyColumns, outreachColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*OutreachService{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, outreachServiceDBTypes, false, strmangle.SetComplement(outreachServicePrimaryKeyColumns, outreachServiceColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*OutreachService{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddOutreachServices(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.OutreachID {
+			t.Error("foreign key was wrong value", a.ID, first.OutreachID)
+		}
+		if a.ID != second.OutreachID {
+			t.Error("foreign key was wrong value", a.ID, second.OutreachID)
+		}
+
+		if first.R.Outreach != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Outreach != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.OutreachServices[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.OutreachServices[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.OutreachServices().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}

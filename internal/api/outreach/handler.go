@@ -11,7 +11,7 @@ import (
 )
 
 type OutreachHandler interface {
-	All() http.HandlerFunc
+	GetAllOutreaches() http.HandlerFunc
 }
 
 type handler struct {
@@ -26,11 +26,11 @@ func NewOutreachHandler(logger *zap.Logger, outreachService outreach.OutreachSer
 	}
 }
 
-func (oh *handler) All() http.HandlerFunc {
+func (oh *handler) GetAllOutreaches() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		outreaches, err := oh.outreachService.All(ctx)
+		outreaches, services, err := oh.outreachService.GetAllOutreaches(ctx)
 		if err != nil {
 			oh.logger.Sugar().Infow("Failed to get all outreaches", "error", err)
 			render.Json(w, http.StatusInternalServerError, dto.ToErrorOutreachesResponse("Failed to fetch outreaches"))
@@ -38,7 +38,7 @@ func (oh *handler) All() http.HandlerFunc {
 			return
 		}
 
-		resp := dto.ToGetAllOutreachesResponse(outreaches, "Successfully fetched outreaches")
+		resp := dto.ToGetAllOutreachesResponse(outreaches, services, "Successfully fetched outreaches")
 		render.Json(w, http.StatusOK, resp)
 	}
 }

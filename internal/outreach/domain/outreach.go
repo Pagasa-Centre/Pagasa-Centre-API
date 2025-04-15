@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
+import (
+	"time"
+
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
+)
 
 type Outreach struct {
 	ID           string
@@ -15,7 +19,29 @@ type Outreach struct {
 	ThumbnailURL string
 }
 
-func EntitiesToDomain(outreachEntities []*entity.Outreach) []*Outreach {
+type Service struct {
+	OutreachID string
+	StartTime  time.Time
+	EndTime    time.Time
+	Day        string
+}
+
+func ServiceEntitiesToDomain(serviceEntities entity.OutreachServiceSlice) []*Service {
+	var services []*Service
+
+	for _, s := range serviceEntities {
+		services = append(services, &Service{
+			OutreachID: s.OutreachID,
+			StartTime:  s.StartTime,
+			EndTime:    s.EndTime,
+			Day:        s.Day,
+		})
+	}
+
+	return services
+}
+
+func OutreachEntitiesToDomain(outreachEntities []*entity.Outreach) []*Outreach {
 	var outreaches []*Outreach
 	for _, ent := range outreachEntities {
 		outreaches = append(outreaches, ToDomain(ent))

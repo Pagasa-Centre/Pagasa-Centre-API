@@ -10,6 +10,7 @@ import (
 
 type OutreachRepository interface {
 	GetAll(ctx context.Context) (entity.OutreachSlice, error)
+	GetServicesByOutreachID(ctx context.Context, outreachID string) (entity.OutreachServiceSlice, error)
 }
 
 type repository struct {
@@ -32,4 +33,15 @@ func (or *repository) GetAll(ctx context.Context) (entity.OutreachSlice, error) 
 	}
 
 	return outreaches, nil
+}
+
+func (os *repository) GetServicesByOutreachID(ctx context.Context, outreachID string) (entity.OutreachServiceSlice, error) {
+	db := os.db.DB
+
+	services, err := entity.OutreachServices(entity.OutreachServiceWhere.OutreachID.EQ(outreachID)).All(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
+	return services, nil
 }
