@@ -31,7 +31,15 @@ func RegisterRequestToUserDomain(req dto.RegisterRequest) (user *User, err error
 		return nil, err
 	}
 
+	if req.CellLeaderID != nil && *req.CellLeaderID == "" {
+		req.CellLeaderID = nil
+	}
+
 	var ministryID *string
+	if req.MinistryID != nil && *req.MinistryID == "" {
+		ministryID = nil
+	}
+
 	if req.MinistryID != nil {
 		ministryID = req.MinistryID
 	}

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -38,7 +39,7 @@ func NewUserHandler(
 const (
 	InvalidInputMsg        = "Please check your input. Some required fields might be missing or incorrectly formatted."
 	InternalServerErrorMsg = "Internal server error. Please try again later."
-	InvalidCredentialsMsg  = "Please check your username and password."
+	InvalidCredentialsMsg  = "Incorrect email or password. Please try again."
 )
 
 func (h *handler) Register() http.HandlerFunc {
@@ -83,11 +84,13 @@ func (h *handler) Register() http.HandlerFunc {
 		if err != nil {
 			h.logger.Sugar().Errorw("Error registering new user", "error", err)
 
-			render.Json(w, http.StatusInternalServerError,
+			statusCode, errMsg := mapErrorsToStatusCodeAndUserFriendlyMessages(err)
+
+			render.Json(w, statusCode,
 				dto.ToRegisterResponse(
 					nil,
 					nil,
-					InternalServerErrorMsg,
+					errMsg,
 				),
 			)
 
@@ -136,8 +139,11 @@ func (h *handler) Login() http.HandlerFunc {
 		authResult, err := h.userService.AuthenticateAndGenerateToken(ctx, req.Email, req.Password)
 		if err != nil {
 			h.logger.Sugar().Errorw("authentication failed", "error", err)
-			render.Json(w, http.StatusUnauthorized,
-				dto.ToRegisterResponse(nil, nil, InvalidCredentialsMsg),
+
+			statusCode, errMsg := mapErrorsToStatusCodeAndUserFriendlyMessages(err)
+
+			render.Json(w, statusCode,
+				dto.ToRegisterResponse(nil, nil, errMsg),
 			)
 
 			return
@@ -218,5 +224,16 @@ func (h *handler) Delete() http.HandlerFunc {
 
 		// Return a success response.
 		render.Json(w, http.StatusOK, dto.ToDeleteUserResponse("user deleted successfully"))
+	}
+}
+
+func mapErrorsToStatusCodeAndUserFriendlyMessages(err error) (int, string) {
+	switch {
+	case errors.Is(err, user.ErrEmailAlreadyExists):
+		return http.StatusConflict, "Email already exists."
+	case errors.Is(err, user.ErrInvalidLoginDetails):
+		return http.StatusBadRequest, InvalidCredentialsMsg
+	default:
+		return http.StatusInternalServerError, InternalServerErrorMsg
 	}
 }

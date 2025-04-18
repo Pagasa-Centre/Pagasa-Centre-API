@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/lib/pq"
 	"github.com/volatiletech/null/v8"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -64,6 +65,11 @@ type AuthResult struct {
 	Token string
 }
 
+var (
+	ErrEmailAlreadyExists  = errors.New("email already exists")
+	ErrInvalidLoginDetails = errors.New("invalid email or password")
+)
+
 func (s *userService) SetMinistryService(ms contracts.MinistryService) {
 	s.ministryService = ms
 }
@@ -71,7 +77,7 @@ func (s *userService) SetMinistryService(ms contracts.MinistryService) {
 func (s *userService) AuthenticateAndGenerateToken(ctx context.Context, email, password string) (*AuthResult, error) {
 	user, err := s.AuthenticateUser(ctx, email, password)
 	if err != nil {
-		return nil, fmt.Errorf("invalid credentials")
+		return nil, ErrInvalidLoginDetails
 	}
 
 	token, err := s.GenerateToken(user)
@@ -110,6 +116,13 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 
 	userID, err := s.userRepo.InsertUser(ctx, userEntity)
 	if err != nil {
+		// Check if the error is a unique constraint violation (email already exists)
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			// PostgreSQL error code 23505 = unique_violation
+			return nil, ErrEmailAlreadyExists
+		}
+
 		return nil, err
 	}
 
