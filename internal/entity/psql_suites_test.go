@@ -10,6 +10,10 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("CellGroups", testCellGroupsUpsert)
 
+	t.Run("EventDays", testEventDaysUpsert)
+
+	t.Run("Events", testEventsUpsert)
+
 	t.Run("GooseDBVersions", testGooseDBVersionsUpsert)
 
 	t.Run("Media", testMediaUpsert)

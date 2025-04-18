@@ -9,11 +9,13 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/approvals"
+	events2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/events"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/media"
 	ministry "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
 	approvals2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events"
 	mediaService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	outreachService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
@@ -30,6 +32,7 @@ func New(
 	outreachService outreachService.OutreachService,
 	mediaService mediaService.MediaService,
 	approvalService approvals2.ApprovalService,
+	eventsService events.EventsService,
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
@@ -52,6 +55,7 @@ func New(
 	outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
 	mediaHandler := media.NewMediaHandler(logger, mediaService)
 	approvalsHandler := approvals.NewApprovalHandler(logger, approvalService)
+	eventsHandler := events2.NewEventsHandler(logger, eventsService)
 
 	// Define the /alive endpoint.
 	registerAliveEndpoint(router)
@@ -67,7 +71,7 @@ func New(
 						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
 						r.Post("/update-details", userHandler.UpdateDetails())
 						r.Delete("/", userHandler.Delete())
-						r.Get("/approvals", approvalsHandler.GetAll())
+						r.Get("/approvals", approvalsHandler.All())
 						r.Post("/approvals/{id}", approvalsHandler.UpdateApprovalStatus())
 					})
 				},
@@ -84,7 +88,13 @@ func New(
 			)
 			r.Route(
 				"/outreach", func(r chi.Router) {
-					r.Get("/", outreachHandler.GetAllOutreaches())
+					r.Get("/", outreachHandler.All())
+
+					r.Route(
+						"/events", func(r chi.Router) {
+							r.Get("/", eventsHandler.All())
+						},
+					)
 				},
 			)
 			r.Route(

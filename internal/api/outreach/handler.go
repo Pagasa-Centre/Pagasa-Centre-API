@@ -11,7 +11,7 @@ import (
 )
 
 type OutreachHandler interface {
-	GetAllOutreaches() http.HandlerFunc
+	All() http.HandlerFunc
 }
 
 type handler struct {
@@ -26,7 +26,7 @@ func NewOutreachHandler(logger *zap.Logger, outreachService outreach.OutreachSer
 	}
 }
 
-func (oh *handler) GetAllOutreaches() http.HandlerFunc {
+func (oh *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 

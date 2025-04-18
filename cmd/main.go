@@ -14,6 +14,8 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 	cron2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/cron"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	mediaStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/storage"
@@ -89,6 +91,9 @@ func main() {
 	mediaRepo := mediaStorage.NewMediaRepository(db)
 	mediaService := media.NewMediaService(logger, mediaRepo)
 
+	eventsRepo := storage.NewEventsRepository(db)
+	eventsService := events.NewEventsService(logger, eventsRepo)
+
 	ytClient := youtube.NewYouTubeClient(cfg.YoutubeAPIKey, cfg.YoutubeChannelID)
 	mediaCronJob := cron2.NewMediaCronJob(logger, ytClient, mediaService)
 
@@ -104,6 +109,7 @@ func main() {
 		outreachService,
 		mediaService,
 		approvalService,
+		eventsService,
 	)
 
 	logger.Sugar().Infof("Server starting on port %s", cfg.Port)

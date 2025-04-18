@@ -9,6 +9,7 @@ import "testing"
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
 	t.Run("CellGroupToUserUsingLeader", testCellGroupToOneUserUsingLeader)
+	t.Run("EventDayToEventUsingEvent", testEventDayToOneEventUsingEvent)
 	t.Run("MinistryToUserUsingLeader", testMinistryToOneUserUsingLeader)
 	t.Run("MinistryToOutreachUsingOutreach", testMinistryToOneOutreachUsingOutreach)
 	t.Run("OutreachServiceToOutreachUsingOutreach", testOutreachServiceToOneOutreachUsingOutreach)
@@ -26,6 +27,7 @@ func TestOneToOne(t *testing.T) {}
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
 	t.Run("CellGroupToUsers", testCellGroupToManyUsers)
+	t.Run("EventToEventDays", testEventToManyEventDays)
 	t.Run("OutreachToMinistries", testOutreachToManyMinistries)
 	t.Run("OutreachToOutreachServices", testOutreachToManyOutreachServices)
 	t.Run("OutreachToUsers", testOutreachToManyUsers)
@@ -41,6 +43,7 @@ func TestToMany(t *testing.T) {
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
 	t.Run("CellGroupToUserUsingLeaderCellGroups", testCellGroupToOneSetOpUserUsingLeader)
+	t.Run("EventDayToEventUsingEventDays", testEventDayToOneSetOpEventUsingEvent)
 	t.Run("MinistryToUserUsingLeaderMinistries", testMinistryToOneSetOpUserUsingLeader)
 	t.Run("MinistryToOutreachUsingMinistries", testMinistryToOneSetOpOutreachUsingOutreach)
 	t.Run("OutreachServiceToOutreachUsingOutreachServices", testOutreachServiceToOneSetOpOutreachUsingOutreach)
@@ -71,6 +74,7 @@ func TestOneToOneRemove(t *testing.T) {}
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
 	t.Run("CellGroupToUsers", testCellGroupToManyAddOpUsers)
+	t.Run("EventToEventDays", testEventToManyAddOpEventDays)
 	t.Run("OutreachToMinistries", testOutreachToManyAddOpMinistries)
 	t.Run("OutreachToOutreachServices", testOutreachToManyAddOpOutreachServices)
 	t.Run("OutreachToUsers", testOutreachToManyAddOpUsers)

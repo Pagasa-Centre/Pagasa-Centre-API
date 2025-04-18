@@ -15,7 +15,7 @@ migrate-down:
 .PHONY: migrate-down
 
 migrate-create:
-	@cd ./migrations && goose create rename_approvals_columns sql
+	@cd ./migrations && goose create create_events_and_days_table sql
 .PHONY: migrate-create
 
 

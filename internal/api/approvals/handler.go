@@ -13,7 +13,7 @@ import (
 )
 
 type ApprovalHandler interface {
-	GetAll() http.HandlerFunc
+	All() http.HandlerFunc
 	UpdateApprovalStatus() http.HandlerFunc
 }
 
@@ -32,7 +32,7 @@ func NewApprovalHandler(
 	}
 }
 
-func (h *handler) GetAll() http.HandlerFunc {
+func (h *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
