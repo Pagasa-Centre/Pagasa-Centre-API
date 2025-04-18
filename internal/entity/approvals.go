@@ -24,52 +24,57 @@ import (
 
 // Approval is an object representing the database table.
 type Approval struct {
-	ID          string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	RequesterID string    `boil:"requester_id" json:"requester_id" toml:"requester_id" yaml:"requester_id"`
-	ApproverID  string    `boil:"approver_id" json:"approver_id" toml:"approver_id" yaml:"approver_id"`
-	Type        string    `boil:"type" json:"type" toml:"type" yaml:"type"`
-	Status      string    `boil:"status" json:"status" toml:"status" yaml:"status"`
-	CreatedAt   null.Time `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt   null.Time `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	ID            string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	RequesterID   string      `boil:"requester_id" json:"requester_id" toml:"requester_id" yaml:"requester_id"`
+	ApproverID    string      `boil:"approver_id" json:"approver_id" toml:"approver_id" yaml:"approver_id"`
+	RequestedRole string      `boil:"requested_role" json:"requested_role" toml:"requested_role" yaml:"requested_role"`
+	Status        string      `boil:"status" json:"status" toml:"status" yaml:"status"`
+	CreatedAt     null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
+	UpdatedAt     null.Time   `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	Type          null.String `boil:"type" json:"type,omitempty" toml:"type" yaml:"type,omitempty"`
 
 	R *approvalR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L approvalL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ApprovalColumns = struct {
-	ID          string
-	RequesterID string
-	ApproverID  string
-	Type        string
-	Status      string
-	CreatedAt   string
-	UpdatedAt   string
+	ID            string
+	RequesterID   string
+	ApproverID    string
+	RequestedRole string
+	Status        string
+	CreatedAt     string
+	UpdatedAt     string
+	Type          string
 }{
-	ID:          "id",
-	RequesterID: "requester_id",
-	ApproverID:  "approver_id",
-	Type:        "type",
-	Status:      "status",
-	CreatedAt:   "created_at",
-	UpdatedAt:   "updated_at",
+	ID:            "id",
+	RequesterID:   "requester_id",
+	ApproverID:    "approver_id",
+	RequestedRole: "requested_role",
+	Status:        "status",
+	CreatedAt:     "created_at",
+	UpdatedAt:     "updated_at",
+	Type:          "type",
 }
 
 var ApprovalTableColumns = struct {
-	ID          string
-	RequesterID string
-	ApproverID  string
-	Type        string
-	Status      string
-	CreatedAt   string
-	UpdatedAt   string
+	ID            string
+	RequesterID   string
+	ApproverID    string
+	RequestedRole string
+	Status        string
+	CreatedAt     string
+	UpdatedAt     string
+	Type          string
 }{
-	ID:          "approvals.id",
-	RequesterID: "approvals.requester_id",
-	ApproverID:  "approvals.approver_id",
-	Type:        "approvals.type",
-	Status:      "approvals.status",
-	CreatedAt:   "approvals.created_at",
-	UpdatedAt:   "approvals.updated_at",
+	ID:            "approvals.id",
+	RequesterID:   "approvals.requester_id",
+	ApproverID:    "approvals.approver_id",
+	RequestedRole: "approvals.requested_role",
+	Status:        "approvals.status",
+	CreatedAt:     "approvals.created_at",
+	UpdatedAt:     "approvals.updated_at",
+	Type:          "approvals.type",
 }
 
 // Generated where
@@ -125,22 +130,74 @@ func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
 func (w whereHelpernull_Time) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
 func (w whereHelpernull_Time) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
 
+type whereHelpernull_String struct{ field string }
+
+func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, false, x)
+}
+func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
+	return qmhelper.WhereNullEQ(w.field, true, x)
+}
+func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelpernull_String) LIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" LIKE ?", x)
+}
+func (w whereHelpernull_String) NLIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" NOT LIKE ?", x)
+}
+func (w whereHelpernull_String) ILIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" ILIKE ?", x)
+}
+func (w whereHelpernull_String) NILIKE(x null.String) qm.QueryMod {
+	return qm.Where(w.field+" NOT ILIKE ?", x)
+}
+func (w whereHelpernull_String) IN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
+func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
+func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+
 var ApprovalWhere = struct {
-	ID          whereHelperstring
-	RequesterID whereHelperstring
-	ApproverID  whereHelperstring
-	Type        whereHelperstring
-	Status      whereHelperstring
-	CreatedAt   whereHelpernull_Time
-	UpdatedAt   whereHelpernull_Time
+	ID            whereHelperstring
+	RequesterID   whereHelperstring
+	ApproverID    whereHelperstring
+	RequestedRole whereHelperstring
+	Status        whereHelperstring
+	CreatedAt     whereHelpernull_Time
+	UpdatedAt     whereHelpernull_Time
+	Type          whereHelpernull_String
 }{
-	ID:          whereHelperstring{field: "\"approvals\".\"id\""},
-	RequesterID: whereHelperstring{field: "\"approvals\".\"requester_id\""},
-	ApproverID:  whereHelperstring{field: "\"approvals\".\"approver_id\""},
-	Type:        whereHelperstring{field: "\"approvals\".\"type\""},
-	Status:      whereHelperstring{field: "\"approvals\".\"status\""},
-	CreatedAt:   whereHelpernull_Time{field: "\"approvals\".\"created_at\""},
-	UpdatedAt:   whereHelpernull_Time{field: "\"approvals\".\"updated_at\""},
+	ID:            whereHelperstring{field: "\"approvals\".\"id\""},
+	RequesterID:   whereHelperstring{field: "\"approvals\".\"requester_id\""},
+	ApproverID:    whereHelperstring{field: "\"approvals\".\"approver_id\""},
+	RequestedRole: whereHelperstring{field: "\"approvals\".\"requested_role\""},
+	Status:        whereHelperstring{field: "\"approvals\".\"status\""},
+	CreatedAt:     whereHelpernull_Time{field: "\"approvals\".\"created_at\""},
+	UpdatedAt:     whereHelpernull_Time{field: "\"approvals\".\"updated_at\""},
+	Type:          whereHelpernull_String{field: "\"approvals\".\"type\""},
 }
 
 // ApprovalRels is where relationship names are stored.
@@ -160,9 +217,9 @@ func (*approvalR) NewStruct() *approvalR {
 type approvalL struct{}
 
 var (
-	approvalAllColumns            = []string{"id", "requester_id", "approver_id", "type", "status", "created_at", "updated_at"}
-	approvalColumnsWithoutDefault = []string{"requester_id", "approver_id", "type", "status"}
-	approvalColumnsWithDefault    = []string{"id", "created_at", "updated_at"}
+	approvalAllColumns            = []string{"id", "requester_id", "approver_id", "requested_role", "status", "created_at", "updated_at", "type"}
+	approvalColumnsWithoutDefault = []string{"requester_id", "approver_id", "requested_role", "status"}
+	approvalColumnsWithDefault    = []string{"id", "created_at", "updated_at", "type"}
 	approvalPrimaryKeyColumns     = []string{"id"}
 	approvalGeneratedColumns      = []string{}
 )

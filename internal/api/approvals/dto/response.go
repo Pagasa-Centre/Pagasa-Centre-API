@@ -7,6 +7,7 @@ import (
 type Approval struct {
 	ID               string          `json:"id"`
 	Type             string          `json:"type"`
+	RequestedRole    string          `json:"requested_role"`
 	Status           string          `json:"status"`
 	RequesterDetails dto.UserDetails `json:"requester_details"`
 }

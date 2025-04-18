@@ -86,31 +86,32 @@ func (ms *service) SendApplication(ctx context.Context, userID, ministryID strin
 		return err
 	}
 
-	var approvalType string
+	var requestedRole string
 
 	switch ministryDetails.Name {
 	case domain2.RoleMediaMinistry:
-		approvalType = domain2.RoleMediaMinistry
+		requestedRole = domain2.RoleMediaMinistry
 	case domain2.RoleChildrensMinistry:
-		approvalType = domain2.RoleChildrensMinistry
+		requestedRole = domain2.RoleChildrensMinistry
 	case domain2.RoleCreativeArtsMinistry:
-		approvalType = domain2.RoleCreativeArtsMinistry
+		requestedRole = domain2.RoleCreativeArtsMinistry
 	case domain2.RoleMusicMinistry:
-		approvalType = domain2.RoleMusicMinistry
+		requestedRole = domain2.RoleMusicMinistry
 	case domain2.RoleProductionMinistry:
-		approvalType = domain2.RoleProductionMinistry
+		requestedRole = domain2.RoleProductionMinistry
 	case domain2.RoleUsheringSecurity:
-		approvalType = domain2.RoleUsheringSecurity
+		requestedRole = domain2.RoleUsheringSecurity
 	default:
 		return fmt.Errorf("unknown ministry %s", ministryDetails.Name)
 	}
 
 	// 2. Create New Approval (Type,requester_id, approver_id,status)
 	approval := &approvalDomain.Approval{
-		RequesterID: userID,
-		ApproverID:  leaderDetails.ID,
-		Type:        approvalType,
-		Status:      approvalDomain.Pending,
+		RequesterID:   userID,
+		ApproverID:    leaderDetails.ID,
+		RequestedRole: requestedRole,
+		Type:          approvalDomain.MinistryApplication,
+		Status:        approvalDomain.Pending,
 	}
 
 	err = ms.approvalService.CreateNewApproval(ctx, approval)

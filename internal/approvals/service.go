@@ -87,10 +87,16 @@ func (s *service) GetAllApprovals(ctx context.Context) ([]dto.Approval, error) {
 			phoneNumber = u.Phone.String
 		}
 
+		var approvalType string
+		if apr.Type.Valid {
+			approvalType = apr.Type.String
+		}
+
 		approval := dto.Approval{
-			ID:     apr.ID,
-			Type:   apr.Type,
-			Status: apr.Status,
+			ID:            apr.ID,
+			RequestedRole: apr.RequestedRole,
+			Type:          approvalType,
+			Status:        apr.Status,
 			RequesterDetails: dto2.UserDetails{
 				FirstName:   u.FirstName,
 				LastName:    u.LastName,
@@ -136,7 +142,7 @@ func (s *service) UpdateApprovalStatus(ctx context.Context, approvalID, status s
 	}
 
 	// 3. Check type and depending on type assign roles
-	err = s.roleService.AssignRole(ctx, approval.RequesterID, approval.Type)
+	err = s.roleService.AssignRole(ctx, approval.RequesterID, approval.RequestedRole)
 	if err != nil {
 		return err
 	}

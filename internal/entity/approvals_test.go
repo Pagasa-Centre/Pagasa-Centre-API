@@ -568,7 +568,7 @@ func testApprovalsSelect(t *testing.T) {
 }
 
 var (
-	approvalDBTypes = map[string]string{`ID`: `uuid`, `RequesterID`: `uuid`, `ApproverID`: `uuid`, `Type`: `text`, `Status`: `text`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`}
+	approvalDBTypes = map[string]string{`ID`: `uuid`, `RequesterID`: `uuid`, `ApproverID`: `uuid`, `RequestedRole`: `text`, `Status`: `text`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`, `Type`: `text`}
 	_               = bytes.MinRead
 )
 
