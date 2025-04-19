@@ -1,9 +1,5 @@
 package dto
 
-import (
-	"time"
-)
-
 type GetAllOutreachesResponse struct {
 	Message    string      `json:"message"`
 	Outreaches []*Outreach `json:"outreaches,omitempty"`
@@ -24,7 +20,7 @@ type Outreach struct {
 }
 
 type Service struct {
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
-	Day       string    `json:"day"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+	Day       string `json:"day"`
 }

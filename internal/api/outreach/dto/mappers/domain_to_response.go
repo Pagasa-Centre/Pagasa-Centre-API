@@ -3,6 +3,7 @@ package mappers
 import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/domain"
+	"time"
 )
 
 func ToGetAllOutreachesResponse(outreaches []*domain.Outreach, services []*domain.Service, message string) dto.GetAllOutreachesResponse {
@@ -11,8 +12,8 @@ func ToGetAllOutreachesResponse(outreaches []*domain.Outreach, services []*domai
 
 	for _, svc := range services {
 		serviceMap[svc.OutreachID] = append(serviceMap[svc.OutreachID], dto.Service{
-			StartTime: svc.StartTime,
-			EndTime:   svc.EndTime,
+			StartTime: formatTime(svc.StartTime),
+			EndTime:   formatTime(svc.EndTime),
 			Day:       svc.Day,
 		})
 	}
@@ -53,4 +54,8 @@ func ToErrorOutreachesResponse(message string) dto.GetAllOutreachesResponse {
 	return dto.GetAllOutreachesResponse{
 		Message: message,
 	}
+}
+
+func formatTime(t time.Time) string {
+	return t.Format("15:04")
 }
