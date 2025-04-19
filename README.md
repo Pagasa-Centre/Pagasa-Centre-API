@@ -13,7 +13,7 @@ Backend for the Pag-Asa Centre mobile and web app
 
 1. Clone the repository
 2. Go to the IT Team Documentation/Mobile App Development/Environment files on Google Drive & copy the contents of 'Mobile API .env'
-3. Create a new file at the root of this repostiory called '.env'
+3. Create a new file at the root of this repository called '.env'
 4. Paste the copied contents and save.
 5. Open a terminal and run the following commands. Make sure you're in the root of the repository:
 
