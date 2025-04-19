@@ -8,6 +8,7 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	domain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/domain"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/storage"
 )
 
@@ -52,8 +53,8 @@ func (os *service) GetAllOutreaches(ctx context.Context) ([]*domain.Outreach, []
 		services = append(services, outreachServices...)
 	}
 
-	outreaches := domain.OutreachEntitiesToDomain(outreachesEntities)
-	serv := domain.ServiceEntitiesToDomain(services)
+	outreaches := mappers.OutreachEntitiesToDomain(outreachesEntities)
+	serv := mappers.ServiceEntitiesToDomain(services)
 
 	return outreaches, serv, nil
 }

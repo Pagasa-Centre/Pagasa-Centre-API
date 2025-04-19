@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach/dto"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach/dto/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 )
@@ -33,12 +33,12 @@ func (oh *handler) All() http.HandlerFunc {
 		outreaches, services, err := oh.outreachService.GetAllOutreaches(ctx)
 		if err != nil {
 			oh.logger.Sugar().Infow("Failed to get all outreaches", "error", err)
-			render.Json(w, http.StatusInternalServerError, dto.ToErrorOutreachesResponse("Failed to fetch outreaches"))
+			render.Json(w, http.StatusInternalServerError, mappers.ToErrorOutreachesResponse("Failed to fetch outreaches"))
 
 			return
 		}
 
-		resp := dto.ToGetAllOutreachesResponse(outreaches, services, "Successfully fetched outreaches")
+		resp := mappers.ToGetAllOutreachesResponse(outreaches, services, "Successfully fetched outreaches")
 		render.Json(w, http.StatusOK, resp)
 	}
 }
