@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry/dto"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry/dto/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
@@ -38,12 +39,12 @@ func (mh *handler) All() http.HandlerFunc {
 		ministries, err := mh.MinistryService.All(ctx)
 		if err != nil {
 			mh.logger.Sugar().Infow("Failed to get all ministries", "error", err)
-			render.Json(w, http.StatusInternalServerError, dto.ToErrorMinistriesResponse("Failed to fetch ministries"))
+			render.Json(w, http.StatusInternalServerError, mappers.ToErrorMinistriesResponse("Failed to fetch ministries"))
 
 			return
 		}
 
-		resp := dto.ToGetAllMinistriesResponse(ministries, "Successfully fetched ministries")
+		resp := mappers.ToGetAllMinistriesResponse(ministries, "Successfully fetched ministries")
 		render.Json(w, http.StatusOK, resp)
 	}
 }
@@ -56,7 +57,7 @@ func (mh *handler) Apply() http.HandlerFunc {
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
 			mh.logger.Sugar().Errorw("failed to decode and validate ministry application request", "error", err)
 			render.Json(w, http.StatusBadRequest,
-				dto.ToMinistryApplicationResponse(
+				mappers.ToMinistryApplicationResponse(
 					"Please double check your application and try again",
 				),
 			)
@@ -71,7 +72,7 @@ func (mh *handler) Apply() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusUnauthorized,
-				dto.ToMinistryApplicationResponse(
+				mappers.ToMinistryApplicationResponse(
 					"Unauthorized",
 				),
 			)
@@ -85,7 +86,7 @@ func (mh *handler) Apply() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusInternalServerError,
-				dto.ToMinistryApplicationResponse(
+				mappers.ToMinistryApplicationResponse(
 					"Failed to send application",
 				),
 			)
@@ -96,7 +97,7 @@ func (mh *handler) Apply() http.HandlerFunc {
 		render.Json(
 			w,
 			http.StatusOK,
-			dto.ToMinistryApplicationResponse(
+			mappers.ToMinistryApplicationResponse(
 				"Your application was successfully sent.",
 			),
 		)

@@ -3,6 +3,7 @@ package ministry
 import (
 	"context"
 	"fmt"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/mappers"
 
 	"go.uber.org/zap"
 
@@ -62,7 +63,7 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 
 	var ministries []*domain.Ministry
 	for _, entity := range ministryEntities {
-		ministries = append(ministries, domain.ToDomain(entity))
+		ministries = append(ministries, mappers.ToDomain(entity))
 	}
 
 	return ministries, nil
