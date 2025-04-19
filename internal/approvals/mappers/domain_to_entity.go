@@ -10,7 +10,7 @@ import (
 func ToApprovalEntity(approval *domain.Approval) *entity.Approval {
 	return &entity.Approval{
 		RequesterID:   approval.RequesterID,
-		ApproverID:    approval.ApproverID,
+		ApproverID:    null.StringFromPtr(approval.ApproverID),
 		RequestedRole: approval.RequestedRole,
 		Type:          null.StringFrom(approval.Type),
 		Status:        approval.Status,

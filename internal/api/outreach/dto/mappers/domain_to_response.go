@@ -1,9 +1,10 @@
 package mappers
 
 import (
+	"time"
+
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/domain"
-	"time"
 )
 
 func ToGetAllOutreachesResponse(outreaches []*domain.Outreach, services []*domain.Service, message string) dto.GetAllOutreachesResponse {

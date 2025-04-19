@@ -494,6 +494,159 @@ func testMinistriesInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testMinistryToManyMinistryLeaders(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Ministry
+	var b, c MinistryLeader
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, ministryDBTypes, true, ministryColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Ministry struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, ministryLeaderDBTypes, false, ministryLeaderColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, ministryLeaderDBTypes, false, ministryLeaderColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.MinistryID = a.ID
+	c.MinistryID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.MinistryLeaders().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.MinistryID == b.MinistryID {
+			bFound = true
+		}
+		if v.MinistryID == c.MinistryID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := MinistrySlice{&a}
+	if err = a.L.LoadMinistryLeaders(ctx, tx, false, (*[]*Ministry)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.MinistryLeaders); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.MinistryLeaders = nil
+	if err = a.L.LoadMinistryLeaders(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.MinistryLeaders); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testMinistryToManyAddOpMinistryLeaders(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Ministry
+	var b, c, d, e MinistryLeader
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*MinistryLeader{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, ministryLeaderDBTypes, false, strmangle.SetComplement(ministryLeaderPrimaryKeyColumns, ministryLeaderColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*MinistryLeader{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddMinistryLeaders(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.MinistryID {
+			t.Error("foreign key was wrong value", a.ID, first.MinistryID)
+		}
+		if a.ID != second.MinistryID {
+			t.Error("foreign key was wrong value", a.ID, second.MinistryID)
+		}
+
+		if first.R.Ministry != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Ministry != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.MinistryLeaders[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.MinistryLeaders[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.MinistryLeaders().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testMinistryToOneUserUsingLeader(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))

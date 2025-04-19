@@ -14,10 +14,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
+	approvalDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/contracts"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
-	domain2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
+	rolesDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/mappers"
 	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
@@ -37,26 +38,26 @@ type UserService interface {
 }
 
 type userService struct {
-	logger          *zap.Logger
-	userRepo        userStorage.UserRepository
-	jwtSecret       string
-	rolesService    roles.RolesService
-	ministryService contracts.MinistryService
+	logger           *zap.Logger
+	userRepo         userStorage.UserRepository
+	jwtSecret        string
+	ministryService  contracts.MinistryService
+	approvalsService approvals.ApprovalService
 }
 
 func NewUserService(
 	logger *zap.Logger,
 	userRepo userStorage.UserRepository,
 	jwtSecret string,
-	rolesService roles.RolesService,
 	ministryService contracts.MinistryService,
+	approvalsService approvals.ApprovalService,
 ) UserService {
 	return &userService{
-		logger:          logger,
-		userRepo:        userRepo,
-		jwtSecret:       jwtSecret,
-		rolesService:    rolesService,
-		ministryService: ministryService,
+		logger:           logger,
+		userRepo:         userRepo,
+		jwtSecret:        jwtSecret,
+		ministryService:  ministryService,
+		approvalsService: approvalsService,
 	}
 }
 
@@ -132,32 +133,51 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 	}
 
 	if req.IsLeader {
-		err = s.rolesService.AssignRole(ctx, uID, domain2.RoleLeader)
+		leaderApproval := &approvalDomain.Approval{
+			RequesterID:   uID,
+			ApproverID:    nil,
+			RequestedRole: rolesDomain.RoleLeader,
+			Type:          approvalDomain.LeaderStatusConfirmation,
+			Status:        approvalDomain.Pending,
+		}
+
+		err = s.approvalsService.CreateNewApproval(ctx, leaderApproval)
 		if err != nil {
-			return nil, fmt.Errorf("failed to assign leader role: %w", err)
+			return nil, err
 		}
 	}
 
 	if req.IsPrimary {
-		err = s.rolesService.AssignRole(ctx, uID, domain2.RolePrimary)
+		primaryLeaderApproval := &approvalDomain.Approval{
+			RequesterID:   uID,
+			ApproverID:    nil,
+			RequestedRole: rolesDomain.RolePrimary,
+			Type:          approvalDomain.PrimaryStatusConfirmation,
+			Status:        approvalDomain.Pending,
+		}
+
+		err = s.approvalsService.CreateNewApproval(ctx, primaryLeaderApproval)
 		if err != nil {
-			return nil, fmt.Errorf("failed to assign primary role: %w", err)
+			return nil, err
 		}
 	}
 
 	if req.IsPastor {
-		err = s.rolesService.AssignRole(ctx, uID, domain2.RolePastor)
+		pastorApproval := &approvalDomain.Approval{
+			RequesterID:   uID,
+			ApproverID:    nil,
+			RequestedRole: rolesDomain.RolePastor,
+			Type:          approvalDomain.PastorStatusConfirmation,
+			Status:        approvalDomain.Pending,
+		}
+
+		err = s.approvalsService.CreateNewApproval(ctx, pastorApproval)
 		if err != nil {
-			return nil, fmt.Errorf("failed to assign pastor role: %w", err)
+			return nil, err
 		}
 	}
 
 	if req.IsMinistryLeader {
-		err = s.rolesService.AssignRole(ctx, uID, domain2.RoleMinistryLeader)
-		if err != nil {
-			return nil, fmt.Errorf("failed to assign ministry leader role: %w", err)
-		}
-
 		var ministryID string
 		if req.MinistryID != nil {
 			ministryID = *req.MinistryID
@@ -165,9 +185,22 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 			return nil, fmt.Errorf("ministry_id is required for ministry leader role")
 		}
 
-		err = s.ministryService.AssignLeaderToMinistry(ctx, ministryID, uID)
+		ministry, err := s.ministryService.GetByID(ctx, ministryID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to assign leader to ministry: %w", err)
+			return nil, err
+		}
+
+		ministryLeaderApproval := &approvalDomain.Approval{
+			RequesterID:   uID,
+			ApproverID:    nil,
+			RequestedRole: ministry.Name,
+			Type:          approvalDomain.MinistryLeaderStatusConfirmation,
+			Status:        approvalDomain.Pending,
+		}
+
+		err = s.approvalsService.CreateNewApproval(ctx, ministryLeaderApproval)
+		if err != nil {
+			return nil, err
 		}
 	}
 

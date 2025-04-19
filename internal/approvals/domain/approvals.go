@@ -2,7 +2,7 @@ package domain
 
 type Approval struct {
 	RequesterID   string
-	ApproverID    string
+	ApproverID    *string
 	RequestedRole string
 	Type          string
 	Status        string
@@ -15,5 +15,9 @@ const (
 	Rejected = "REJECTED"
 
 	// Approval Types
-	MinistryApplication = "Ministry Application"
+	MinistryApplication              = "Ministry Application"
+	LeaderStatusConfirmation         = "Leader Status Confirmation"
+	PrimaryStatusConfirmation        = "Primary Status Confirmation"
+	PastorStatusConfirmation         = "Pastor Status Confirmation"
+	MinistryLeaderStatusConfirmation = "Ministry Leader Status Confirmation"
 )

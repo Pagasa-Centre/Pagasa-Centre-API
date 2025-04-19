@@ -120,6 +120,7 @@ var UserRels = struct {
 	CellGroups       string
 	LeaderCellGroups string
 	LeaderMinistries string
+	MinistryLeaders  string
 	UserRoles        string
 	CellLeaderUsers  string
 }{
@@ -128,19 +129,21 @@ var UserRels = struct {
 	CellGroups:       "CellGroups",
 	LeaderCellGroups: "LeaderCellGroups",
 	LeaderMinistries: "LeaderMinistries",
+	MinistryLeaders:  "MinistryLeaders",
 	UserRoles:        "UserRoles",
 	CellLeaderUsers:  "CellLeaderUsers",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	CellLeader       *User          `boil:"CellLeader" json:"CellLeader" toml:"CellLeader" yaml:"CellLeader"`
-	Outreach         *Outreach      `boil:"Outreach" json:"Outreach" toml:"Outreach" yaml:"Outreach"`
-	CellGroups       CellGroupSlice `boil:"CellGroups" json:"CellGroups" toml:"CellGroups" yaml:"CellGroups"`
-	LeaderCellGroups CellGroupSlice `boil:"LeaderCellGroups" json:"LeaderCellGroups" toml:"LeaderCellGroups" yaml:"LeaderCellGroups"`
-	LeaderMinistries MinistrySlice  `boil:"LeaderMinistries" json:"LeaderMinistries" toml:"LeaderMinistries" yaml:"LeaderMinistries"`
-	UserRoles        UserRoleSlice  `boil:"UserRoles" json:"UserRoles" toml:"UserRoles" yaml:"UserRoles"`
-	CellLeaderUsers  UserSlice      `boil:"CellLeaderUsers" json:"CellLeaderUsers" toml:"CellLeaderUsers" yaml:"CellLeaderUsers"`
+	CellLeader       *User               `boil:"CellLeader" json:"CellLeader" toml:"CellLeader" yaml:"CellLeader"`
+	Outreach         *Outreach           `boil:"Outreach" json:"Outreach" toml:"Outreach" yaml:"Outreach"`
+	CellGroups       CellGroupSlice      `boil:"CellGroups" json:"CellGroups" toml:"CellGroups" yaml:"CellGroups"`
+	LeaderCellGroups CellGroupSlice      `boil:"LeaderCellGroups" json:"LeaderCellGroups" toml:"LeaderCellGroups" yaml:"LeaderCellGroups"`
+	LeaderMinistries MinistrySlice       `boil:"LeaderMinistries" json:"LeaderMinistries" toml:"LeaderMinistries" yaml:"LeaderMinistries"`
+	MinistryLeaders  MinistryLeaderSlice `boil:"MinistryLeaders" json:"MinistryLeaders" toml:"MinistryLeaders" yaml:"MinistryLeaders"`
+	UserRoles        UserRoleSlice       `boil:"UserRoles" json:"UserRoles" toml:"UserRoles" yaml:"UserRoles"`
+	CellLeaderUsers  UserSlice           `boil:"CellLeaderUsers" json:"CellLeaderUsers" toml:"CellLeaderUsers" yaml:"CellLeaderUsers"`
 }
 
 // NewStruct creates a new relationship struct
@@ -181,6 +184,13 @@ func (r *userR) GetLeaderMinistries() MinistrySlice {
 		return nil
 	}
 	return r.LeaderMinistries
+}
+
+func (r *userR) GetMinistryLeaders() MinistryLeaderSlice {
+	if r == nil {
+		return nil
+	}
+	return r.MinistryLeaders
 }
 
 func (r *userR) GetUserRoles() UserRoleSlice {
@@ -576,6 +586,20 @@ func (o *User) LeaderMinistries(mods ...qm.QueryMod) ministryQuery {
 	)
 
 	return Ministries(queryMods...)
+}
+
+// MinistryLeaders retrieves all the ministry_leader's MinistryLeaders with an executor.
+func (o *User) MinistryLeaders(mods ...qm.QueryMod) ministryLeaderQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"ministry_leaders\".\"user_id\"=?", o.ID),
+	)
+
+	return MinistryLeaders(queryMods...)
 }
 
 // UserRoles retrieves all the user_role's UserRoles with an executor.
@@ -1202,6 +1226,119 @@ func (userL) LoadLeaderMinistries(ctx context.Context, e boil.ContextExecutor, s
 					foreign.R = &ministryR{}
 				}
 				foreign.R.Leader = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadMinistryLeaders allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadMinistryLeaders(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`ministry_leaders`),
+		qm.WhereIn(`ministry_leaders.user_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load ministry_leaders")
+	}
+
+	var resultSlice []*MinistryLeader
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice ministry_leaders")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on ministry_leaders")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for ministry_leaders")
+	}
+
+	if len(ministryLeaderAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.MinistryLeaders = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &ministryLeaderR{}
+			}
+			foreign.R.User = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.UserID {
+				local.R.MinistryLeaders = append(local.R.MinistryLeaders, foreign)
+				if foreign.R == nil {
+					foreign.R = &ministryLeaderR{}
+				}
+				foreign.R.User = local
 				break
 			}
 		}
@@ -1992,6 +2129,59 @@ func (o *User) RemoveLeaderMinistries(ctx context.Context, exec boil.ContextExec
 		}
 	}
 
+	return nil
+}
+
+// AddMinistryLeaders adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.MinistryLeaders.
+// Sets related.R.User appropriately.
+func (o *User) AddMinistryLeaders(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*MinistryLeader) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.UserID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"ministry_leaders\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, ministryLeaderPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.UserID, rel.MinistryID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.UserID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			MinistryLeaders: related,
+		}
+	} else {
+		o.R.MinistryLeaders = append(o.R.MinistryLeaders, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &ministryLeaderR{
+				User: o,
+			}
+		} else {
+			rel.R.User = o
+		}
+	}
 	return nil
 }
 

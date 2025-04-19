@@ -69,7 +69,7 @@ func New(
 					// Protected endpoints: wrap these with auth middleware.
 					r.Group(func(r chi.Router) {
 						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
-						r.Post("/update-details", userHandler.UpdateDetails())
+						r.Put("/update-details", userHandler.UpdateDetails())
 						r.Delete("/", userHandler.Delete())
 						r.Get("/approvals", approvalsHandler.All())
 						r.Post("/approvals/{id}", approvalsHandler.UpdateApprovalStatus())

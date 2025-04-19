@@ -20,6 +20,7 @@ type MinistryService interface {
 	All(ctx context.Context) ([]*domain.Ministry, error)
 	AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error
 	SendApplication(ctx context.Context, userID, ministryID string) error
+	GetByID(ctx context.Context, ministryID string) (*domain.Ministry, error)
 }
 
 type service struct {
@@ -89,27 +90,15 @@ func (ms *service) SendApplication(ctx context.Context, userID, ministryID strin
 
 	var requestedRole string
 
-	switch ministryDetails.Name {
-	case domain2.RoleMediaMinistry:
-		requestedRole = domain2.RoleMediaMinistry
-	case domain2.RoleChildrensMinistry:
-		requestedRole = domain2.RoleChildrensMinistry
-	case domain2.RoleCreativeArtsMinistry:
-		requestedRole = domain2.RoleCreativeArtsMinistry
-	case domain2.RoleMusicMinistry:
-		requestedRole = domain2.RoleMusicMinistry
-	case domain2.RoleProductionMinistry:
-		requestedRole = domain2.RoleProductionMinistry
-	case domain2.RoleUsheringSecurity:
-		requestedRole = domain2.RoleUsheringSecurity
-	default:
-		return fmt.Errorf("unknown ministry %s", ministryDetails.Name)
+	requestedRole, err = ms.GetRequestedRole(ministryDetails.Name)
+	if err != nil {
+		return err
 	}
 
 	// 2. Create New Approval (Type,requester_id, approver_id,status)
 	approval := &approvalDomain.Approval{
 		RequesterID:   userID,
-		ApproverID:    leaderDetails.ID,
+		ApproverID:    &leaderDetails.ID,
 		RequestedRole: requestedRole,
 		Type:          approvalDomain.MinistryApplication,
 		Status:        approvalDomain.Pending,
@@ -140,6 +129,31 @@ func (ms *service) SendApplication(ctx context.Context, userID, ministryID strin
 	}
 
 	return nil
+}
+
+func (ms *service) GetRequestedRole(ministryName string) (string, error) {
+	switch ministryName {
+	case domain2.RoleMediaMinistry,
+		domain2.RoleChildrensMinistry,
+		domain2.RoleCreativeArtsMinistry,
+		domain2.RoleMusicMinistry,
+		domain2.RoleProductionMinistry,
+		domain2.RoleUsheringSecurity:
+		return ministryName, nil
+	default:
+		return "", fmt.Errorf("unknown ministry %s", ministryName)
+	}
+}
+
+func (ms *service) GetByID(ctx context.Context, ministryID string) (*domain.Ministry, error) {
+	ministryEntity, err := ms.ministryRepo.GetMinistryByID(ctx, ministryID)
+	if err != nil {
+		return nil, err
+	}
+
+	ministryDomain := mappers.ToDomain(ministryEntity)
+
+	return ministryDomain, nil
 }
 
 func formatUKPhoneNumber(number string) string {

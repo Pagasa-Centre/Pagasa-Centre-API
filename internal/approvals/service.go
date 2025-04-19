@@ -12,28 +12,28 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/contracts"
 	context2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
 )
 
 type ApprovalService interface {
 	CreateNewApproval(ctx context.Context, Approval *domain.Approval) error
 	GetAllApprovals(ctx context.Context) ([]dto.Approval, error)
-	SetUserService(us user.UserService)
+	SetUserService(us contracts.UserService)
 	UpdateApprovalStatus(ctx context.Context, approvalID, status string) error
 }
 
 type service struct {
 	logger       *zap.Logger
 	approvalRepo storage.ApprovalRepository
-	userService  user.UserService
+	userService  contracts.UserService
 	roleService  roles.RolesService
 }
 
 func NewApprovalService(
 	logger *zap.Logger,
 	approvalRepo storage.ApprovalRepository,
-	userService user.UserService,
+	userService contracts.UserService,
 	roleService roles.RolesService,
 ) ApprovalService {
 	return &service{
@@ -111,7 +111,7 @@ func (s *service) GetAllApprovals(ctx context.Context) ([]dto.Approval, error) {
 	return approvals, nil
 }
 
-func (s *service) SetUserService(us user.UserService) {
+func (s *service) SetUserService(us contracts.UserService) {
 	s.userService = us
 }
 
