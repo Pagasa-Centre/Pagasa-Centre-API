@@ -5,6 +5,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/media/dto/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 )
@@ -25,6 +26,8 @@ func NewMediaHandler(logger *zap.Logger, service media.MediaService) MediaHandle
 	}
 }
 
+const InternalServerErrorMsg = "Internal server error. Please try again later."
+
 func (h *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -32,11 +35,19 @@ func (h *handler) All() http.HandlerFunc {
 		m, err := h.service.All(ctx)
 		if err != nil {
 			h.logger.Sugar().Errorw("Failed to get all medias", "error", err)
-			render.Json(w, http.StatusInternalServerError, err.Error())
+			render.Json(
+				w,
+				http.StatusInternalServerError,
+				mappers.ToGetAllMediaResponse(nil, InternalServerErrorMsg),
+			)
 
 			return
 		}
 
-		render.Json(w, http.StatusOK, map[string]any{"media": m})
+		render.Json(
+			w,
+			http.StatusOK,
+			mappers.ToGetAllMediaResponse(m, "Media fetched successfully"),
+		)
 	}
 }
