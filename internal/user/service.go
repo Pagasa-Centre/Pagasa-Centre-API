@@ -132,78 +132,49 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 		uID = *userID
 	}
 
-	if req.IsLeader {
-		leaderApproval := &approvalDomain.Approval{
+	createApproval := func(requestedRole, approvalType string) error {
+		approval := &approvalDomain.Approval{
 			RequesterID:   uID,
 			ApproverID:    nil,
-			RequestedRole: rolesDomain.RoleLeader,
-			Type:          approvalDomain.LeaderStatusConfirmation,
+			RequestedRole: requestedRole,
+			Type:          approvalType,
 			Status:        approvalDomain.Pending,
 		}
+		return s.approvalsService.CreateNewApproval(ctx, approval)
+	}
 
-		err = s.approvalsService.CreateNewApproval(ctx, leaderApproval)
-		if err != nil {
+	if req.IsLeader {
+		if err = createApproval(rolesDomain.RoleLeader, approvalDomain.LeaderStatusConfirmation); err != nil {
 			return nil, err
 		}
 	}
 
 	if req.IsPrimary {
-		primaryLeaderApproval := &approvalDomain.Approval{
-			RequesterID:   uID,
-			ApproverID:    nil,
-			RequestedRole: rolesDomain.RolePrimary,
-			Type:          approvalDomain.PrimaryStatusConfirmation,
-			Status:        approvalDomain.Pending,
-		}
-
-		err = s.approvalsService.CreateNewApproval(ctx, primaryLeaderApproval)
-		if err != nil {
+		if err = createApproval(rolesDomain.RolePrimary, approvalDomain.PrimaryStatusConfirmation); err != nil {
 			return nil, err
 		}
 	}
 
 	if req.IsPastor {
-		pastorApproval := &approvalDomain.Approval{
-			RequesterID:   uID,
-			ApproverID:    nil,
-			RequestedRole: rolesDomain.RolePastor,
-			Type:          approvalDomain.PastorStatusConfirmation,
-			Status:        approvalDomain.Pending,
-		}
-
-		err = s.approvalsService.CreateNewApproval(ctx, pastorApproval)
-		if err != nil {
+		if err = createApproval(rolesDomain.RolePastor, approvalDomain.PastorStatusConfirmation); err != nil {
 			return nil, err
 		}
 	}
 
 	if req.IsMinistryLeader {
-		var ministryID string
-		if req.MinistryID != nil {
-			ministryID = *req.MinistryID
-		} else {
+		if req.MinistryID == nil {
 			return nil, fmt.Errorf("ministry_id is required for ministry leader role")
 		}
 
-		ministry, err := s.ministryService.GetByID(ctx, ministryID)
+		ministry, err := s.ministryService.GetByID(ctx, *req.MinistryID)
 		if err != nil {
 			return nil, err
 		}
 
-		ministryLeaderApproval := &approvalDomain.Approval{
-			RequesterID:   uID,
-			ApproverID:    nil,
-			RequestedRole: ministry.Name,
-			Type:          approvalDomain.MinistryLeaderStatusConfirmation,
-			Status:        approvalDomain.Pending,
-		}
-
-		err = s.approvalsService.CreateNewApproval(ctx, ministryLeaderApproval)
-		if err != nil {
+		if err := createApproval(ministry.Name, approvalDomain.MinistryLeaderStatusConfirmation); err != nil {
 			return nil, err
 		}
 	}
-
 	u, err := s.GetUserById(ctx, uID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by id: %w", err)
