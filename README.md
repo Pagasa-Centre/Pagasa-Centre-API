@@ -22,4 +22,4 @@ Make deps
 Make start
 ```
 
-Feel free to test the endpoints using Postman. Reach out to Lionel if you have any questions.
+Feel free to test the endpoints using Postman. Reach out to Lionel if you have any questions
