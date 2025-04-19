@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/approvals/dto"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/approvals/dto/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
@@ -42,13 +43,13 @@ func (h *handler) All() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusInternalServerError,
-				dto.ToGetAllApprovalsResponse(
+				mappers.ToGetAllApprovalsResponse(
 					nil,
 					"Failed to get all approvals",
 				))
 		}
 
-		render.Json(w, http.StatusOK, dto.ToGetAllApprovalsResponse(
+		render.Json(w, http.StatusOK, mappers.ToGetAllApprovalsResponse(
 			&a,
 			"Successfully got all approvals",
 		))
@@ -62,7 +63,7 @@ func (h *handler) UpdateApprovalStatus() http.HandlerFunc {
 		approvalID := chi.URLParam(r, "id")
 		if approvalID == "" {
 			render.Json(w, http.StatusBadRequest,
-				dto.ToUpdateApprovalStatusResponse(
+				mappers.ToUpdateApprovalStatusResponse(
 					"id is required",
 				),
 			)
@@ -74,7 +75,7 @@ func (h *handler) UpdateApprovalStatus() http.HandlerFunc {
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
 			h.logger.Sugar().Errorw("failed to decode and validate update approval status body", "error", err)
 			render.Json(w, http.StatusBadRequest,
-				dto.ToUpdateApprovalStatusResponse(
+				mappers.ToUpdateApprovalStatusResponse(
 					"Please select a valid approval status",
 				),
 			)
@@ -86,7 +87,7 @@ func (h *handler) UpdateApprovalStatus() http.HandlerFunc {
 		if err != nil {
 			h.logger.Sugar().Errorw("Failed to update approval status", "error", err)
 			render.Json(w, http.StatusInternalServerError,
-				dto.ToUpdateApprovalStatusResponse(
+				mappers.ToUpdateApprovalStatusResponse(
 					"something went wrong. please try again later",
 				),
 			)
@@ -95,7 +96,7 @@ func (h *handler) UpdateApprovalStatus() http.HandlerFunc {
 		}
 
 		render.Json(w, http.StatusOK,
-			dto.ToUpdateApprovalStatusResponse(
+			mappers.ToUpdateApprovalStatusResponse(
 				"Successfully updated approval status",
 			),
 		)

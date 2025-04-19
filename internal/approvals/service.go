@@ -9,6 +9,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/approvals/dto"
 	dto2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
@@ -46,7 +47,7 @@ func NewApprovalService(
 func (s *service) CreateNewApproval(ctx context.Context, approval *domain.Approval) error {
 	s.logger.Info("Creating new approval")
 
-	entity := domain.ToApprovalEntity(approval)
+	entity := mappers.ToApprovalEntity(approval)
 
 	err := s.approvalRepo.Insert(ctx, entity)
 	if err != nil {

@@ -20,16 +20,3 @@ type GetAllApprovalsResponse struct {
 	Approvals *[]Approval `json:"approvals"`
 	Message   string      `json:"message"`
 }
-
-func ToGetAllApprovalsResponse(approvals *[]Approval, message string) *GetAllApprovalsResponse {
-	return &GetAllApprovalsResponse{
-		Approvals: approvals,
-		Message:   message,
-	}
-}
-
-func ToUpdateApprovalStatusResponse(message string) *UpdateApprovalStatusResponse {
-	return &UpdateApprovalStatusResponse{
-		Message: message,
-	}
-}
