@@ -6,8 +6,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/events/dto"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/events/dto/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
 )
@@ -44,7 +44,7 @@ func (h *handler) All() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusInternalServerError,
-				dto.ToGetAllEventsResponse(nil, InternalServerErrorMsg),
+				mappers.ToGetAllEventsResponse(nil, InternalServerErrorMsg),
 			)
 
 			return
@@ -53,7 +53,7 @@ func (h *handler) All() http.HandlerFunc {
 		render.Json(
 			w,
 			http.StatusOK,
-			dto.ToGetAllEventsResponse(*e, "Successfully fetched events."),
+			mappers.ToGetAllEventsResponse(*e, "Successfully fetched events."),
 		)
 	}
 }
@@ -66,7 +66,7 @@ func (h *handler) Create() http.HandlerFunc {
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
 			h.logger.Sugar().Errorw("failed to decode and validate create event request", "error", err)
 			render.Json(w, http.StatusBadRequest,
-				dto.ToCreateEventResponse(
+				mappers.ToCreateEventResponse(
 					"Please double check your event and try again",
 				),
 			)
@@ -80,7 +80,7 @@ func (h *handler) Create() http.HandlerFunc {
 		if err != nil {
 			h.logger.Sugar().Errorw("failed to create event", "error", err)
 			render.Json(w, http.StatusInternalServerError,
-				dto.ToCreateEventResponse(
+				mappers.ToCreateEventResponse(
 					InternalServerErrorMsg,
 				),
 			)
@@ -91,7 +91,7 @@ func (h *handler) Create() http.HandlerFunc {
 		render.Json(
 			w,
 			http.StatusCreated,
-			dto.ToCreateEventResponse(
+			mappers.ToCreateEventResponse(
 				"Event successfully created",
 			))
 	}

@@ -2,8 +2,6 @@ package dto
 
 import (
 	"time"
-
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events/domain"
 )
 
 type EventDay struct {
@@ -28,43 +26,6 @@ type GetAllEventsResponse struct {
 	Events  *[]Event `json:"events"`
 }
 
-func ToGetAllEventsResponse(events []domain.Events, message string) GetAllEventsResponse {
-	var dtoEvents []Event
-
-	for _, e := range events {
-		var dtoDays []EventDay
-		for _, d := range e.Days {
-			dtoDays = append(dtoDays, EventDay{
-				Date:               d.Date,
-				StartTime:          d.StartTime,
-				EndTime:            d.EndTime,
-				Weekday:            d.WeekDay,
-				WeekDayShortFormat: d.WeekDayShortFormat,
-			})
-		}
-
-		dtoEvents = append(dtoEvents, Event{
-			Title:                 e.Title,
-			Description:           e.Description,
-			AdditionalInformation: e.AdditionalInformation,
-			Location:              e.Location,
-			RegistrationLink:      e.RegistrationLink,
-			Days:                  dtoDays,
-		})
-	}
-
-	return GetAllEventsResponse{
-		Message: message,
-		Events:  &dtoEvents,
-	}
-}
-
 type CreateEventsResponse struct {
 	Message string `json:"message"`
-}
-
-func ToCreateEventResponse(message string) CreateEventsResponse {
-	return CreateEventsResponse{
-		Message: message,
-	}
 }
