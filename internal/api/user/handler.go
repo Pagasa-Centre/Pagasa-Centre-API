@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
@@ -56,7 +57,7 @@ func (h *handler) Register() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusBadRequest,
-				dto.ToRegisterResponse(
+				mappers.ToRegisterResponse(
 					nil,
 					nil,
 					InvalidInputMsg,
@@ -70,7 +71,7 @@ func (h *handler) Register() http.HandlerFunc {
 			h.logger.Sugar().Errorw("failed to map register request to user domain",
 				"context", ctx, "error", err)
 			render.Json(w, http.StatusBadRequest,
-				dto.ToRegisterResponse(
+				mappers.ToRegisterResponse(
 					nil,
 					nil,
 					InvalidInputMsg,
@@ -87,7 +88,7 @@ func (h *handler) Register() http.HandlerFunc {
 			statusCode, errMsg := mapErrorsToStatusCodeAndUserFriendlyMessages(err)
 
 			render.Json(w, statusCode,
-				dto.ToRegisterResponse(
+				mappers.ToRegisterResponse(
 					nil,
 					nil,
 					errMsg,
@@ -102,7 +103,7 @@ func (h *handler) Register() http.HandlerFunc {
 		if err != nil {
 			h.logger.Sugar().Errorw("failed to generate token", "error", err)
 			render.Json(w, http.StatusInternalServerError,
-				dto.ToRegisterResponse(
+				mappers.ToRegisterResponse(
 					nil,
 					nil,
 					InternalServerErrorMsg,
@@ -112,7 +113,7 @@ func (h *handler) Register() http.HandlerFunc {
 			return
 		}
 
-		resp := dto.ToRegisterResponse(userEntity, &token, "Registration successful")
+		resp := mappers.ToRegisterResponse(userEntity, &token, "Registration successful")
 
 		render.Json(w, http.StatusCreated, resp)
 	}
@@ -126,7 +127,7 @@ func (h *handler) Login() http.HandlerFunc {
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
 			h.logger.Sugar().Errorw("failed to decode and validate login request body", "error", err)
 			render.Json(w, http.StatusBadRequest,
-				dto.ToRegisterResponse(
+				mappers.ToRegisterResponse(
 					nil,
 					nil,
 					InvalidCredentialsMsg,
@@ -143,13 +144,13 @@ func (h *handler) Login() http.HandlerFunc {
 			statusCode, errMsg := mapErrorsToStatusCodeAndUserFriendlyMessages(err)
 
 			render.Json(w, statusCode,
-				dto.ToRegisterResponse(nil, nil, errMsg),
+				mappers.ToRegisterResponse(nil, nil, errMsg),
 			)
 
 			return
 		}
 
-		resp := dto.ToLoginResponse(authResult.User, authResult.Token, "Successfully logged in")
+		resp := mappers.ToLoginResponse(authResult.User, authResult.Token, "Successfully logged in")
 
 		render.Json(w, http.StatusOK, resp)
 	}
@@ -165,7 +166,7 @@ func (h *handler) UpdateDetails() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusBadRequest,
-				dto.ToUpdateUserDetailsResponse(
+				mappers.ToUpdateUserDetailsResponse(
 					nil,
 					InvalidInputMsg,
 				),
@@ -181,7 +182,7 @@ func (h *handler) UpdateDetails() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusInternalServerError,
-				dto.ToUpdateUserDetailsResponse(
+				mappers.ToUpdateUserDetailsResponse(
 					nil,
 					"failed to update user details",
 				))
@@ -189,7 +190,7 @@ func (h *handler) UpdateDetails() http.HandlerFunc {
 			return
 		}
 
-		resp := dto.ToUpdateUserDetailsResponse(updatedUserDetails, "Successfully updated user details")
+		resp := mappers.ToUpdateUserDetailsResponse(updatedUserDetails, "Successfully updated user details")
 
 		render.Json(w, http.StatusOK, resp)
 	}
@@ -205,7 +206,7 @@ func (h *handler) Delete() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusUnauthorized,
-				dto.ToDeleteUserResponse("unauthorized"))
+				mappers.ToDeleteUserResponse("unauthorized"))
 
 			return
 		}
@@ -216,14 +217,14 @@ func (h *handler) Delete() http.HandlerFunc {
 			render.Json(
 				w,
 				http.StatusInternalServerError,
-				dto.ToDeleteUserResponse("failed to delete user"),
+				mappers.ToDeleteUserResponse("failed to delete user"),
 			)
 
 			return
 		}
 
 		// Return a success response.
-		render.Json(w, http.StatusOK, dto.ToDeleteUserResponse("user deleted successfully"))
+		render.Json(w, http.StatusOK, mappers.ToDeleteUserResponse("user deleted successfully"))
 	}
 }
 

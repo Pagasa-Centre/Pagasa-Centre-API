@@ -1,9 +1,10 @@
 package mappers
 
 import (
+	"time"
+
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/domain"
-	"time"
 )
 
 func ToDomain(ministry *entity.Ministry) *domain.Ministry {

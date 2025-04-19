@@ -3,7 +3,6 @@ package ministry
 import (
 	"context"
 	"fmt"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/mappers"
 
 	"go.uber.org/zap"
 
@@ -11,6 +10,7 @@ import (
 	approvalDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/domain"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
 	domain2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
 	usercontracts "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/contracts"
