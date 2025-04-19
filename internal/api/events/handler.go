@@ -7,11 +7,14 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/events/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
 )
 
 type EventHandler interface {
 	All() http.HandlerFunc
+	Create() http.HandlerFunc
 }
 
 type handler struct {
@@ -32,7 +35,7 @@ func NewEventsHandler(
 const InternalServerErrorMsg = "Internal server error. Please try again later."
 
 func (h *handler) All() http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		e, err := h.eventsService.GetAll(ctx)
@@ -43,6 +46,8 @@ func (h *handler) All() http.HandlerFunc {
 				http.StatusInternalServerError,
 				dto.ToGetAllEventsResponse(nil, InternalServerErrorMsg),
 			)
+
+			return
 		}
 
 		render.Json(
@@ -50,5 +55,44 @@ func (h *handler) All() http.HandlerFunc {
 			http.StatusOK,
 			dto.ToGetAllEventsResponse(*e, "Successfully fetched events."),
 		)
-	})
+	}
+}
+
+func (h *handler) Create() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		var req dto.CreateEventRequest
+		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
+			h.logger.Sugar().Errorw("failed to decode and validate create event request", "error", err)
+			render.Json(w, http.StatusBadRequest,
+				dto.ToCreateEventResponse(
+					"Please double check your event and try again",
+				),
+			)
+
+			return
+		}
+
+		eventDomain := mappers.CreateEventRequestToDomain(req)
+
+		err := h.eventsService.Create(ctx, eventDomain)
+		if err != nil {
+			h.logger.Sugar().Errorw("failed to create event", "error", err)
+			render.Json(w, http.StatusInternalServerError,
+				dto.ToCreateEventResponse(
+					InternalServerErrorMsg,
+				),
+			)
+
+			return
+		}
+
+		render.Json(
+			w,
+			http.StatusCreated,
+			dto.ToCreateEventResponse(
+				"Event successfully created",
+			))
+	}
 }

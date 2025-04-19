@@ -7,9 +7,11 @@ import (
 )
 
 type EventDay struct {
-	Date      string    `json:"date"`
-	StartTime time.Time `json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
+	Date               string    `json:"date"`
+	StartTime          time.Time `json:"start_time"`
+	EndTime            time.Time `json:"end_time"`
+	Weekday            string    `json:"weekday"`
+	WeekDayShortFormat string    `json:"week_day_short_format"`
 }
 
 type Event struct {
@@ -33,9 +35,11 @@ func ToGetAllEventsResponse(events []domain.Events, message string) GetAllEvents
 		var dtoDays []EventDay
 		for _, d := range e.Days {
 			dtoDays = append(dtoDays, EventDay{
-				Date:      d.Date,
-				StartTime: d.StartTime,
-				EndTime:   d.EndTime,
+				Date:               d.Date,
+				StartTime:          d.StartTime,
+				EndTime:            d.EndTime,
+				Weekday:            d.WeekDay,
+				WeekDayShortFormat: d.WeekDayShortFormat,
 			})
 		}
 
@@ -52,5 +56,15 @@ func ToGetAllEventsResponse(events []domain.Events, message string) GetAllEvents
 	return GetAllEventsResponse{
 		Message: message,
 		Events:  &dtoEvents,
+	}
+}
+
+type CreateEventsResponse struct {
+	Message string `json:"message"`
+}
+
+func ToCreateEventResponse(message string) CreateEventsResponse {
+	return CreateEventsResponse{
+		Message: message,
 	}
 }

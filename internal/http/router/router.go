@@ -89,17 +89,18 @@ func New(
 			r.Route(
 				"/outreach", func(r chi.Router) {
 					r.Get("/", outreachHandler.All())
-
-					r.Route(
-						"/events", func(r chi.Router) {
-							r.Get("/", eventsHandler.All())
-						},
-					)
 				},
 			)
 			r.Route(
 				"/media", func(r chi.Router) {
 					r.Get("/", mediaHandler.All())
+				},
+			)
+
+			r.Route(
+				"/events", func(r chi.Router) {
+					r.Get("/", eventsHandler.All())
+					r.Post("/", eventsHandler.Create())
 				},
 			)
 		},
