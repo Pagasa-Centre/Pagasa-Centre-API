@@ -17,6 +17,6 @@ type UpdateApprovalStatusResponse struct {
 }
 
 type GetAllApprovalsResponse struct {
-	Approvals *[]Approval `json:"approvals"`
-	Message   string      `json:"message"`
+	Approvals []Approval `json:"approvals,omitempty"`
+	Message   string     `json:"message"`
 }

@@ -18,6 +18,7 @@ func ToRegisterResponse(registerResult *user.RegisterResult, message string) *dt
 			Message: message,
 		}
 	}
+
 	return &dto.RegisterResponse{
 		Token: &registerResult.Token,
 		User: &dto.UserDetails{
@@ -40,6 +41,7 @@ func ToLoginResponse(loginResult *user.AuthResult, message string) *dto.LoginRes
 			Message: message,
 		}
 	}
+
 	return &dto.LoginResponse{
 		Token: &loginResult.Token,
 		User: &dto.UserDetails{
@@ -62,6 +64,7 @@ func ToUpdateUserDetailsResponse(user *domain.User, message string) *dto.UpdateU
 			Message: message,
 		}
 	}
+
 	return &dto.UpdateUserDetailsResponse{
 		Message: message,
 		User: &dto.UserDetails{

@@ -7,20 +7,19 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/approvals/dto"
-	dto2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/contracts"
+	userDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	context2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
 )
 
 type ApprovalService interface {
 	CreateNewApproval(ctx context.Context, Approval *domain.Approval) error
-	GetAll(ctx context.Context) ([]dto.Approval, error)
+	GetAll(ctx context.Context) (*GetAllResult, error)
 	SetUserService(us contracts.UserService)
 	UpdateApprovalStatus(ctx context.Context, approvalID, status string) error
 }
@@ -46,12 +45,19 @@ func NewApprovalService(
 	}
 }
 
+type (
+	GetAllResult struct {
+		Approvals []*domain.Approval
+		Users     []*userDomain.User
+	}
+)
+
 func (s *service) CreateNewApproval(ctx context.Context, approval *domain.Approval) error {
 	s.logger.Info("Creating new approval")
 
-	entity := mappers.ToApprovalEntity(approval)
+	approvalEntity := mappers.ToApprovalEntity(approval)
 
-	err := s.approvalRepo.Insert(ctx, entity)
+	err := s.approvalRepo.Insert(ctx, approvalEntity)
 	if err != nil {
 		return err
 	}
@@ -59,7 +65,7 @@ func (s *service) CreateNewApproval(ctx context.Context, approval *domain.Approv
 	return nil
 }
 
-func (s *service) GetAll(ctx context.Context) ([]dto.Approval, error) {
+func (s *service) GetAll(ctx context.Context) (*GetAllResult, error) {
 	// Get the user ID from the context
 	userID, err := context2.GetUserIDString(ctx)
 	if err != nil {
@@ -92,8 +98,10 @@ func (s *service) GetAll(ctx context.Context) ([]dto.Approval, error) {
 		}
 	}
 
-	// 2. For each Approval, get userDetails and add to response
-	var approvals []dto.Approval
+	approvalsDomain := mappers.EntityToDomainApprovals(approvalsSlice)
+
+	// 2.Get All the details of the requester on each approval
+	var users []*userDomain.User
 
 	for _, apr := range approvalsSlice {
 		u, err := s.userService.GetUserById(ctx, apr.RequesterID)
@@ -101,27 +109,15 @@ func (s *service) GetAll(ctx context.Context) ([]dto.Approval, error) {
 			return nil, fmt.Errorf("user does not exist or has been deleted: %w", err)
 		}
 
-		var approvalType string
-		if apr.Type.Valid {
-			approvalType = apr.Type.String
-		}
-
-		approval := dto.Approval{
-			ID:            apr.ID,
-			RequestedRole: apr.RequestedRole,
-			Type:          approvalType,
-			Status:        apr.Status,
-			RequesterDetails: dto2.UserDetails{
-				FirstName:   u.FirstName,
-				LastName:    u.LastName,
-				Email:       u.Email,
-				PhoneNumber: u.PhoneNumber,
-			},
-		}
-		approvals = append(approvals, approval)
+		users = append(users, u)
 	}
 
-	return approvals, nil
+	result := &GetAllResult{
+		Approvals: approvalsDomain,
+		Users:     users,
+	}
+
+	return result, nil
 }
 
 func (s *service) SetUserService(us contracts.UserService) {

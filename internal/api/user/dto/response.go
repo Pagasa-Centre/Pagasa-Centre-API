@@ -13,7 +13,7 @@ type UserDetails struct {
 	PhoneNumber  string   `json:"phone_number,omitempty"`
 	CellLeaderID *string  `json:"cell_leader_id,omitempty"`
 	OutreachID   string   `json:"outreach_id,omitempty"`
-	Roles        []string `json:"roles"`
+	Roles        []string `json:"roles,omitempty"`
 }
 
 type RegisterResponse struct {

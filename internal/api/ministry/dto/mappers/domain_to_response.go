@@ -11,6 +11,7 @@ func ToGetAllMinistriesResponse(ministries []*domain.Ministry, message string) d
 			Message: message,
 		}
 	}
+
 	var ministriesResp dto.GetAllMinistriesResponse
 
 	for _, ministry := range ministries {

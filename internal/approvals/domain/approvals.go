@@ -1,6 +1,7 @@
 package domain
 
 type Approval struct {
+	ID            string
 	RequesterID   string
 	ApproverID    *string
 	RequestedRole string

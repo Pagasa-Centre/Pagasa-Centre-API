@@ -1,10 +1,10 @@
 package mappers
 
 import (
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 	"time"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach/dto"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/domain"
 )
 
@@ -46,6 +46,7 @@ func toResponse(outreach *domain.Outreach) *dto.Outreach {
 	if outreach == nil {
 		return nil
 	}
+
 	return &dto.Outreach{
 		ID:           outreach.ID,
 		Name:         outreach.Name,
