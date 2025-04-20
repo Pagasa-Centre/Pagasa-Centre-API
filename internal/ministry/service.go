@@ -109,15 +109,7 @@ func (ms *service) SendApplication(ctx context.Context, userID, ministryID strin
 		return err
 	}
 
-	var leaderPhoneNumber string
-	if leaderDetails.Phone.Valid {
-		leaderPhoneNumber = formatUKPhoneNumber(leaderDetails.Phone.String)
-	} else {
-		return fmt.Errorf(
-			"leader(%s) does not have a valid phone number",
-			leaderDetails.ID,
-		)
-	}
+	leaderPhoneNumber := formatUKPhoneNumber(leaderDetails.PhoneNumber)
 
 	// 4. Construct and send Message to notify ministry leader that an application has been made
 	messageText := "You have received a new application for one of your ministries. Login to the website or mobile app for more details."

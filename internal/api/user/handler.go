@@ -9,7 +9,6 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user/dto/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
@@ -59,20 +58,18 @@ func (h *handler) Register() http.HandlerFunc {
 				http.StatusBadRequest,
 				mappers.ToRegisterResponse(
 					nil,
-					nil,
 					InvalidInputMsg,
 				))
 
 			return
 		}
 
-		userDomain, err := domain.RegisterRequestToUserDomain(req)
+		userDomain, err := mappers.RegisterRequestToUserDomain(req)
 		if err != nil {
 			h.logger.Sugar().Errorw("failed to map register request to user domain",
 				"context", ctx, "error", err)
 			render.Json(w, http.StatusBadRequest,
 				mappers.ToRegisterResponse(
-					nil,
 					nil,
 					InvalidInputMsg,
 				),
@@ -81,7 +78,7 @@ func (h *handler) Register() http.HandlerFunc {
 			return
 		}
 
-		userEntity, err := h.userService.RegisterNewUser(ctx, userDomain, req)
+		registerResult, err := h.userService.RegisterNewUser(ctx, userDomain, req)
 		if err != nil {
 			h.logger.Sugar().Errorw("Error registering new user", "error", err)
 
@@ -90,7 +87,6 @@ func (h *handler) Register() http.HandlerFunc {
 			render.Json(w, statusCode,
 				mappers.ToRegisterResponse(
 					nil,
-					nil,
 					errMsg,
 				),
 			)
@@ -98,22 +94,7 @@ func (h *handler) Register() http.HandlerFunc {
 			return
 		}
 
-		// Generate an authentication token (e.g., JWT)
-		token, err := h.userService.GenerateToken(userEntity)
-		if err != nil {
-			h.logger.Sugar().Errorw("failed to generate token", "error", err)
-			render.Json(w, http.StatusInternalServerError,
-				mappers.ToRegisterResponse(
-					nil,
-					nil,
-					InternalServerErrorMsg,
-				),
-			)
-
-			return
-		}
-
-		resp := mappers.ToRegisterResponse(userEntity, &token, "Registration successful")
+		resp := mappers.ToRegisterResponse(registerResult, "Registration successful")
 
 		render.Json(w, http.StatusCreated, resp)
 	}
@@ -127,8 +108,7 @@ func (h *handler) Login() http.HandlerFunc {
 		if err := request.DecodeAndValidate(r.Body, &req); err != nil {
 			h.logger.Sugar().Errorw("failed to decode and validate login request body", "error", err)
 			render.Json(w, http.StatusBadRequest,
-				mappers.ToRegisterResponse(
-					nil,
+				mappers.ToLoginResponse(
 					nil,
 					InvalidCredentialsMsg,
 				),
@@ -144,13 +124,13 @@ func (h *handler) Login() http.HandlerFunc {
 			statusCode, errMsg := mapErrorsToStatusCodeAndUserFriendlyMessages(err)
 
 			render.Json(w, statusCode,
-				mappers.ToRegisterResponse(nil, nil, errMsg),
+				mappers.ToLoginResponse(nil, errMsg),
 			)
 
 			return
 		}
 
-		resp := mappers.ToLoginResponse(authResult.User, authResult.Token, "Successfully logged in")
+		resp := mappers.ToLoginResponse(authResult, "Successfully logged in")
 
 		render.Json(w, http.StatusOK, resp)
 	}

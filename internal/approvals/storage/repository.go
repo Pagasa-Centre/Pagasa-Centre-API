@@ -7,12 +7,14 @@ import (
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 )
 
 type ApprovalRepository interface {
 	Insert(ctx context.Context, approval *entity.Approval) error
-	GetAll(ctx context.Context, userID string) (entity.ApprovalSlice, error)
+	GetAllPendingApprovalsByUserID(ctx context.Context, userID string) (entity.ApprovalSlice, error)
+	GetAllPendingApprovals(ctx context.Context) (entity.ApprovalSlice, error)
 	GetApprovalByID(ctx context.Context, approvalID string) (*entity.Approval, error)
 	Update(ctx context.Context, approval *entity.Approval) error
 }
@@ -34,8 +36,11 @@ func (r *repository) Insert(ctx context.Context, approval *entity.Approval) erro
 	return nil
 }
 
-func (r *repository) GetAll(ctx context.Context, userID string) (entity.ApprovalSlice, error) {
-	approvals, err := entity.Approvals(entity.ApprovalWhere.ApproverID.EQ(null.StringFrom(userID))).All(ctx, r.db)
+func (r *repository) GetAllPendingApprovalsByUserID(ctx context.Context, userID string) (entity.ApprovalSlice, error) {
+	approvals, err := entity.Approvals(
+		entity.ApprovalWhere.ApproverID.EQ(null.StringFrom(userID)),
+		entity.ApprovalWhere.Status.EQ(domain.Pending),
+	).All(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
@@ -59,4 +64,15 @@ func (r *repository) Update(ctx context.Context, approval *entity.Approval) erro
 	}
 
 	return nil
+}
+
+func (r *repository) GetAllPendingApprovals(ctx context.Context) (entity.ApprovalSlice, error) {
+	approvals, err := entity.Approvals(
+		entity.ApprovalWhere.Status.EQ(domain.Pending),
+	).All(ctx, r.db)
+	if err != nil {
+		return nil, err
+	}
+
+	return approvals, nil
 }

@@ -18,6 +18,7 @@ import (
 	approvalDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/contracts"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	rolesDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/mappers"
@@ -26,13 +27,13 @@ import (
 )
 
 type UserService interface {
-	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
-	RegisterNewUser(ctx context.Context, user *domain.User, req dto.RegisterRequest) (*entity.User, error)
-	GenerateToken(user *entity.User) (string, error)
-	UpdateUserDetails(ctx context.Context, req dto.UpdateDetailsRequest) (*entity.User, error)
-	GetUserById(ctx context.Context, id string) (*entity.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
+	RegisterNewUser(ctx context.Context, user *domain.User, req dto.RegisterRequest) (*RegisterResult, error)
+	GenerateToken(user *domain.User) (string, error)
+	UpdateUserDetails(ctx context.Context, req dto.UpdateDetailsRequest) (*domain.User, error)
+	GetUserById(ctx context.Context, id string) (*domain.User, error)
 	DeleteUser(ctx context.Context, id string) error
-	AuthenticateUser(ctx context.Context, email, password string) (*entity.User, error)
+	AuthenticateUser(ctx context.Context, email, password string) (*domain.User, error)
 	AuthenticateAndGenerateToken(ctx context.Context, email, password string) (*AuthResult, error)
 	SetMinistryService(ms contracts.MinistryService)
 }
@@ -43,6 +44,7 @@ type userService struct {
 	jwtSecret        string
 	ministryService  contracts.MinistryService
 	approvalsService approvals.ApprovalService
+	rolesService     roles.RolesService
 }
 
 func NewUserService(
@@ -51,6 +53,7 @@ func NewUserService(
 	jwtSecret string,
 	ministryService contracts.MinistryService,
 	approvalsService approvals.ApprovalService,
+	rolesService roles.RolesService,
 ) UserService {
 	return &userService{
 		logger:           logger,
@@ -58,13 +61,23 @@ func NewUserService(
 		jwtSecret:        jwtSecret,
 		ministryService:  ministryService,
 		approvalsService: approvalsService,
+		rolesService:     rolesService,
 	}
 }
 
-type AuthResult struct {
-	User  *entity.User
-	Token string
-}
+type (
+	AuthResult struct {
+		User  *domain.User
+		Token string
+		Roles []string
+	}
+
+	RegisterResult struct {
+		User  *domain.User
+		Token string
+		Roles []string
+	}
+)
 
 var (
 	ErrEmailAlreadyExists  = errors.New("email already exists")
@@ -86,15 +99,21 @@ func (s *userService) AuthenticateAndGenerateToken(ctx context.Context, email, p
 		return nil, fmt.Errorf("failed to generate token")
 	}
 
+	userRoles, err := s.rolesService.GetUserRoles(ctx, user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user roles")
+	}
+
 	return &AuthResult{
 		User:  user,
 		Token: token,
+		Roles: userRoles,
 	}, nil
 }
 
 // AuthenticateUser checks credentials and returns the user if valid, otherwise an error.
-func (s *userService) AuthenticateUser(ctx context.Context, email, password string) (*entity.User, error) {
-	user, err := s.GetUserByEmail(ctx, email)
+func (s *userService) AuthenticateUser(ctx context.Context, email, password string) (*domain.User, error) {
+	user, err := s.userRepo.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, errors.New("invalid credentials")
 	}
@@ -104,11 +123,13 @@ func (s *userService) AuthenticateUser(ctx context.Context, email, password stri
 		return nil, errors.New("invalid credentials")
 	}
 
-	return user, nil
+	userDomain := mappers.UserEntityToUserDomain(user)
+
+	return userDomain, nil
 }
 
 // RegisterNewUser inserts a new user into the user table and applies any roles that were provided by the user.
-func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, req dto.RegisterRequest) (*entity.User, error) {
+func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, req dto.RegisterRequest) (*RegisterResult, error) {
 	s.logger.Info("Registering new user")
 
 	user.PhoneNumber = NormalizePhoneNumber(user.PhoneNumber)
@@ -140,6 +161,7 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 			Type:          approvalType,
 			Status:        approvalDomain.Pending,
 		}
+
 		return s.approvalsService.CreateNewApproval(ctx, approval)
 	}
 
@@ -171,20 +193,37 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 			return nil, err
 		}
 
-		if err := createApproval(ministry.Name, approvalDomain.MinistryLeaderStatusConfirmation); err != nil {
+		if err = createApproval(ministry.Name, approvalDomain.MinistryLeaderStatusConfirmation); err != nil {
 			return nil, err
 		}
 	}
-	u, err := s.GetUserById(ctx, uID)
+
+	u, err := s.userRepo.GetUserById(ctx, uID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by id: %w", err)
 	}
 
-	return u, nil
+	userDomain := mappers.UserEntityToUserDomain(u)
+
+	token, err := s.GenerateToken(userDomain)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token")
+	}
+
+	UserRoles, err := s.rolesService.GetUserRoles(ctx, u.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user roles")
+	}
+
+	return &RegisterResult{
+		User:  userDomain,
+		Token: token,
+		Roles: UserRoles,
+	}, nil
 }
 
 // GetUserByEmail retrieves a user by their email.
-func (s *userService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (s *userService) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	s.logger.Info("Getting user by email")
 
 	user, err := s.userRepo.GetUserByEmail(ctx, email)
@@ -192,11 +231,13 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (*entity
 		return nil, err
 	}
 
-	return user, nil
+	userDomain := mappers.UserEntityToUserDomain(user)
+
+	return userDomain, nil
 }
 
 // GenerateToken generates a JWT for the authenticated user.
-func (s *userService) GenerateToken(user *entity.User) (string, error) {
+func (s *userService) GenerateToken(user *domain.User) (string, error) {
 	s.logger.Info("Generating token")
 	// Define claims; you can add custom claims as needed.
 	claims := jwt.MapClaims{
@@ -214,7 +255,7 @@ func (s *userService) GenerateToken(user *entity.User) (string, error) {
 	return signedToken, nil
 }
 
-func (s *userService) GetUserById(ctx context.Context, id string) (*entity.User, error) {
+func (s *userService) GetUserById(ctx context.Context, id string) (*domain.User, error) {
 	s.logger.Info("Getting user by id")
 
 	user, err := s.userRepo.GetUserById(ctx, id)
@@ -222,11 +263,13 @@ func (s *userService) GetUserById(ctx context.Context, id string) (*entity.User,
 		return nil, err
 	}
 
-	return user, nil
+	userDomain := mappers.UserEntityToUserDomain(user)
+
+	return userDomain, nil
 }
 
 // UpdateUserDetails updates a user in the database.
-func (s *userService) UpdateUserDetails(ctx context.Context, req dto.UpdateDetailsRequest) (*entity.User, error) {
+func (s *userService) UpdateUserDetails(ctx context.Context, req dto.UpdateDetailsRequest) (*domain.User, error) {
 	s.logger.Info("Updating user details")
 
 	// Get the user ID from the context
@@ -236,7 +279,7 @@ func (s *userService) UpdateUserDetails(ctx context.Context, req dto.UpdateDetai
 	}
 
 	// Retrieve the current user from the database.
-	currentUser, err := s.GetUserById(ctx, userID)
+	currentUser, err := s.userRepo.GetUserById(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by id: %w", err)
 	}
@@ -249,7 +292,9 @@ func (s *userService) UpdateUserDetails(ctx context.Context, req dto.UpdateDetai
 		return nil, err
 	}
 
-	return user, nil
+	userDomain := mappers.UserEntityToUserDomain(user)
+
+	return userDomain, nil
 }
 
 // DeleteUser deletes a user by their ID.

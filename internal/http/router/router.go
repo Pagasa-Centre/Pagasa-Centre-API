@@ -71,7 +71,7 @@ func New(
 						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
 						r.Put("/update-details", userHandler.UpdateDetails())
 						r.Delete("/", userHandler.Delete())
-						r.Get("/approvals", approvalsHandler.All())
+						r.Get("/approvals/pending", approvalsHandler.All())
 						r.Post("/approvals/{id}", approvalsHandler.UpdateApprovalStatus())
 					})
 				},

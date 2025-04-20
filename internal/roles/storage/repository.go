@@ -12,6 +12,7 @@ import (
 
 type RolesRepository interface {
 	AssignRole(ctx context.Context, userID, role string) error
+	GetUserRoles(ctx context.Context, userID string) ([]string, error)
 }
 
 type repository struct {
@@ -55,4 +56,29 @@ func (r *repository) assignRole(ctx context.Context, userID, roleID string) erro
 	}
 
 	return nil
+}
+
+// GetUserRoles retrieves all role names assigned to the given user ID.
+func (r *repository) GetUserRoles(ctx context.Context, userID string) ([]string, error) {
+	userRoles, err := entity.UserRoles(
+		entity.UserRoleWhere.UserID.EQ(userID),
+	).All(ctx, r.db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get roles for user %s: %w", userID, err)
+	}
+
+	var roles []string
+
+	for _, ur := range userRoles {
+		role, err := entity.Roles(
+			entity.RoleWhere.ID.EQ(ur.RoleID),
+		).One(ctx, r.db)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find role %s: %w", ur.RoleID, err)
+		}
+
+		roles = append(roles, role.RoleName)
+	}
+
+	return roles, nil
 }

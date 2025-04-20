@@ -11,6 +11,7 @@ import (
 
 type RolesService interface {
 	AssignRole(ctx context.Context, userID, role string) error
+	GetUserRoles(ctx context.Context, userID string) ([]string, error)
 }
 
 type service struct {
@@ -36,4 +37,15 @@ func (s *service) AssignRole(ctx context.Context, userID, role string) error {
 	}
 
 	return nil
+}
+
+func (s *service) GetUserRoles(ctx context.Context, userID string) ([]string, error) {
+	s.logger.Sugar().Info("Getting user roles")
+
+	roles, err := s.repository.GetUserRoles(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user roles: %w", err)
+	}
+
+	return roles, nil
 }

@@ -37,7 +37,7 @@ func (h *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		a, err := h.approvalService.GetAllApprovals(ctx)
+		a, err := h.approvalService.GetAll(ctx)
 		if err != nil {
 			h.logger.Error("Failed to get all approvals", zap.Error(err))
 			render.Json(

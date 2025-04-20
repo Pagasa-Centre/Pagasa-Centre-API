@@ -3,6 +3,7 @@ package approvals
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"go.uber.org/zap"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/contracts"
 	context2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
@@ -18,7 +20,7 @@ import (
 
 type ApprovalService interface {
 	CreateNewApproval(ctx context.Context, Approval *domain.Approval) error
-	GetAllApprovals(ctx context.Context) ([]dto.Approval, error)
+	GetAll(ctx context.Context) ([]dto.Approval, error)
 	SetUserService(us contracts.UserService)
 	UpdateApprovalStatus(ctx context.Context, approvalID, status string) error
 }
@@ -57,7 +59,7 @@ func (s *service) CreateNewApproval(ctx context.Context, approval *domain.Approv
 	return nil
 }
 
-func (s *service) GetAllApprovals(ctx context.Context) ([]dto.Approval, error) {
+func (s *service) GetAll(ctx context.Context) ([]dto.Approval, error) {
 	// Get the user ID from the context
 	userID, err := context2.GetUserIDString(ctx)
 	if err != nil {
@@ -69,11 +71,27 @@ func (s *service) GetAllApprovals(ctx context.Context) ([]dto.Approval, error) {
 		return nil, fmt.Errorf("user does not exist or has been deleted: %w", err)
 	}
 
-	// 1. Get all approvals by requesterID
-	approvalsSlice, err := s.approvalRepo.GetAll(ctx, userID)
+	// Get user roles
+	userRoles, err := s.roleService.GetUserRoles(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get approvals: %w", err)
+		return nil, err
 	}
+
+	var approvalsSlice entity.ApprovalSlice
+	if slices.Contains(userRoles, "Admin") {
+		// 1. Get all approvals by requesterID
+		approvalsSlice, err = s.approvalRepo.GetAllPendingApprovals(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get approvals: %w", err)
+		}
+	} else {
+		// 1. Get all approvals by requesterID
+		approvalsSlice, err = s.approvalRepo.GetAllPendingApprovalsByUserID(ctx, userID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get approvals: %w", err)
+		}
+	}
+
 	// 2. For each Approval, get userDetails and add to response
 	var approvals []dto.Approval
 
@@ -81,11 +99,6 @@ func (s *service) GetAllApprovals(ctx context.Context) ([]dto.Approval, error) {
 		u, err := s.userService.GetUserById(ctx, apr.RequesterID)
 		if err != nil {
 			return nil, fmt.Errorf("user does not exist or has been deleted: %w", err)
-		}
-
-		var phoneNumber string
-		if u.Phone.Valid {
-			phoneNumber = u.Phone.String
 		}
 
 		var approvalType string
@@ -102,7 +115,7 @@ func (s *service) GetAllApprovals(ctx context.Context) ([]dto.Approval, error) {
 				FirstName:   u.FirstName,
 				LastName:    u.LastName,
 				Email:       u.Email,
-				PhoneNumber: phoneNumber,
+				PhoneNumber: u.PhoneNumber,
 			},
 		}
 		approvals = append(approvals, approval)

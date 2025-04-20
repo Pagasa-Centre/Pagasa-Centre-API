@@ -71,7 +71,7 @@ func main() {
 	var ministryService ministry.MinistryService
 
 	userRepo := userStorage.NewUserRepository(db)
-	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret, nil, approvalService)
+	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret, nil, approvalService, rolesService)
 
 	ministryRepo := ministryStorage.NewMinistryRepository(db)
 	ministryService = ministry.NewMinistryService(
