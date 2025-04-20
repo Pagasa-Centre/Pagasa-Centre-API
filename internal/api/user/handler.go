@@ -78,7 +78,7 @@ func (h *handler) Register() http.HandlerFunc {
 			return
 		}
 
-		registerResult, err := h.userService.RegisterNewUser(ctx, userDomain, req)
+		result, err := h.userService.RegisterNewUser(ctx, userDomain, req)
 		if err != nil {
 			h.logger.Sugar().Errorw("Error registering new user", "error", err)
 
@@ -94,7 +94,7 @@ func (h *handler) Register() http.HandlerFunc {
 			return
 		}
 
-		resp := mappers.ToRegisterResponse(registerResult, "Registration successful")
+		resp := mappers.ToRegisterResponse(result, "Registration successful")
 
 		render.Json(w, http.StatusCreated, resp)
 	}

@@ -1,17 +1,23 @@
 package mappers
 
 import (
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 	"time"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach/dto"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/domain"
 )
 
-func ToGetAllOutreachesResponse(outreaches []*domain.Outreach, services []*domain.Service, message string) dto.GetAllOutreachesResponse {
+func ToGetAllOutreachesResponse(result *outreach.GetAllOutreachesResult, message string) dto.GetAllOutreachesResponse {
+	if result == nil {
+		return dto.GetAllOutreachesResponse{
+			Message: message,
+		}
+	}
 	// Map outreachID -> []Service
 	serviceMap := make(map[string][]dto.Service)
 
-	for _, svc := range services {
+	for _, svc := range result.Services {
 		serviceMap[svc.OutreachID] = append(serviceMap[svc.OutreachID], dto.Service{
 			StartTime: formatTime(svc.StartTime),
 			EndTime:   formatTime(svc.EndTime),
@@ -22,11 +28,11 @@ func ToGetAllOutreachesResponse(outreaches []*domain.Outreach, services []*domai
 	var outreachesResp dto.GetAllOutreachesResponse
 	outreachesResp.Message = message
 
-	for _, outreach := range outreaches {
-		outreachDto := ToResponse(outreach)
+	for _, o := range result.Outreaches {
+		outreachDto := toResponse(o)
 
 		// Attach services if present
-		if svc, ok := serviceMap[outreach.ID]; ok {
+		if svc, ok := serviceMap[o.ID]; ok {
 			outreachDto.Services = svc
 		}
 
@@ -36,7 +42,7 @@ func ToGetAllOutreachesResponse(outreaches []*domain.Outreach, services []*domai
 	return outreachesResp
 }
 
-func ToResponse(outreach *domain.Outreach) *dto.Outreach {
+func toResponse(outreach *domain.Outreach) *dto.Outreach {
 	if outreach == nil {
 		return nil
 	}
@@ -51,12 +57,6 @@ func ToResponse(outreach *domain.Outreach) *dto.Outreach {
 		VenueName:    outreach.VenueName,
 		Region:       outreach.Region,
 		ThumbnailURL: outreach.ThumbnailURL,
-	}
-}
-
-func ToErrorOutreachesResponse(message string) dto.GetAllOutreachesResponse {
-	return dto.GetAllOutreachesResponse{
-		Message: message,
 	}
 }
 

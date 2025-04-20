@@ -13,7 +13,7 @@ import (
 )
 
 type OutreachService interface {
-	GetAllOutreaches(ctx context.Context) ([]*domain.Outreach, []*domain.Service, error)
+	GetAllOutreaches(ctx context.Context) (*GetAllOutreachesResult, error)
 }
 
 type service struct {
@@ -31,10 +31,17 @@ func NewOutreachService(
 	}
 }
 
-func (os *service) GetAllOutreaches(ctx context.Context) ([]*domain.Outreach, []*domain.Service, error) {
+type (
+	GetAllOutreachesResult struct {
+		Outreaches []*domain.Outreach
+		Services   []*domain.Service
+	}
+)
+
+func (os *service) GetAllOutreaches(ctx context.Context) (*GetAllOutreachesResult, error) {
 	outreachesEntities, err := os.outreachRepo.GetAll(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get all outreaches: %s", err)
+		return nil, fmt.Errorf("failed to get all outreaches: %s", err)
 	}
 
 	var services entity.OutreachServiceSlice
@@ -43,7 +50,7 @@ func (os *service) GetAllOutreaches(ctx context.Context) ([]*domain.Outreach, []
 		// 1. Get services for each outreach
 		outreachServices, err := os.outreachRepo.GetServicesByOutreachID(ctx, ent.ID)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get outreach services: %s", err)
+			return nil, fmt.Errorf("failed to get outreach services: %s", err)
 		}
 
 		if len(outreachServices) == 0 {
@@ -56,5 +63,10 @@ func (os *service) GetAllOutreaches(ctx context.Context) ([]*domain.Outreach, []
 	outreaches := mappers.OutreachEntitiesToDomain(outreachesEntities)
 	serv := mappers.ServiceEntitiesToDomain(services)
 
-	return outreaches, serv, nil
+	result := &GetAllOutreachesResult{
+		Outreaches: outreaches,
+		Services:   serv,
+	}
+
+	return result, nil
 }

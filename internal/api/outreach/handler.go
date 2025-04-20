@@ -30,15 +30,15 @@ func (oh *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		outreaches, services, err := oh.outreachService.GetAllOutreaches(ctx)
+		result, err := oh.outreachService.GetAllOutreaches(ctx)
 		if err != nil {
 			oh.logger.Sugar().Infow("Failed to get all outreaches", "error", err)
-			render.Json(w, http.StatusInternalServerError, mappers.ToErrorOutreachesResponse("Failed to fetch outreaches"))
+			render.Json(w, http.StatusInternalServerError, mappers.ToGetAllOutreachesResponse(nil, "Failed to fetch outreaches"))
 
 			return
 		}
 
-		resp := mappers.ToGetAllOutreachesResponse(outreaches, services, "Successfully fetched outreaches")
+		resp := mappers.ToGetAllOutreachesResponse(result, "Successfully fetched outreaches")
 		render.Json(w, http.StatusOK, resp)
 	}
 }
