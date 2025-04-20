@@ -13,6 +13,11 @@ func ToDeleteUserResponse(message string) *dto.DeleteUserResponse {
 }
 
 func ToRegisterResponse(registerResult *user.RegisterResult, message string) *dto.RegisterResponse {
+	if registerResult == nil {
+		return &dto.RegisterResponse{
+			Message: message,
+		}
+	}
 	return &dto.RegisterResponse{
 		Token: &registerResult.Token,
 		User: &dto.UserDetails{
@@ -30,6 +35,11 @@ func ToRegisterResponse(registerResult *user.RegisterResult, message string) *dt
 }
 
 func ToLoginResponse(loginResult *user.AuthResult, message string) *dto.LoginResponse {
+	if loginResult == nil {
+		return &dto.LoginResponse{
+			Message: message,
+		}
+	}
 	return &dto.LoginResponse{
 		Token: &loginResult.Token,
 		User: &dto.UserDetails{
@@ -47,6 +57,11 @@ func ToLoginResponse(loginResult *user.AuthResult, message string) *dto.LoginRes
 }
 
 func ToUpdateUserDetailsResponse(user *domain.User, message string) *dto.UpdateUserDetailsResponse {
+	if user == nil {
+		return &dto.UpdateUserDetailsResponse{
+			Message: message,
+		}
+	}
 	return &dto.UpdateUserDetailsResponse{
 		Message: message,
 		User: &dto.UserDetails{
