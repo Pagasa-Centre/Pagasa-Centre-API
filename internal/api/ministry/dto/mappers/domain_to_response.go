@@ -6,6 +6,11 @@ import (
 )
 
 func ToGetAllMinistriesResponse(ministries []*domain.Ministry, message string) dto.GetAllMinistriesResponse {
+	if ministries == nil {
+		return dto.GetAllMinistriesResponse{
+			Message: message,
+		}
+	}
 	var ministriesResp dto.GetAllMinistriesResponse
 
 	for _, ministry := range ministries {
@@ -46,12 +51,6 @@ func toMinistries(ministry *domain.Ministry) *dto.Ministry {
 
 func ToMinistryApplicationResponse(message string) dto.MinistryApplicationResponse {
 	return dto.MinistryApplicationResponse{
-		Message: message,
-	}
-}
-
-func ToErrorMinistriesResponse(message string) dto.GetAllMinistriesResponse {
-	return dto.GetAllMinistriesResponse{
 		Message: message,
 	}
 }
