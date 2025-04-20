@@ -37,7 +37,7 @@ func NewUserHandler(
 }
 
 const (
-	InvalidInputMsg        = "Please check your input. Some required fields might be missing or incorrectly formatted."
+	InvalidInputMsg        = "Some required fields are missing or incorrectly filled out. Please check the form and try again."
 	InternalServerErrorMsg = "Internal server error. Please try again later."
 	InvalidCredentialsMsg  = "Incorrect email or password. Please try again."
 )
