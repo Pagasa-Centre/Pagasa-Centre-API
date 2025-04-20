@@ -37,6 +37,9 @@ func ToGetAllOutreachesResponse(outreaches []*domain.Outreach, services []*domai
 }
 
 func ToResponse(outreach *domain.Outreach) *dto.Outreach {
+	if outreach == nil {
+		return nil
+	}
 	return &dto.Outreach{
 		ID:           outreach.ID,
 		Name:         outreach.Name,
