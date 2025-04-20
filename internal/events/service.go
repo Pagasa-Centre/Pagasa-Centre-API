@@ -12,7 +12,7 @@ import (
 )
 
 type EventsService interface {
-	GetAll(ctx context.Context) (*[]domain.Events, error)
+	GetAll(ctx context.Context) ([]*domain.Events, error)
 	Create(ctx context.Context, events domain.Events) error
 }
 
@@ -28,7 +28,7 @@ func NewEventsService(logger *zap.Logger, eventsRepo storage.EventsRepository) E
 	}
 }
 
-func (s *services) GetAll(ctx context.Context) (*[]domain.Events, error) {
+func (s *services) GetAll(ctx context.Context) ([]*domain.Events, error) {
 	s.logger.Info("Fetching all events")
 
 	eventEntities, err := s.repo.GetAllEvents(ctx)

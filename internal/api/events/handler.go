@@ -38,7 +38,7 @@ func (h *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		e, err := h.eventsService.GetAll(ctx)
+		result, err := h.eventsService.GetAll(ctx)
 		if err != nil {
 			h.logger.Error("Failed to get events", zap.Error(err))
 			render.Json(
@@ -53,7 +53,7 @@ func (h *handler) All() http.HandlerFunc {
 		render.Json(
 			w,
 			http.StatusOK,
-			mappers.ToGetAllEventsResponse(*e, "Successfully fetched events."),
+			mappers.ToGetAllEventsResponse(result, "Successfully fetched events."),
 		)
 	}
 }

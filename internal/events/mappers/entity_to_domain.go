@@ -8,7 +8,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/utils"
 )
 
-func EntityToEventsDomain(eventEntities *entity.EventSlice, eventDays *entity.EventDaySlice) *[]domain.Events {
+func EntityToEventsDomain(eventEntities *entity.EventSlice, eventDays *entity.EventDaySlice) []*domain.Events {
 	if eventEntities == nil {
 		return nil
 	}
@@ -47,10 +47,10 @@ func EntityToEventsDomain(eventEntities *entity.EventSlice, eventDays *entity.Ev
 		})
 	}
 
-	var results []domain.Events
+	var results []*domain.Events
 
 	for _, e := range *eventEntities {
-		results = append(results, domain.Events{
+		results = append(results, &domain.Events{
 			Title:                 e.Title,
 			Description:           e.Description.String,
 			AdditionalInformation: e.AdditionalInformation.String,
@@ -60,5 +60,5 @@ func EntityToEventsDomain(eventEntities *entity.EventSlice, eventDays *entity.Ev
 		})
 	}
 
-	return &results
+	return results
 }

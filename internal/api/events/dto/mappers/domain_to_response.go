@@ -5,7 +5,13 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events/domain"
 )
 
-func ToGetAllEventsResponse(events []domain.Events, message string) dto.GetAllEventsResponse {
+func ToGetAllEventsResponse(events []*domain.Events, message string) dto.GetAllEventsResponse {
+	if events == nil {
+		return dto.GetAllEventsResponse{
+			Message: message,
+		}
+	}
+
 	var dtoEvents []dto.Event
 
 	for _, e := range events {
