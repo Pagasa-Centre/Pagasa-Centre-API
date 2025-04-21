@@ -29,8 +29,6 @@ func NewEventsService(logger *zap.Logger, eventsRepo storage.EventsRepository) E
 }
 
 func (s *services) GetAll(ctx context.Context) ([]*domain.Events, error) {
-	s.logger.Info("Fetching all events")
-
 	eventEntities, err := s.repo.GetAllEvents(ctx)
 	if err != nil {
 		return nil, err
@@ -50,8 +48,6 @@ func (s *services) GetAll(ctx context.Context) ([]*domain.Events, error) {
 }
 
 func (s *services) Create(ctx context.Context, event domain.Events) error {
-	s.logger.Info("Creating event")
-
 	eventEntity := mappers.EventDomainToEntity(event)
 
 	eventID, err := s.repo.CreateEvent(ctx, *eventEntity)

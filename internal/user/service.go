@@ -131,8 +131,6 @@ func (s *userService) AuthenticateUser(ctx context.Context, email, password stri
 
 // RegisterNewUser inserts a new user into the user table and applies any roles that were provided by the user.
 func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, req dto.RegisterRequest) (*RegisterResult, error) {
-	s.logger.Info("Registering new user")
-
 	user.PhoneNumber = NormalizePhoneNumber(user.PhoneNumber)
 
 	userEntity := mappers.ToUserEntity(*user)
@@ -230,8 +228,6 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 
 // GetUserByEmail retrieves a user by their email.
 func (s *userService) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	s.logger.Info("Getting user by email")
-
 	user, err := s.userRepo.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
@@ -244,7 +240,6 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (*domain
 
 // GenerateToken generates a JWT for the authenticated user.
 func (s *userService) GenerateToken(user *domain.User) (string, error) {
-	s.logger.Info("Generating token")
 	// Define claims; you can add custom claims as needed.
 	claims := jwt.MapClaims{
 		"user_id": user.ID,
@@ -262,7 +257,7 @@ func (s *userService) GenerateToken(user *domain.User) (string, error) {
 }
 
 func (s *userService) GetUserById(ctx context.Context, id string) (*domain.User, error) {
-	s.logger.Info("Getting user by id")
+	s.logger.With(zap.String("user id", id)).Info("Getting user by id")
 
 	user, err := s.userRepo.GetUserById(ctx, id)
 	if err != nil {
@@ -276,8 +271,6 @@ func (s *userService) GetUserById(ctx context.Context, id string) (*domain.User,
 
 // UpdateUserDetails updates a user in the database.
 func (s *userService) UpdateUserDetails(ctx context.Context, req dto.UpdateDetailsRequest) (*domain.User, error) {
-	s.logger.Info("Updating user details")
-
 	// Get the user ID from the context
 	userID, err := context2.GetUserIDString(ctx)
 	if err != nil {
@@ -305,8 +298,6 @@ func (s *userService) UpdateUserDetails(ctx context.Context, req dto.UpdateDetai
 
 // DeleteUser deletes a user by their ID.
 func (s *userService) DeleteUser(ctx context.Context, id string) error {
-	s.logger.Info("Deleting user")
-
 	if err := s.userRepo.DeleteUser(ctx, id); err != nil {
 		return fmt.Errorf("service error deleting user: %w", err)
 	}

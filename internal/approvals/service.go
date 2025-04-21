@@ -59,8 +59,6 @@ type (
 var ErrNoPermission = errors.New("you do not have permission to update this approval")
 
 func (s *service) CreateNewApproval(ctx context.Context, approval *domain.Approval) error {
-	s.logger.Info("Creating new approval")
-
 	approvalEntity := mappers.ToApprovalEntity(approval)
 
 	err := s.approvalRepo.Insert(ctx, approvalEntity)
@@ -149,7 +147,7 @@ func (s *service) SetUserService(us contracts.UserService) {
 }
 
 func (s *service) UpdateApprovalStatus(ctx context.Context, approvalID, status string) error {
-	s.logger.Info("Updating approval status")
+	s.logger.With(zap.String("approvalID", approvalID), zap.String("status", status)).Info("Updating approval status")
 	// Get the user ID from the context
 	userID, err := context2.GetUserIDString(ctx)
 	if err != nil {
