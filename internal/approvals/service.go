@@ -2,9 +2,12 @@ package approvals
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
+	"github.com/volatiletech/null/v8"
 	"go.uber.org/zap"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
@@ -12,6 +15,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
+	roleDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/contracts"
 	userDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	context2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
@@ -52,6 +56,8 @@ type (
 	}
 )
 
+var ErrNoPermission = errors.New("you do not have permission to update this approval")
+
 func (s *service) CreateNewApproval(ctx context.Context, approval *domain.Approval) error {
 	s.logger.Info("Creating new approval")
 
@@ -84,17 +90,35 @@ func (s *service) GetAll(ctx context.Context) (*GetAllResult, error) {
 	}
 
 	var approvalsSlice entity.ApprovalSlice
-	if slices.Contains(userRoles, "Admin") {
-		// 1. Get all approvals by requesterID
+
+	// Role-based logic
+	switch {
+	case slices.Contains(userRoles, roleDomain.RoleAdmin):
 		approvalsSlice, err = s.approvalRepo.GetAllPendingApprovals(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get approvals: %w", err)
 		}
-	} else {
-		// 1. Get all approvals by requesterID
-		approvalsSlice, err = s.approvalRepo.GetAllPendingApprovalsByUserID(ctx, userID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get approvals: %w", err)
+	default:
+		// Map of leader role => member role
+		roleMap := map[string]string{
+			roleDomain.RoleChildrensMinistryLeader:        roleDomain.RoleChildrensMinistryMember,
+			roleDomain.RoleCreativeArtsMinistryLeader:     roleDomain.RoleCreativeArtsMinistryMember,
+			roleDomain.RoleMediaMinistryLeader:            roleDomain.RoleMediaMinistryMember,
+			roleDomain.RoleMusicMinistryLeader:            roleDomain.RoleMusicMinistryMember,
+			roleDomain.RoleProductionMinistryLeader:       roleDomain.RoleProductionMinistryMember,
+			roleDomain.RoleUsheringSecurityMinistryLeader: roleDomain.RoleUsheringSecurityMinistryMember,
+			roleDomain.RolePastor:                         roleDomain.RolePrimary,
+		}
+		// get all approvals a user is able to approve
+		for leaderRole, memberRole := range roleMap {
+			if slices.Contains(userRoles, leaderRole) {
+				roleApprovals, err := s.approvalRepo.GetAllPendingApprovalsByRequestedRole(ctx, memberRole)
+				if err != nil {
+					return nil, fmt.Errorf("failed to get approvals for %s: %w", memberRole, err)
+				}
+
+				approvalsSlice = append(approvalsSlice, roleApprovals...)
+			}
 		}
 	}
 
@@ -126,9 +150,49 @@ func (s *service) SetUserService(us contracts.UserService) {
 
 func (s *service) UpdateApprovalStatus(ctx context.Context, approvalID, status string) error {
 	s.logger.Info("Updating approval status")
+	// Get the user ID from the context
+	userID, err := context2.GetUserIDString(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get user id from context: %w", err)
+	}
+
+	// check if user exists in db.
+	_, err = s.userService.GetUserById(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("user does not exist or has been deleted: %w", err)
+	}
+
+	// Get user roles
+	userRoles, err := s.roleService.GetUserRoles(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// ✅ Check permissions: must be Admin or have a role with "Leader" in it
+	isAdminOrLeader := false
+
+	for _, role := range userRoles {
+		if role == "Admin" || strings.Contains(role, "Leader") {
+			isAdminOrLeader = true
+			break
+		}
+	}
+
+	if !isAdminOrLeader {
+		return ErrNoPermission
+	}
+
+	tx, err := s.approvalRepo.BeginTx(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	defer func() {
+		_ = tx.Rollback() // safe rollback; will be a no-op if committed
+	}()
 
 	// 1. Get approval by id
-	approval, err := s.approvalRepo.GetApprovalByID(ctx, approvalID)
+	approval, err := s.approvalRepo.GetApprovalByIDTx(ctx, tx, approvalID)
 	if err != nil {
 		return err
 	}
@@ -141,23 +205,27 @@ func (s *service) UpdateApprovalStatus(ctx context.Context, approvalID, status s
 	default:
 		return fmt.Errorf("invalid approval status: %s", status)
 	}
-	// 2. Update Status
-	err = s.approvalRepo.Update(ctx, approval)
+
+	approval.UpdatedBy = null.StringFrom(userID)
+
+	// 2. Update status in transaction
+	err = s.approvalRepo.UpdateTx(ctx, tx, approval)
 	if err != nil {
 		return err
 	}
 
-	if approval.Status != domain.Approved {
-		return nil
+	if approval.Status == domain.Approved {
+		var ministryID *string
+		if approval.MinistryID.Valid {
+			ministryID = &approval.MinistryID.String
+		}
+
+		err = s.roleService.AssignRoleTx(ctx, tx, approval.RequesterID, approval.RequestedRole, ministryID)
+		if err != nil {
+			return err
+		}
 	}
 
-	// 3. Check type and depending on type assign roles
-	err = s.roleService.AssignRole(ctx, approval.RequesterID, approval.RequestedRole)
-	if err != nil {
-		return err
-	}
-
-	// 4. Send a message to applicant/requester?
-
-	return nil
+	// 3. Commit if all succeeds
+	return tx.Commit()
 }

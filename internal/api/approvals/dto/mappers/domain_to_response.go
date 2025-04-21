@@ -36,9 +36,10 @@ func ToGetAllApprovalsResponse(result *approvals.GetAllResult, message string) d
 
 		if user != nil {
 			requesterDetails = userDto.UserDetails{
-				FirstName: user.FirstName,
-				LastName:  user.LastName,
-				Email:     user.Email,
+				FirstName:   user.FirstName,
+				LastName:    user.LastName,
+				Email:       user.Email,
+				PhoneNumber: user.PhoneNumber,
 			}
 		}
 
@@ -48,6 +49,7 @@ func ToGetAllApprovalsResponse(result *approvals.GetAllResult, message string) d
 			RequestedRole:    a.RequestedRole,
 			Status:           a.Status,
 			RequesterDetails: requesterDetails,
+			Reason:           a.Reason,
 		})
 	}
 

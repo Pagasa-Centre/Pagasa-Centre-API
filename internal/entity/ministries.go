@@ -110,10 +110,12 @@ var MinistryWhere = struct {
 var MinistryRels = struct {
 	Leader          string
 	Outreach        string
+	Approvals       string
 	MinistryLeaders string
 }{
 	Leader:          "Leader",
 	Outreach:        "Outreach",
+	Approvals:       "Approvals",
 	MinistryLeaders: "MinistryLeaders",
 }
 
@@ -121,6 +123,7 @@ var MinistryRels = struct {
 type ministryR struct {
 	Leader          *User               `boil:"Leader" json:"Leader" toml:"Leader" yaml:"Leader"`
 	Outreach        *Outreach           `boil:"Outreach" json:"Outreach" toml:"Outreach" yaml:"Outreach"`
+	Approvals       ApprovalSlice       `boil:"Approvals" json:"Approvals" toml:"Approvals" yaml:"Approvals"`
 	MinistryLeaders MinistryLeaderSlice `boil:"MinistryLeaders" json:"MinistryLeaders" toml:"MinistryLeaders" yaml:"MinistryLeaders"`
 }
 
@@ -141,6 +144,13 @@ func (r *ministryR) GetOutreach() *Outreach {
 		return nil
 	}
 	return r.Outreach
+}
+
+func (r *ministryR) GetApprovals() ApprovalSlice {
+	if r == nil {
+		return nil
+	}
+	return r.Approvals
 }
 
 func (r *ministryR) GetMinistryLeaders() MinistryLeaderSlice {
@@ -488,6 +498,20 @@ func (o *Ministry) Outreach(mods ...qm.QueryMod) outreachQuery {
 	return Outreaches(queryMods...)
 }
 
+// Approvals retrieves all the approval's Approvals with an executor.
+func (o *Ministry) Approvals(mods ...qm.QueryMod) approvalQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"approvals\".\"ministry_id\"=?", o.ID),
+	)
+
+	return Approvals(queryMods...)
+}
+
 // MinistryLeaders retrieves all the ministry_leader's MinistryLeaders with an executor.
 func (o *Ministry) MinistryLeaders(mods ...qm.QueryMod) ministryLeaderQuery {
 	var queryMods []qm.QueryMod
@@ -746,6 +770,119 @@ func (ministryL) LoadOutreach(ctx context.Context, e boil.ContextExecutor, singu
 	return nil
 }
 
+// LoadApprovals allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (ministryL) LoadApprovals(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMinistry interface{}, mods queries.Applicator) error {
+	var slice []*Ministry
+	var object *Ministry
+
+	if singular {
+		var ok bool
+		object, ok = maybeMinistry.(*Ministry)
+		if !ok {
+			object = new(Ministry)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeMinistry)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeMinistry))
+			}
+		}
+	} else {
+		s, ok := maybeMinistry.(*[]*Ministry)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeMinistry)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeMinistry))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &ministryR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &ministryR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`approvals`),
+		qm.WhereIn(`approvals.ministry_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load approvals")
+	}
+
+	var resultSlice []*Approval
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice approvals")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on approvals")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for approvals")
+	}
+
+	if len(approvalAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.Approvals = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &approvalR{}
+			}
+			foreign.R.Ministry = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.MinistryID) {
+				local.R.Approvals = append(local.R.Approvals, foreign)
+				if foreign.R == nil {
+					foreign.R = &approvalR{}
+				}
+				foreign.R.Ministry = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadMinistryLeaders allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (ministryL) LoadMinistryLeaders(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMinistry interface{}, mods queries.Applicator) error {
@@ -981,6 +1118,133 @@ func (o *Ministry) SetOutreach(ctx context.Context, exec boil.ContextExecutor, i
 		}
 	} else {
 		related.R.Ministries = append(related.R.Ministries, o)
+	}
+
+	return nil
+}
+
+// AddApprovals adds the given related objects to the existing relationships
+// of the ministry, optionally inserting them as new records.
+// Appends related to o.R.Approvals.
+// Sets related.R.Ministry appropriately.
+func (o *Ministry) AddApprovals(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Approval) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.MinistryID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"approvals\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"ministry_id"}),
+				strmangle.WhereClause("\"", "\"", 2, approvalPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.MinistryID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &ministryR{
+			Approvals: related,
+		}
+	} else {
+		o.R.Approvals = append(o.R.Approvals, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &approvalR{
+				Ministry: o,
+			}
+		} else {
+			rel.R.Ministry = o
+		}
+	}
+	return nil
+}
+
+// SetApprovals removes all previously related items of the
+// ministry replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Ministry's Approvals accordingly.
+// Replaces o.R.Approvals with related.
+// Sets related.R.Ministry's Approvals accordingly.
+func (o *Ministry) SetApprovals(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Approval) error {
+	query := "update \"approvals\" set \"ministry_id\" = null where \"ministry_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.Approvals {
+			queries.SetScanner(&rel.MinistryID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Ministry = nil
+		}
+		o.R.Approvals = nil
+	}
+
+	return o.AddApprovals(ctx, exec, insert, related...)
+}
+
+// RemoveApprovals relationships from objects passed in.
+// Removes related items from R.Approvals (uses pointer comparison, removal does not keep order)
+// Sets related.R.Ministry.
+func (o *Ministry) RemoveApprovals(ctx context.Context, exec boil.ContextExecutor, related ...*Approval) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.MinistryID, nil)
+		if rel.R != nil {
+			rel.R.Ministry = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("ministry_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.Approvals {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.Approvals)
+			if ln > 1 && i < ln-1 {
+				o.R.Approvals[i] = o.R.Approvals[ln-1]
+			}
+			o.R.Approvals = o.R.Approvals[:ln-1]
+			break
+		}
 	}
 
 	return nil

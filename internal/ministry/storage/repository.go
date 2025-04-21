@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/null/v8"
@@ -14,6 +15,7 @@ type MinistryRepository interface {
 	GetAll(ctx context.Context) (entity.MinistrySlice, error)
 	AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error
 	GetMinistryByID(ctx context.Context, ministryID string) (*entity.Ministry, error)
+	GetMinistryLeaderUsersByMinistryID(ctx context.Context, ministryID string) (entity.UserSlice, error)
 }
 
 type repository struct {
@@ -64,4 +66,31 @@ func (repo *repository) GetMinistryByID(ctx context.Context, ministryID string) 
 	}
 
 	return ministry, nil
+}
+
+func (repo *repository) GetMinistryLeaderUsersByMinistryID(ctx context.Context, ministryID string) (entity.UserSlice, error) {
+	db := repo.db.DB
+
+	leaders, err := entity.MinistryLeaders(
+		entity.MinistryLeaderWhere.MinistryID.EQ(ministryID),
+	).All(ctx, db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ministry leaders: %w", err)
+	}
+
+	for _, leader := range leaders {
+		if err := leader.L.LoadUser(ctx, db, true, leader, nil); err != nil {
+			return nil, fmt.Errorf("failed to load user: %w", err)
+		}
+	}
+
+	var users entity.UserSlice
+
+	for _, leader := range leaders {
+		if leader.R != nil && leader.R.User != nil {
+			users = append(users, leader.R.User)
+		}
+	}
+
+	return users, nil
 }

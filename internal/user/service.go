@@ -82,6 +82,7 @@ type (
 var (
 	ErrEmailAlreadyExists  = errors.New("email already exists")
 	ErrInvalidLoginDetails = errors.New("invalid email or password")
+	ErrInvalidOutreach     = errors.New("invalid outreach")
 )
 
 func (s *userService) SetMinistryService(ms contracts.MinistryService) {
@@ -143,6 +144,8 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
 			// PostgreSQL error code 23505 = unique_violation
 			return nil, ErrEmailAlreadyExists
+		} else if errors.As(err, &pqErr) && pqErr.Code == "23503" && pqErr.Constraint == "users_outreach_id_fkey" {
+			return nil, ErrInvalidOutreach
 		}
 
 		return nil, err
@@ -153,32 +156,33 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 		uID = *userID
 	}
 
-	createApproval := func(requestedRole, approvalType string) error {
+	createApproval := func(requestedRole, approvalType string, ministryID *string) error {
 		approval := &approvalDomain.Approval{
 			RequesterID:   uID,
-			ApproverID:    nil,
+			UpdatedBy:     nil,
 			RequestedRole: requestedRole,
 			Type:          approvalType,
 			Status:        approvalDomain.Pending,
+			MinistryID:    ministryID,
 		}
 
 		return s.approvalsService.CreateNewApproval(ctx, approval)
 	}
 
 	if req.IsLeader {
-		if err = createApproval(rolesDomain.RoleLeader, approvalDomain.LeaderStatusConfirmation); err != nil {
+		if err = createApproval(rolesDomain.RoleLeader, approvalDomain.LeaderStatusConfirmation, nil); err != nil {
 			return nil, err
 		}
 	}
 
 	if req.IsPrimary {
-		if err = createApproval(rolesDomain.RolePrimary, approvalDomain.PrimaryStatusConfirmation); err != nil {
+		if err = createApproval(rolesDomain.RolePrimary, approvalDomain.PrimaryStatusConfirmation, nil); err != nil {
 			return nil, err
 		}
 	}
 
 	if req.IsPastor {
-		if err = createApproval(rolesDomain.RolePastor, approvalDomain.PastorStatusConfirmation); err != nil {
+		if err = createApproval(rolesDomain.RolePastor, approvalDomain.PastorStatusConfirmation, nil); err != nil {
 			return nil, err
 		}
 	}
@@ -193,7 +197,9 @@ func (s *userService) RegisterNewUser(ctx context.Context, user *domain.User, re
 			return nil, err
 		}
 
-		if err = createApproval(ministry.Name, approvalDomain.MinistryLeaderStatusConfirmation); err != nil {
+		requestedRole := fmt.Sprintf("%s Leader", ministry.Name)
+
+		if err = createApproval(requestedRole, approvalDomain.MinistryLeaderStatusConfirmation, req.MinistryID); err != nil {
 			return nil, err
 		}
 	}

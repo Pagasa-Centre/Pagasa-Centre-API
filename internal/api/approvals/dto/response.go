@@ -9,6 +9,7 @@ type Approval struct {
 	Type             string          `json:"type"`
 	RequestedRole    string          `json:"requested_role"`
 	Status           string          `json:"status"`
+	Reason           string          `json:"reason"`
 	RequesterDetails dto.UserDetails `json:"requester_details"`
 }
 

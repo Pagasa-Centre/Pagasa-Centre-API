@@ -116,6 +116,21 @@ VALUES
 
 -- +goose Down
 -- +goose StatementBegin
+DELETE FROM users
+WHERE outreach_id IN (
+    SELECT id FROM outreaches WHERE name IN (
+                                             'Pagasa Centre Bray',
+                                             'Pagasa Centre Pampanga',
+                                             'Pagasa Centre Bedfordshire',
+                                             'Pagasa Centre Reading',
+                                             'Pagasa Centre Harwich',
+                                             'Pagasa Centre Stratford Upon Avon',
+                                             'Pagasa Centre Banga',
+                                             'Pagasa Centre West Midlands & Worcestershire',
+                                             'Pagasa Centre Southend-on-sea'
+        )
+);
+
 DELETE FROM outreaches WHERE name IN (
                                       'Pagasa Centre Bray',
                                       'Pagasa Centre Pampanga',

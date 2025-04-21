@@ -3,10 +3,12 @@ package domain
 type Approval struct {
 	ID            string
 	RequesterID   string
-	ApproverID    *string
+	UpdatedBy     *string
 	RequestedRole string
 	Type          string
 	Status        string
+	Reason        string
+	MinistryID    *string
 }
 
 const (

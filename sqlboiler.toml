@@ -10,3 +10,4 @@ user = "pcappuser"
 pass = "PagasaWarrior23"
 sslmode = "disable"
 blacklist = ["migrations"] # optional: tables to exclude
+use-foreign-keys = true

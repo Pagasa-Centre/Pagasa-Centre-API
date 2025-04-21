@@ -494,6 +494,83 @@ func testUsersInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testUserToManyUpdatedByApprovals(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c Approval
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, approvalDBTypes, false, approvalColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, approvalDBTypes, false, approvalColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&b.UpdatedBy, a.ID)
+	queries.Assign(&c.UpdatedBy, a.ID)
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.UpdatedByApprovals().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if queries.Equal(v.UpdatedBy, b.UpdatedBy) {
+			bFound = true
+		}
+		if queries.Equal(v.UpdatedBy, c.UpdatedBy) {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := UserSlice{&a}
+	if err = a.L.LoadUpdatedByApprovals(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.UpdatedByApprovals); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.UpdatedByApprovals = nil
+	if err = a.L.LoadUpdatedByApprovals(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.UpdatedByApprovals); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testUserToManyCellGroups(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -962,6 +1039,257 @@ func testUserToManyCellLeaderUsers(t *testing.T) {
 
 	if t.Failed() {
 		t.Logf("%#v", check)
+	}
+}
+
+func testUserToManyAddOpUpdatedByApprovals(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Approval
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Approval{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Approval{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddUpdatedByApprovals(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if !queries.Equal(a.ID, first.UpdatedBy) {
+			t.Error("foreign key was wrong value", a.ID, first.UpdatedBy)
+		}
+		if !queries.Equal(a.ID, second.UpdatedBy) {
+			t.Error("foreign key was wrong value", a.ID, second.UpdatedBy)
+		}
+
+		if first.R.UpdatedByUser != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.UpdatedByUser != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.UpdatedByApprovals[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.UpdatedByApprovals[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.UpdatedByApprovals().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testUserToManySetOpUpdatedByApprovals(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Approval
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Approval{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetUpdatedByApprovals(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.UpdatedByApprovals().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetUpdatedByApprovals(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.UpdatedByApprovals().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.UpdatedBy) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.UpdatedBy) {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if !queries.Equal(a.ID, d.UpdatedBy) {
+		t.Error("foreign key was wrong value", a.ID, d.UpdatedBy)
+	}
+	if !queries.Equal(a.ID, e.UpdatedBy) {
+		t.Error("foreign key was wrong value", a.ID, e.UpdatedBy)
+	}
+
+	if b.R.UpdatedByUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.UpdatedByUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.UpdatedByUser != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.UpdatedByUser != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.UpdatedByApprovals[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.UpdatedByApprovals[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testUserToManyRemoveOpUpdatedByApprovals(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Approval
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Approval{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddUpdatedByApprovals(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.UpdatedByApprovals().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveUpdatedByApprovals(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.UpdatedByApprovals().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.UpdatedBy) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.UpdatedBy) {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.UpdatedByUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.UpdatedByUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.UpdatedByUser != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.UpdatedByUser != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.UpdatedByApprovals) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.UpdatedByApprovals[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.UpdatedByApprovals[0] != &e {
+		t.Error("relationship to e should have been preserved")
 	}
 }
 

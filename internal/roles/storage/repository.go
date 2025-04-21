@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -13,6 +14,7 @@ import (
 type RolesRepository interface {
 	AssignRole(ctx context.Context, userID, role string) error
 	GetUserRoles(ctx context.Context, userID string) ([]string, error)
+	AssignRoleTx(ctx context.Context, tx *sqlx.Tx, userID, roleName string, ministryID *string) error
 }
 
 type repository struct {
@@ -23,6 +25,50 @@ func NewRolesRepository(db *sqlx.DB) RolesRepository {
 	return &repository{
 		db: db,
 	}
+}
+
+func (r *repository) AssignRoleTx(ctx context.Context, tx *sqlx.Tx, userID, roleName string, ministryID *string) error {
+	var minID string
+	if ministryID != nil {
+		minID = *ministryID
+	}
+
+	roleID, err := r.getRoleIDTx(ctx, tx, roleName)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(roleName, "Ministry Leader") {
+		ministryLeader := entity.MinistryLeader{
+			UserID:     userID,
+			MinistryID: minID,
+		}
+
+		err = ministryLeader.Insert(ctx, tx, boil.Infer())
+		if err != nil {
+			return err
+		}
+	}
+
+	return r.assignRoleTx(ctx, tx, userID, roleID)
+}
+
+func (r *repository) getRoleIDTx(ctx context.Context, tx *sqlx.Tx, roleName string) (string, error) {
+	role, err := entity.Roles(entity.RoleWhere.RoleName.EQ(roleName)).One(ctx, tx)
+	if err != nil {
+		return "", err
+	}
+
+	return role.ID, nil
+}
+
+func (r *repository) assignRoleTx(ctx context.Context, tx *sqlx.Tx, userID, roleID string) error {
+	userRole := &entity.UserRole{
+		UserID: userID,
+		RoleID: roleID,
+	}
+
+	return userRole.Insert(ctx, tx, boil.Infer())
 }
 
 // AssignRole assigns the provided role to the given user.

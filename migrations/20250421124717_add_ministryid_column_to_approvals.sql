@@ -1,11 +1,11 @@
 -- +goose Up
 -- +goose StatementBegin
 ALTER TABLE approvals
-    ALTER COLUMN approver_id DROP NOT NULL;
+    ADD COLUMN ministry_id UUID REFERENCES ministries(id);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 ALTER TABLE approvals
-    ALTER COLUMN approver_id SET NOT NULL;
+DROP COLUMN ministry_id;
 -- +goose StatementEnd

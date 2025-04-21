@@ -212,6 +212,8 @@ func mapErrorsToStatusCodeAndUserFriendlyMessages(err error) (int, string) {
 	switch {
 	case errors.Is(err, user.ErrEmailAlreadyExists):
 		return http.StatusConflict, "Email already exists."
+	case errors.Is(err, user.ErrInvalidOutreach):
+		return http.StatusBadRequest, "The selected outreach does not exist."
 	case errors.Is(err, user.ErrInvalidLoginDetails):
 		return http.StatusBadRequest, InvalidCredentialsMsg
 	default:

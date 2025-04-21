@@ -1,6 +1,7 @@
 package ministry
 
 import (
+	"errors"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -31,6 +32,10 @@ func NewMinistryHandler(
 		MinistryService: ministryService,
 	}
 }
+
+const (
+	InternalServerErrorMsg = "Internal server error. Please try again later."
+)
 
 func (mh *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -80,14 +85,17 @@ func (mh *handler) Apply() http.HandlerFunc {
 			return
 		}
 
-		err = mh.MinistryService.SendApplication(ctx, userID, req.MinistryID)
+		err = mh.MinistryService.SendApplication(ctx, userID, req.MinistryID, req.Reason)
 		if err != nil {
 			mh.logger.Sugar().Errorw("Failed to send application", "error", err)
+
+			statusCode, errMsg := mapErrorsToStatusCodeAndUserFriendlyMessages(err)
+
 			render.Json(
 				w,
-				http.StatusInternalServerError,
+				statusCode,
 				mappers.ToMinistryApplicationResponse(
-					"Failed to send application",
+					errMsg,
 				),
 			)
 
@@ -101,5 +109,14 @@ func (mh *handler) Apply() http.HandlerFunc {
 				"Your application was successfully sent.",
 			),
 		)
+	}
+}
+
+func mapErrorsToStatusCodeAndUserFriendlyMessages(err error) (int, string) {
+	switch {
+	case errors.Is(err, ministry.ErrMinistryNotFound):
+		return http.StatusNotFound, "The selected ministry could not be found."
+	default:
+		return http.StatusInternalServerError, InternalServerErrorMsg
 	}
 }

@@ -26,12 +26,14 @@ import (
 type Approval struct {
 	ID            string      `boil:"id" json:"id" toml:"id" yaml:"id"`
 	RequesterID   string      `boil:"requester_id" json:"requester_id" toml:"requester_id" yaml:"requester_id"`
-	ApproverID    null.String `boil:"approver_id" json:"approver_id,omitempty" toml:"approver_id" yaml:"approver_id,omitempty"`
+	UpdatedBy     null.String `boil:"updated_by" json:"updated_by,omitempty" toml:"updated_by" yaml:"updated_by,omitempty"`
+	Type          string      `boil:"type" json:"type" toml:"type" yaml:"type"`
 	RequestedRole string      `boil:"requested_role" json:"requested_role" toml:"requested_role" yaml:"requested_role"`
+	Reason        null.String `boil:"reason" json:"reason,omitempty" toml:"reason" yaml:"reason,omitempty"`
 	Status        string      `boil:"status" json:"status" toml:"status" yaml:"status"`
 	CreatedAt     null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
 	UpdatedAt     null.Time   `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
-	Type          null.String `boil:"type" json:"type,omitempty" toml:"type" yaml:"type,omitempty"`
+	MinistryID    null.String `boil:"ministry_id" json:"ministry_id,omitempty" toml:"ministry_id" yaml:"ministry_id,omitempty"`
 
 	R *approvalR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L approvalL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -40,41 +42,49 @@ type Approval struct {
 var ApprovalColumns = struct {
 	ID            string
 	RequesterID   string
-	ApproverID    string
+	UpdatedBy     string
+	Type          string
 	RequestedRole string
+	Reason        string
 	Status        string
 	CreatedAt     string
 	UpdatedAt     string
-	Type          string
+	MinistryID    string
 }{
 	ID:            "id",
 	RequesterID:   "requester_id",
-	ApproverID:    "approver_id",
+	UpdatedBy:     "updated_by",
+	Type:          "type",
 	RequestedRole: "requested_role",
+	Reason:        "reason",
 	Status:        "status",
 	CreatedAt:     "created_at",
 	UpdatedAt:     "updated_at",
-	Type:          "type",
+	MinistryID:    "ministry_id",
 }
 
 var ApprovalTableColumns = struct {
 	ID            string
 	RequesterID   string
-	ApproverID    string
+	UpdatedBy     string
+	Type          string
 	RequestedRole string
+	Reason        string
 	Status        string
 	CreatedAt     string
 	UpdatedAt     string
-	Type          string
+	MinistryID    string
 }{
 	ID:            "approvals.id",
 	RequesterID:   "approvals.requester_id",
-	ApproverID:    "approvals.approver_id",
+	UpdatedBy:     "approvals.updated_by",
+	Type:          "approvals.type",
 	RequestedRole: "approvals.requested_role",
+	Reason:        "approvals.reason",
 	Status:        "approvals.status",
 	CreatedAt:     "approvals.created_at",
 	UpdatedAt:     "approvals.updated_at",
-	Type:          "approvals.type",
+	MinistryID:    "approvals.ministry_id",
 }
 
 // Generated where
@@ -183,29 +193,40 @@ func (w whereHelpernull_Time) IsNotNull() qm.QueryMod { return qmhelper.WhereIsN
 var ApprovalWhere = struct {
 	ID            whereHelperstring
 	RequesterID   whereHelperstring
-	ApproverID    whereHelpernull_String
+	UpdatedBy     whereHelpernull_String
+	Type          whereHelperstring
 	RequestedRole whereHelperstring
+	Reason        whereHelpernull_String
 	Status        whereHelperstring
 	CreatedAt     whereHelpernull_Time
 	UpdatedAt     whereHelpernull_Time
-	Type          whereHelpernull_String
+	MinistryID    whereHelpernull_String
 }{
 	ID:            whereHelperstring{field: "\"approvals\".\"id\""},
 	RequesterID:   whereHelperstring{field: "\"approvals\".\"requester_id\""},
-	ApproverID:    whereHelpernull_String{field: "\"approvals\".\"approver_id\""},
+	UpdatedBy:     whereHelpernull_String{field: "\"approvals\".\"updated_by\""},
+	Type:          whereHelperstring{field: "\"approvals\".\"type\""},
 	RequestedRole: whereHelperstring{field: "\"approvals\".\"requested_role\""},
+	Reason:        whereHelpernull_String{field: "\"approvals\".\"reason\""},
 	Status:        whereHelperstring{field: "\"approvals\".\"status\""},
 	CreatedAt:     whereHelpernull_Time{field: "\"approvals\".\"created_at\""},
 	UpdatedAt:     whereHelpernull_Time{field: "\"approvals\".\"updated_at\""},
-	Type:          whereHelpernull_String{field: "\"approvals\".\"type\""},
+	MinistryID:    whereHelpernull_String{field: "\"approvals\".\"ministry_id\""},
 }
 
 // ApprovalRels is where relationship names are stored.
 var ApprovalRels = struct {
-}{}
+	Ministry      string
+	UpdatedByUser string
+}{
+	Ministry:      "Ministry",
+	UpdatedByUser: "UpdatedByUser",
+}
 
 // approvalR is where relationships are stored.
 type approvalR struct {
+	Ministry      *Ministry `boil:"Ministry" json:"Ministry" toml:"Ministry" yaml:"Ministry"`
+	UpdatedByUser *User     `boil:"UpdatedByUser" json:"UpdatedByUser" toml:"UpdatedByUser" yaml:"UpdatedByUser"`
 }
 
 // NewStruct creates a new relationship struct
@@ -213,13 +234,27 @@ func (*approvalR) NewStruct() *approvalR {
 	return &approvalR{}
 }
 
+func (r *approvalR) GetMinistry() *Ministry {
+	if r == nil {
+		return nil
+	}
+	return r.Ministry
+}
+
+func (r *approvalR) GetUpdatedByUser() *User {
+	if r == nil {
+		return nil
+	}
+	return r.UpdatedByUser
+}
+
 // approvalL is where Load methods for each relationship are stored.
 type approvalL struct{}
 
 var (
-	approvalAllColumns            = []string{"id", "requester_id", "approver_id", "requested_role", "status", "created_at", "updated_at", "type"}
-	approvalColumnsWithoutDefault = []string{"requester_id", "requested_role", "status"}
-	approvalColumnsWithDefault    = []string{"id", "approver_id", "created_at", "updated_at", "type"}
+	approvalAllColumns            = []string{"id", "requester_id", "updated_by", "type", "requested_role", "reason", "status", "created_at", "updated_at", "ministry_id"}
+	approvalColumnsWithoutDefault = []string{"requester_id", "type", "requested_role", "status"}
+	approvalColumnsWithDefault    = []string{"id", "updated_by", "reason", "created_at", "updated_at", "ministry_id"}
 	approvalPrimaryKeyColumns     = []string{"id"}
 	approvalGeneratedColumns      = []string{}
 )
@@ -527,6 +562,436 @@ func (q approvalQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (b
 	}
 
 	return count > 0, nil
+}
+
+// Ministry pointed to by the foreign key.
+func (o *Approval) Ministry(mods ...qm.QueryMod) ministryQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.MinistryID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Ministries(queryMods...)
+}
+
+// UpdatedByUser pointed to by the foreign key.
+func (o *Approval) UpdatedByUser(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.UpdatedBy),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Users(queryMods...)
+}
+
+// LoadMinistry allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (approvalL) LoadMinistry(ctx context.Context, e boil.ContextExecutor, singular bool, maybeApproval interface{}, mods queries.Applicator) error {
+	var slice []*Approval
+	var object *Approval
+
+	if singular {
+		var ok bool
+		object, ok = maybeApproval.(*Approval)
+		if !ok {
+			object = new(Approval)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeApproval)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeApproval))
+			}
+		}
+	} else {
+		s, ok := maybeApproval.(*[]*Approval)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeApproval)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeApproval))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &approvalR{}
+		}
+		if !queries.IsNil(object.MinistryID) {
+			args[object.MinistryID] = struct{}{}
+		}
+
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &approvalR{}
+			}
+
+			if !queries.IsNil(obj.MinistryID) {
+				args[obj.MinistryID] = struct{}{}
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`ministries`),
+		qm.WhereIn(`ministries.id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Ministry")
+	}
+
+	var resultSlice []*Ministry
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Ministry")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for ministries")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for ministries")
+	}
+
+	if len(ministryAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Ministry = foreign
+		if foreign.R == nil {
+			foreign.R = &ministryR{}
+		}
+		foreign.R.Approvals = append(foreign.R.Approvals, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.MinistryID, foreign.ID) {
+				local.R.Ministry = foreign
+				if foreign.R == nil {
+					foreign.R = &ministryR{}
+				}
+				foreign.R.Approvals = append(foreign.R.Approvals, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadUpdatedByUser allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (approvalL) LoadUpdatedByUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeApproval interface{}, mods queries.Applicator) error {
+	var slice []*Approval
+	var object *Approval
+
+	if singular {
+		var ok bool
+		object, ok = maybeApproval.(*Approval)
+		if !ok {
+			object = new(Approval)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeApproval)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeApproval))
+			}
+		}
+	} else {
+		s, ok := maybeApproval.(*[]*Approval)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeApproval)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeApproval))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &approvalR{}
+		}
+		if !queries.IsNil(object.UpdatedBy) {
+			args[object.UpdatedBy] = struct{}{}
+		}
+
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &approvalR{}
+			}
+
+			if !queries.IsNil(obj.UpdatedBy) {
+				args[obj.UpdatedBy] = struct{}{}
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`users`),
+		qm.WhereIn(`users.id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(userAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.UpdatedByUser = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.UpdatedByApprovals = append(foreign.R.UpdatedByApprovals, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.UpdatedBy, foreign.ID) {
+				local.R.UpdatedByUser = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.UpdatedByApprovals = append(foreign.R.UpdatedByApprovals, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetMinistry of the approval to the related item.
+// Sets o.R.Ministry to related.
+// Adds o to related.R.Approvals.
+func (o *Approval) SetMinistry(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Ministry) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"approvals\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"ministry_id"}),
+		strmangle.WhereClause("\"", "\"", 2, approvalPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.MinistryID, related.ID)
+	if o.R == nil {
+		o.R = &approvalR{
+			Ministry: related,
+		}
+	} else {
+		o.R.Ministry = related
+	}
+
+	if related.R == nil {
+		related.R = &ministryR{
+			Approvals: ApprovalSlice{o},
+		}
+	} else {
+		related.R.Approvals = append(related.R.Approvals, o)
+	}
+
+	return nil
+}
+
+// RemoveMinistry relationship.
+// Sets o.R.Ministry to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *Approval) RemoveMinistry(ctx context.Context, exec boil.ContextExecutor, related *Ministry) error {
+	var err error
+
+	queries.SetScanner(&o.MinistryID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("ministry_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.Ministry = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.Approvals {
+		if queries.Equal(o.MinistryID, ri.MinistryID) {
+			continue
+		}
+
+		ln := len(related.R.Approvals)
+		if ln > 1 && i < ln-1 {
+			related.R.Approvals[i] = related.R.Approvals[ln-1]
+		}
+		related.R.Approvals = related.R.Approvals[:ln-1]
+		break
+	}
+	return nil
+}
+
+// SetUpdatedByUser of the approval to the related item.
+// Sets o.R.UpdatedByUser to related.
+// Adds o to related.R.UpdatedByApprovals.
+func (o *Approval) SetUpdatedByUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"approvals\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"updated_by"}),
+		strmangle.WhereClause("\"", "\"", 2, approvalPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.UpdatedBy, related.ID)
+	if o.R == nil {
+		o.R = &approvalR{
+			UpdatedByUser: related,
+		}
+	} else {
+		o.R.UpdatedByUser = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			UpdatedByApprovals: ApprovalSlice{o},
+		}
+	} else {
+		related.R.UpdatedByApprovals = append(related.R.UpdatedByApprovals, o)
+	}
+
+	return nil
+}
+
+// RemoveUpdatedByUser relationship.
+// Sets o.R.UpdatedByUser to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *Approval) RemoveUpdatedByUser(ctx context.Context, exec boil.ContextExecutor, related *User) error {
+	var err error
+
+	queries.SetScanner(&o.UpdatedBy, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("updated_by")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.UpdatedByUser = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.UpdatedByApprovals {
+		if queries.Equal(o.UpdatedBy, ri.UpdatedBy) {
+			continue
+		}
+
+		ln := len(related.R.UpdatedByApprovals)
+		if ln > 1 && i < ln-1 {
+			related.R.UpdatedByApprovals[i] = related.R.UpdatedByApprovals[ln-1]
+		}
+		related.R.UpdatedByApprovals = related.R.UpdatedByApprovals[:ln-1]
+		break
+	}
+	return nil
 }
 
 // Approvals retrieves all the records using an executor.

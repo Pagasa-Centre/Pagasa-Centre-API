@@ -115,35 +115,38 @@ var UserWhere = struct {
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-	CellLeader       string
-	Outreach         string
-	CellGroups       string
-	LeaderCellGroups string
-	LeaderMinistries string
-	MinistryLeaders  string
-	UserRoles        string
-	CellLeaderUsers  string
+	CellLeader         string
+	Outreach           string
+	UpdatedByApprovals string
+	CellGroups         string
+	LeaderCellGroups   string
+	LeaderMinistries   string
+	MinistryLeaders    string
+	UserRoles          string
+	CellLeaderUsers    string
 }{
-	CellLeader:       "CellLeader",
-	Outreach:         "Outreach",
-	CellGroups:       "CellGroups",
-	LeaderCellGroups: "LeaderCellGroups",
-	LeaderMinistries: "LeaderMinistries",
-	MinistryLeaders:  "MinistryLeaders",
-	UserRoles:        "UserRoles",
-	CellLeaderUsers:  "CellLeaderUsers",
+	CellLeader:         "CellLeader",
+	Outreach:           "Outreach",
+	UpdatedByApprovals: "UpdatedByApprovals",
+	CellGroups:         "CellGroups",
+	LeaderCellGroups:   "LeaderCellGroups",
+	LeaderMinistries:   "LeaderMinistries",
+	MinistryLeaders:    "MinistryLeaders",
+	UserRoles:          "UserRoles",
+	CellLeaderUsers:    "CellLeaderUsers",
 }
 
 // userR is where relationships are stored.
 type userR struct {
-	CellLeader       *User               `boil:"CellLeader" json:"CellLeader" toml:"CellLeader" yaml:"CellLeader"`
-	Outreach         *Outreach           `boil:"Outreach" json:"Outreach" toml:"Outreach" yaml:"Outreach"`
-	CellGroups       CellGroupSlice      `boil:"CellGroups" json:"CellGroups" toml:"CellGroups" yaml:"CellGroups"`
-	LeaderCellGroups CellGroupSlice      `boil:"LeaderCellGroups" json:"LeaderCellGroups" toml:"LeaderCellGroups" yaml:"LeaderCellGroups"`
-	LeaderMinistries MinistrySlice       `boil:"LeaderMinistries" json:"LeaderMinistries" toml:"LeaderMinistries" yaml:"LeaderMinistries"`
-	MinistryLeaders  MinistryLeaderSlice `boil:"MinistryLeaders" json:"MinistryLeaders" toml:"MinistryLeaders" yaml:"MinistryLeaders"`
-	UserRoles        UserRoleSlice       `boil:"UserRoles" json:"UserRoles" toml:"UserRoles" yaml:"UserRoles"`
-	CellLeaderUsers  UserSlice           `boil:"CellLeaderUsers" json:"CellLeaderUsers" toml:"CellLeaderUsers" yaml:"CellLeaderUsers"`
+	CellLeader         *User               `boil:"CellLeader" json:"CellLeader" toml:"CellLeader" yaml:"CellLeader"`
+	Outreach           *Outreach           `boil:"Outreach" json:"Outreach" toml:"Outreach" yaml:"Outreach"`
+	UpdatedByApprovals ApprovalSlice       `boil:"UpdatedByApprovals" json:"UpdatedByApprovals" toml:"UpdatedByApprovals" yaml:"UpdatedByApprovals"`
+	CellGroups         CellGroupSlice      `boil:"CellGroups" json:"CellGroups" toml:"CellGroups" yaml:"CellGroups"`
+	LeaderCellGroups   CellGroupSlice      `boil:"LeaderCellGroups" json:"LeaderCellGroups" toml:"LeaderCellGroups" yaml:"LeaderCellGroups"`
+	LeaderMinistries   MinistrySlice       `boil:"LeaderMinistries" json:"LeaderMinistries" toml:"LeaderMinistries" yaml:"LeaderMinistries"`
+	MinistryLeaders    MinistryLeaderSlice `boil:"MinistryLeaders" json:"MinistryLeaders" toml:"MinistryLeaders" yaml:"MinistryLeaders"`
+	UserRoles          UserRoleSlice       `boil:"UserRoles" json:"UserRoles" toml:"UserRoles" yaml:"UserRoles"`
+	CellLeaderUsers    UserSlice           `boil:"CellLeaderUsers" json:"CellLeaderUsers" toml:"CellLeaderUsers" yaml:"CellLeaderUsers"`
 }
 
 // NewStruct creates a new relationship struct
@@ -163,6 +166,13 @@ func (r *userR) GetOutreach() *Outreach {
 		return nil
 	}
 	return r.Outreach
+}
+
+func (r *userR) GetUpdatedByApprovals() ApprovalSlice {
+	if r == nil {
+		return nil
+	}
+	return r.UpdatedByApprovals
 }
 
 func (r *userR) GetCellGroups() CellGroupSlice {
@@ -545,6 +555,20 @@ func (o *User) Outreach(mods ...qm.QueryMod) outreachQuery {
 	return Outreaches(queryMods...)
 }
 
+// UpdatedByApprovals retrieves all the approval's Approvals with an executor via updated_by column.
+func (o *User) UpdatedByApprovals(mods ...qm.QueryMod) approvalQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"approvals\".\"updated_by\"=?", o.ID),
+	)
+
+	return Approvals(queryMods...)
+}
+
 // CellGroups retrieves all the cell_group's CellGroups with an executor.
 func (o *User) CellGroups(mods ...qm.QueryMod) cellGroupQuery {
 	var queryMods []qm.QueryMod
@@ -870,6 +894,119 @@ func (userL) LoadOutreach(ctx context.Context, e boil.ContextExecutor, singular 
 					foreign.R = &outreachR{}
 				}
 				foreign.R.Users = append(foreign.R.Users, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadUpdatedByApprovals allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadUpdatedByApprovals(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		var ok bool
+		object, ok = maybeUser.(*User)
+		if !ok {
+			object = new(User)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeUser))
+			}
+		}
+	} else {
+		s, ok := maybeUser.(*[]*User)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeUser)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeUser))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`approvals`),
+		qm.WhereIn(`approvals.updated_by in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load approvals")
+	}
+
+	var resultSlice []*Approval
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice approvals")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on approvals")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for approvals")
+	}
+
+	if len(approvalAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.UpdatedByApprovals = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &approvalR{}
+			}
+			foreign.R.UpdatedByUser = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.UpdatedBy) {
+				local.R.UpdatedByApprovals = append(local.R.UpdatedByApprovals, foreign)
+				if foreign.R == nil {
+					foreign.R = &approvalR{}
+				}
+				foreign.R.UpdatedByUser = local
 				break
 			}
 		}
@@ -1730,6 +1867,133 @@ func (o *User) RemoveOutreach(ctx context.Context, exec boil.ContextExecutor, re
 		related.R.Users = related.R.Users[:ln-1]
 		break
 	}
+	return nil
+}
+
+// AddUpdatedByApprovals adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.UpdatedByApprovals.
+// Sets related.R.UpdatedByUser appropriately.
+func (o *User) AddUpdatedByApprovals(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Approval) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.UpdatedBy, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"approvals\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"updated_by"}),
+				strmangle.WhereClause("\"", "\"", 2, approvalPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.UpdatedBy, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			UpdatedByApprovals: related,
+		}
+	} else {
+		o.R.UpdatedByApprovals = append(o.R.UpdatedByApprovals, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &approvalR{
+				UpdatedByUser: o,
+			}
+		} else {
+			rel.R.UpdatedByUser = o
+		}
+	}
+	return nil
+}
+
+// SetUpdatedByApprovals removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.UpdatedByUser's UpdatedByApprovals accordingly.
+// Replaces o.R.UpdatedByApprovals with related.
+// Sets related.R.UpdatedByUser's UpdatedByApprovals accordingly.
+func (o *User) SetUpdatedByApprovals(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Approval) error {
+	query := "update \"approvals\" set \"updated_by\" = null where \"updated_by\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.UpdatedByApprovals {
+			queries.SetScanner(&rel.UpdatedBy, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.UpdatedByUser = nil
+		}
+		o.R.UpdatedByApprovals = nil
+	}
+
+	return o.AddUpdatedByApprovals(ctx, exec, insert, related...)
+}
+
+// RemoveUpdatedByApprovals relationships from objects passed in.
+// Removes related items from R.UpdatedByApprovals (uses pointer comparison, removal does not keep order)
+// Sets related.R.UpdatedByUser.
+func (o *User) RemoveUpdatedByApprovals(ctx context.Context, exec boil.ContextExecutor, related ...*Approval) error {
+	if len(related) == 0 {
+		return nil
+	}
+
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.UpdatedBy, nil)
+		if rel.R != nil {
+			rel.R.UpdatedByUser = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("updated_by")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.UpdatedByApprovals {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.UpdatedByApprovals)
+			if ln > 1 && i < ln-1 {
+				o.R.UpdatedByApprovals[i] = o.R.UpdatedByApprovals[ln-1]
+			}
+			o.R.UpdatedByApprovals = o.R.UpdatedByApprovals[:ln-1]
+			break
+		}
+	}
+
 	return nil
 }
 

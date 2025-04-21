@@ -2,6 +2,8 @@ package ministry
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"go.uber.org/zap"
@@ -12,14 +14,13 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
-	domain2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/domain"
 	usercontracts "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/contracts"
 )
 
 type MinistryService interface {
 	All(ctx context.Context) ([]*domain.Ministry, error)
 	AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error
-	SendApplication(ctx context.Context, userID, ministryID string) error
+	SendApplication(ctx context.Context, userID, ministryID, reason string) error
 	GetByID(ctx context.Context, ministryID string) (*domain.Ministry, error)
 }
 
@@ -47,6 +48,8 @@ func NewMinistryService(
 	}
 }
 
+var ErrMinistryNotFound = errors.New("ministry not found")
+
 func (ms *service) AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error {
 	err := ms.ministryRepo.AssignLeaderToMinistry(ctx, ministryID, userID)
 	if err != nil {
@@ -70,37 +73,37 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 	return ministries, nil
 }
 
-func (ms *service) SendApplication(ctx context.Context, userID, ministryID string) error {
-	ms.logger.Info("Sending application to Ministry Leader")
-	// 1. Fetch Ministry Leader details(phone number & userID) via ministryID
+func (ms *service) SendApplication(ctx context.Context, userID, ministryID, reason string) error {
+	ms.logger.With(
+		zap.String("userID", userID),
+		zap.String("ministryID", ministryID)).Info("Sending application to Ministry Leader")
+
 	ministryDetails, err := ms.ministryRepo.GetMinistryByID(ctx, ministryID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return ErrMinistryNotFound
+		}
+
 		return err
 	}
 
-	var leaderID string
-	if ministryDetails.LeaderID.Valid {
-		leaderID = ministryDetails.LeaderID.String
-	}
-
-	leaderDetails, err := ms.userService.GetUserById(ctx, leaderID)
+	ministryLeadersDetails, err := ms.ministryRepo.GetMinistryLeaderUsersByMinistryID(ctx, ministryID)
 	if err != nil {
 		return err
 	}
 
-	var requestedRole string
-
-	requestedRole, err = ms.GetRequestedRole(ministryDetails.Name)
-	if err != nil {
-		return err
+	var leadersPhoneNumbers []string
+	for _, user := range ministryLeadersDetails {
+		leadersPhoneNumbers = append(leadersPhoneNumbers, formatUKPhoneNumber(user.Phone.String))
 	}
 
-	// 2. Create New Approval (Type,requester_id, approver_id,status)
+	roleName := fmt.Sprintf("%s Member", ministryDetails.Name)
+
 	approval := &approvalDomain.Approval{
 		RequesterID:   userID,
-		ApproverID:    &leaderDetails.ID,
-		RequestedRole: requestedRole,
+		RequestedRole: roleName,
 		Type:          approvalDomain.MinistryApplication,
+		Reason:        reason,
 		Status:        approvalDomain.Pending,
 	}
 
@@ -109,32 +112,19 @@ func (ms *service) SendApplication(ctx context.Context, userID, ministryID strin
 		return err
 	}
 
-	leaderPhoneNumber := formatUKPhoneNumber(leaderDetails.PhoneNumber)
-
-	// 4. Construct and send Message to notify ministry leader that an application has been made
+	// 4. Construct and send Message to notify ministry leaders that an application has been made
 	messageText := "You have received a new application for one of your ministries. Login to the website or mobile app for more details."
 
 	// 5. Send SMS
-	err = ms.communicationService.SendSMS(leaderPhoneNumber, messageText)
-	if err != nil {
-		return err
+	for _, phoneNumber := range leadersPhoneNumbers {
+		err = ms.communicationService.SendSMS(phoneNumber, messageText)
+		ms.logger.Error("Failed to send SMS to ministry leader",
+			zap.String("phone", phoneNumber),
+			zap.Error(err),
+		)
 	}
 
 	return nil
-}
-
-func (ms *service) GetRequestedRole(ministryName string) (string, error) {
-	switch ministryName {
-	case domain2.RoleMediaMinistry,
-		domain2.RoleChildrensMinistry,
-		domain2.RoleCreativeArtsMinistry,
-		domain2.RoleMusicMinistry,
-		domain2.RoleProductionMinistry,
-		domain2.RoleUsheringSecurity:
-		return ministryName, nil
-	default:
-		return "", fmt.Errorf("unknown ministry %s", ministryName)
-	}
 }
 
 func (ms *service) GetByID(ctx context.Context, ministryID string) (*domain.Ministry, error) {

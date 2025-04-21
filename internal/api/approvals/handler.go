@@ -1,6 +1,7 @@
 package approvals
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -33,6 +34,10 @@ func NewApprovalHandler(
 	}
 }
 
+const (
+	InternalServerErrorMsg = "Internal server error. Please try again later."
+)
+
 func (h *handler) All() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -45,7 +50,7 @@ func (h *handler) All() http.HandlerFunc {
 				http.StatusInternalServerError,
 				mappers.ToGetAllApprovalsResponse(
 					nil,
-					"Failed to get all approvals",
+					InternalServerErrorMsg,
 				))
 		}
 
@@ -64,7 +69,7 @@ func (h *handler) UpdateApprovalStatus() http.HandlerFunc {
 		if approvalID == "" {
 			render.Json(w, http.StatusBadRequest,
 				mappers.ToUpdateApprovalStatusResponse(
-					"id is required",
+					"approval id is required",
 				),
 			)
 
@@ -86,9 +91,12 @@ func (h *handler) UpdateApprovalStatus() http.HandlerFunc {
 		err := h.approvalService.UpdateApprovalStatus(ctx, approvalID, req.Status)
 		if err != nil {
 			h.logger.Sugar().Errorw("Failed to update approval status", "error", err)
-			render.Json(w, http.StatusInternalServerError,
+
+			statusCode, errMsg := mapErrorsToStatusCodeAndUserFriendlyMessages(err)
+
+			render.Json(w, statusCode,
 				mappers.ToUpdateApprovalStatusResponse(
-					"something went wrong. please try again later",
+					errMsg,
 				),
 			)
 
@@ -100,5 +108,14 @@ func (h *handler) UpdateApprovalStatus() http.HandlerFunc {
 				"Successfully updated approval status",
 			),
 		)
+	}
+}
+
+func mapErrorsToStatusCodeAndUserFriendlyMessages(err error) (int, string) {
+	switch {
+	case errors.Is(err, approvals.ErrNoPermission):
+		return http.StatusForbidden, "You do not have permission to approve or reject this application."
+	default:
+		return http.StatusInternalServerError, InternalServerErrorMsg
 	}
 }

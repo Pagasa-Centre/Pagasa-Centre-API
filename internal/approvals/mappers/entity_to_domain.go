@@ -17,22 +17,23 @@ func EntityToDomainApprovals(entities []*entity.Approval) []*domain.Approval {
 			continue
 		}
 
-		var approverID *string
-		if ent.ApproverID.Valid {
-			approverID = &ent.ApproverID.String
+		var updatedBy *string
+		if ent.UpdatedBy.Valid {
+			updatedBy = &ent.UpdatedBy.String
 		}
 
-		var approvalType string
-		if ent.Type.Valid {
-			approvalType = ent.Type.String
+		var reason string
+		if ent.Reason.Valid {
+			reason = ent.Reason.String
 		}
 
 		approval := &domain.Approval{
 			ID:            ent.ID,
 			RequesterID:   ent.RequesterID,
-			ApproverID:    approverID,
+			UpdatedBy:     updatedBy,
 			RequestedRole: ent.RequestedRole,
-			Type:          approvalType,
+			Reason:        reason,
+			Type:          ent.Type,
 			Status:        ent.Status,
 		}
 

@@ -8,6 +8,8 @@ import "testing"
 // TestToOne tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOne(t *testing.T) {
+	t.Run("ApprovalToMinistryUsingMinistry", testApprovalToOneMinistryUsingMinistry)
+	t.Run("ApprovalToUserUsingUpdatedByUser", testApprovalToOneUserUsingUpdatedByUser)
 	t.Run("CellGroupToUserUsingLeader", testCellGroupToOneUserUsingLeader)
 	t.Run("EventDayToEventUsingEvent", testEventDayToOneEventUsingEvent)
 	t.Run("MinistryToUserUsingLeader", testMinistryToOneUserUsingLeader)
@@ -30,11 +32,13 @@ func TestOneToOne(t *testing.T) {}
 func TestToMany(t *testing.T) {
 	t.Run("CellGroupToUsers", testCellGroupToManyUsers)
 	t.Run("EventToEventDays", testEventToManyEventDays)
+	t.Run("MinistryToApprovals", testMinistryToManyApprovals)
 	t.Run("MinistryToMinistryLeaders", testMinistryToManyMinistryLeaders)
 	t.Run("OutreachToMinistries", testOutreachToManyMinistries)
 	t.Run("OutreachToOutreachServices", testOutreachToManyOutreachServices)
 	t.Run("OutreachToUsers", testOutreachToManyUsers)
 	t.Run("RoleToUserRoles", testRoleToManyUserRoles)
+	t.Run("UserToUpdatedByApprovals", testUserToManyUpdatedByApprovals)
 	t.Run("UserToCellGroups", testUserToManyCellGroups)
 	t.Run("UserToLeaderCellGroups", testUserToManyLeaderCellGroups)
 	t.Run("UserToLeaderMinistries", testUserToManyLeaderMinistries)
@@ -46,6 +50,8 @@ func TestToMany(t *testing.T) {
 // TestToOneSet tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneSet(t *testing.T) {
+	t.Run("ApprovalToMinistryUsingApprovals", testApprovalToOneSetOpMinistryUsingMinistry)
+	t.Run("ApprovalToUserUsingUpdatedByApprovals", testApprovalToOneSetOpUserUsingUpdatedByUser)
 	t.Run("CellGroupToUserUsingLeaderCellGroups", testCellGroupToOneSetOpUserUsingLeader)
 	t.Run("EventDayToEventUsingEventDays", testEventDayToOneSetOpEventUsingEvent)
 	t.Run("MinistryToUserUsingLeaderMinistries", testMinistryToOneSetOpUserUsingLeader)
@@ -62,6 +68,8 @@ func TestToOneSet(t *testing.T) {
 // TestToOneRemove tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToOneRemove(t *testing.T) {
+	t.Run("ApprovalToMinistryUsingApprovals", testApprovalToOneRemoveOpMinistryUsingMinistry)
+	t.Run("ApprovalToUserUsingUpdatedByApprovals", testApprovalToOneRemoveOpUserUsingUpdatedByUser)
 	t.Run("CellGroupToUserUsingLeaderCellGroups", testCellGroupToOneRemoveOpUserUsingLeader)
 	t.Run("MinistryToUserUsingLeaderMinistries", testMinistryToOneRemoveOpUserUsingLeader)
 	t.Run("UserToUserUsingCellLeaderUsers", testUserToOneRemoveOpUserUsingCellLeader)
@@ -81,11 +89,13 @@ func TestOneToOneRemove(t *testing.T) {}
 func TestToManyAdd(t *testing.T) {
 	t.Run("CellGroupToUsers", testCellGroupToManyAddOpUsers)
 	t.Run("EventToEventDays", testEventToManyAddOpEventDays)
+	t.Run("MinistryToApprovals", testMinistryToManyAddOpApprovals)
 	t.Run("MinistryToMinistryLeaders", testMinistryToManyAddOpMinistryLeaders)
 	t.Run("OutreachToMinistries", testOutreachToManyAddOpMinistries)
 	t.Run("OutreachToOutreachServices", testOutreachToManyAddOpOutreachServices)
 	t.Run("OutreachToUsers", testOutreachToManyAddOpUsers)
 	t.Run("RoleToUserRoles", testRoleToManyAddOpUserRoles)
+	t.Run("UserToUpdatedByApprovals", testUserToManyAddOpUpdatedByApprovals)
 	t.Run("UserToCellGroups", testUserToManyAddOpCellGroups)
 	t.Run("UserToLeaderCellGroups", testUserToManyAddOpLeaderCellGroups)
 	t.Run("UserToLeaderMinistries", testUserToManyAddOpLeaderMinistries)
@@ -98,7 +108,9 @@ func TestToManyAdd(t *testing.T) {
 // or deadlocks can occur.
 func TestToManySet(t *testing.T) {
 	t.Run("CellGroupToUsers", testCellGroupToManySetOpUsers)
+	t.Run("MinistryToApprovals", testMinistryToManySetOpApprovals)
 	t.Run("OutreachToUsers", testOutreachToManySetOpUsers)
+	t.Run("UserToUpdatedByApprovals", testUserToManySetOpUpdatedByApprovals)
 	t.Run("UserToCellGroups", testUserToManySetOpCellGroups)
 	t.Run("UserToLeaderCellGroups", testUserToManySetOpLeaderCellGroups)
 	t.Run("UserToLeaderMinistries", testUserToManySetOpLeaderMinistries)
@@ -109,7 +121,9 @@ func TestToManySet(t *testing.T) {
 // or deadlocks can occur.
 func TestToManyRemove(t *testing.T) {
 	t.Run("CellGroupToUsers", testCellGroupToManyRemoveOpUsers)
+	t.Run("MinistryToApprovals", testMinistryToManyRemoveOpApprovals)
 	t.Run("OutreachToUsers", testOutreachToManyRemoveOpUsers)
+	t.Run("UserToUpdatedByApprovals", testUserToManyRemoveOpUpdatedByApprovals)
 	t.Run("UserToCellGroups", testUserToManyRemoveOpCellGroups)
 	t.Run("UserToLeaderCellGroups", testUserToManyRemoveOpLeaderCellGroups)
 	t.Run("UserToLeaderMinistries", testUserToManyRemoveOpLeaderMinistries)

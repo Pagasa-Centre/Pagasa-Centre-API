@@ -15,7 +15,7 @@ migrate-down:
 .PHONY: migrate-down
 
 migrate-create:
-	@cd ./migrations && goose create  create_ministry_leaders_table sql
+	@cd ./migrations && goose create add_ministryid_column_to_approvals sql
 .PHONY: migrate-create
 
 

@@ -494,6 +494,83 @@ func testMinistriesInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testMinistryToManyApprovals(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Ministry
+	var b, c Approval
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, ministryDBTypes, true, ministryColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Ministry struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, approvalDBTypes, false, approvalColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, approvalDBTypes, false, approvalColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&b.MinistryID, a.ID)
+	queries.Assign(&c.MinistryID, a.ID)
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.Approvals().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if queries.Equal(v.MinistryID, b.MinistryID) {
+			bFound = true
+		}
+		if queries.Equal(v.MinistryID, c.MinistryID) {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := MinistrySlice{&a}
+	if err = a.L.LoadApprovals(ctx, tx, false, (*[]*Ministry)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Approvals); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Approvals = nil
+	if err = a.L.LoadApprovals(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Approvals); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testMinistryToManyMinistryLeaders(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -569,6 +646,257 @@ func testMinistryToManyMinistryLeaders(t *testing.T) {
 
 	if t.Failed() {
 		t.Logf("%#v", check)
+	}
+}
+
+func testMinistryToManyAddOpApprovals(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Ministry
+	var b, c, d, e Approval
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Approval{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Approval{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddApprovals(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if !queries.Equal(a.ID, first.MinistryID) {
+			t.Error("foreign key was wrong value", a.ID, first.MinistryID)
+		}
+		if !queries.Equal(a.ID, second.MinistryID) {
+			t.Error("foreign key was wrong value", a.ID, second.MinistryID)
+		}
+
+		if first.R.Ministry != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Ministry != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Approvals[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Approvals[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.Approvals().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testMinistryToManySetOpApprovals(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Ministry
+	var b, c, d, e Approval
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Approval{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetApprovals(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.Approvals().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetApprovals(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.Approvals().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.MinistryID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.MinistryID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if !queries.Equal(a.ID, d.MinistryID) {
+		t.Error("foreign key was wrong value", a.ID, d.MinistryID)
+	}
+	if !queries.Equal(a.ID, e.MinistryID) {
+		t.Error("foreign key was wrong value", a.ID, e.MinistryID)
+	}
+
+	if b.R.Ministry != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Ministry != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Ministry != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.Ministry != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.Approvals[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.Approvals[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testMinistryToManyRemoveOpApprovals(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Ministry
+	var b, c, d, e Approval
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Approval{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddApprovals(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.Approvals().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveApprovals(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.Approvals().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.MinistryID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.MinistryID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.Ministry != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Ministry != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Ministry != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.Ministry != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.Approvals) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.Approvals[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.Approvals[0] != &e {
+		t.Error("relationship to e should have been preserved")
 	}
 }
 

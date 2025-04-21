@@ -494,6 +494,346 @@ func testApprovalsInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testApprovalToOneMinistryUsingMinistry(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local Approval
+	var foreign Ministry
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, approvalDBTypes, true, approvalColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Approval struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, ministryDBTypes, false, ministryColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Ministry struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&local.MinistryID, foreign.ID)
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.Ministry().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !queries.Equal(check.ID, foreign.ID) {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	ranAfterSelectHook := false
+	AddMinistryHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *Ministry) error {
+		ranAfterSelectHook = true
+		return nil
+	})
+
+	slice := ApprovalSlice{&local}
+	if err = local.L.LoadMinistry(ctx, tx, false, (*[]*Approval)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Ministry == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Ministry = nil
+	if err = local.L.LoadMinistry(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Ministry == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	if !ranAfterSelectHook {
+		t.Error("failed to run AfterSelect hook for relationship")
+	}
+}
+
+func testApprovalToOneUserUsingUpdatedByUser(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local Approval
+	var foreign User
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, approvalDBTypes, true, approvalColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Approval struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, userDBTypes, false, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&local.UpdatedBy, foreign.ID)
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.UpdatedByUser().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !queries.Equal(check.ID, foreign.ID) {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	ranAfterSelectHook := false
+	AddUserHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *User) error {
+		ranAfterSelectHook = true
+		return nil
+	})
+
+	slice := ApprovalSlice{&local}
+	if err = local.L.LoadUpdatedByUser(ctx, tx, false, (*[]*Approval)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.UpdatedByUser == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.UpdatedByUser = nil
+	if err = local.L.LoadUpdatedByUser(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.UpdatedByUser == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	if !ranAfterSelectHook {
+		t.Error("failed to run AfterSelect hook for relationship")
+	}
+}
+
+func testApprovalToOneSetOpMinistryUsingMinistry(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Approval
+	var b, c Ministry
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Ministry{&b, &c} {
+		err = a.SetMinistry(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Ministry != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Approvals[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if !queries.Equal(a.MinistryID, x.ID) {
+			t.Error("foreign key was wrong value", a.MinistryID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.MinistryID))
+		reflect.Indirect(reflect.ValueOf(&a.MinistryID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if !queries.Equal(a.MinistryID, x.ID) {
+			t.Error("foreign key was wrong value", a.MinistryID, x.ID)
+		}
+	}
+}
+
+func testApprovalToOneRemoveOpMinistryUsingMinistry(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Approval
+	var b Ministry
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetMinistry(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveMinistry(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.Ministry().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Ministry != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.MinistryID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.Approvals) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
+func testApprovalToOneSetOpUserUsingUpdatedByUser(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Approval
+	var b, c User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*User{&b, &c} {
+		err = a.SetUpdatedByUser(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.UpdatedByUser != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.UpdatedByApprovals[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if !queries.Equal(a.UpdatedBy, x.ID) {
+			t.Error("foreign key was wrong value", a.UpdatedBy)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.UpdatedBy))
+		reflect.Indirect(reflect.ValueOf(&a.UpdatedBy)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if !queries.Equal(a.UpdatedBy, x.ID) {
+			t.Error("foreign key was wrong value", a.UpdatedBy, x.ID)
+		}
+	}
+}
+
+func testApprovalToOneRemoveOpUserUsingUpdatedByUser(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Approval
+	var b User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, approvalDBTypes, false, strmangle.SetComplement(approvalPrimaryKeyColumns, approvalColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetUpdatedByUser(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveUpdatedByUser(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.UpdatedByUser().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.UpdatedByUser != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.UpdatedBy) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.UpdatedByApprovals) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
 func testApprovalsReload(t *testing.T) {
 	t.Parallel()
 
@@ -568,7 +908,7 @@ func testApprovalsSelect(t *testing.T) {
 }
 
 var (
-	approvalDBTypes = map[string]string{`ID`: `uuid`, `RequesterID`: `uuid`, `ApproverID`: `uuid`, `RequestedRole`: `text`, `Status`: `text`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`, `Type`: `text`}
+	approvalDBTypes = map[string]string{`ID`: `uuid`, `RequesterID`: `uuid`, `UpdatedBy`: `uuid`, `Type`: `text`, `RequestedRole`: `text`, `Reason`: `text`, `Status`: `text`, `CreatedAt`: `timestamp with time zone`, `UpdatedAt`: `timestamp with time zone`, `MinistryID`: `uuid`}
 	_               = bytes.MinRead
 )
 

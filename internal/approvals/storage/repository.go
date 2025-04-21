@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
@@ -13,10 +12,13 @@ import (
 
 type ApprovalRepository interface {
 	Insert(ctx context.Context, approval *entity.Approval) error
-	GetAllPendingApprovalsByUserID(ctx context.Context, userID string) (entity.ApprovalSlice, error)
+	GetAllPendingApprovalsByRequestedRole(ctx context.Context, requestedRole string) (entity.ApprovalSlice, error)
 	GetAllPendingApprovals(ctx context.Context) (entity.ApprovalSlice, error)
 	GetApprovalByID(ctx context.Context, approvalID string) (*entity.Approval, error)
 	Update(ctx context.Context, approval *entity.Approval) error
+	BeginTx(ctx context.Context) (*sqlx.Tx, error)
+	GetApprovalByIDTx(ctx context.Context, tx *sqlx.Tx, approvalID string) (*entity.Approval, error)
+	UpdateTx(ctx context.Context, tx *sqlx.Tx, approval *entity.Approval) error
 }
 
 type repository struct {
@@ -25,6 +27,19 @@ type repository struct {
 
 func NewApprovalRepository(db *sqlx.DB) ApprovalRepository {
 	return &repository{db: db}
+}
+
+func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
+	return r.db.BeginTxx(ctx, nil)
+}
+
+func (r *repository) UpdateTx(ctx context.Context, tx *sqlx.Tx, approval *entity.Approval) error {
+	_, err := approval.Update(ctx, tx, boil.Infer())
+	return err
+}
+
+func (r *repository) GetApprovalByIDTx(ctx context.Context, tx *sqlx.Tx, approvalID string) (*entity.Approval, error) {
+	return entity.Approvals(entity.ApprovalWhere.ID.EQ(approvalID)).One(ctx, tx)
 }
 
 func (r *repository) Insert(ctx context.Context, approval *entity.Approval) error {
@@ -36,9 +51,9 @@ func (r *repository) Insert(ctx context.Context, approval *entity.Approval) erro
 	return nil
 }
 
-func (r *repository) GetAllPendingApprovalsByUserID(ctx context.Context, userID string) (entity.ApprovalSlice, error) {
+func (r *repository) GetAllPendingApprovalsByRequestedRole(ctx context.Context, requestedRole string) (entity.ApprovalSlice, error) {
 	approvals, err := entity.Approvals(
-		entity.ApprovalWhere.ApproverID.EQ(null.StringFrom(userID)),
+		entity.ApprovalWhere.RequestedRole.EQ(requestedRole),
 		entity.ApprovalWhere.Status.EQ(domain.Pending),
 	).All(ctx, r.db)
 	if err != nil {
