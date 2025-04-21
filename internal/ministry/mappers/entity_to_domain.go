@@ -7,7 +7,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/domain"
 )
 
-func ToDomain(ministry *entity.Ministry, leaderNames []string) *domain.Ministry {
+func ToDomain(ministry *entity.Ministry, leaderNames, activities []string) *domain.Ministry {
 	var endTime *time.Time
 	if ministry.EndTime.Valid {
 		endTime = &ministry.EndTime.Time
@@ -40,5 +40,6 @@ func ToDomain(ministry *entity.Ministry, leaderNames []string) *domain.Ministry 
 		LongDescription:  longDescription,
 		ThumbnailURL:     thumbnailURL,
 		MinistryLeaders:  leaderNames,
+		Activities:       activities,
 	}
 }

@@ -21,4 +21,5 @@ type Ministry struct {
 	LongDescription  *string  `json:"long_description,omitempty"`
 	ThumbnailURL     *string  `json:"thumbnail_url,omitempty"`
 	MinistryLeaders  []string `json:"ministry_leaders,omitempty"` // TODO: PROFILE image url in the future
+	Activities       []string `json:"activities,omitempty"`
 }

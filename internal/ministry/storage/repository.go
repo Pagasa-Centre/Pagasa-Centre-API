@@ -13,6 +13,7 @@ type MinistryRepository interface {
 	GetAll(ctx context.Context) (entity.MinistrySlice, error)
 	GetMinistryByID(ctx context.Context, ministryID string) (*entity.Ministry, error)
 	GetMinistryLeaderUsersByMinistryID(ctx context.Context, ministryID string) (entity.UserSlice, error)
+	GetMinistryActivitiesByMinistryID(ctx context.Context, ministryID string) (entity.MinistryActivitySlice, error)
 }
 
 type repository struct {
@@ -73,4 +74,17 @@ func (repo *repository) GetMinistryLeaderUsersByMinistryID(ctx context.Context, 
 	}
 
 	return users, nil
+}
+
+func (repo *repository) GetMinistryActivitiesByMinistryID(ctx context.Context, ministryID string) (entity.MinistryActivitySlice, error) {
+	db := repo.db.DB
+
+	activities, err := entity.MinistryActivities(
+		entity.MinistryActivityWhere.MinistryID.EQ(ministryID),
+	).All(ctx, db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ministry activities: %w", err)
+	}
+
+	return activities, nil
 }

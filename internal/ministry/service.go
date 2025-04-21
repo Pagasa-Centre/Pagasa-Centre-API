@@ -70,7 +70,17 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 			ministryLeaderNames = append(ministryLeaderNames, name)
 		}
 
-		ministries = append(ministries, mappers.ToDomain(entity, ministryLeaderNames))
+		ministryActivites, err := ms.ministryRepo.GetMinistryActivitiesByMinistryID(ctx, entity.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get ministry activities: %s", err)
+		}
+
+		var activities []string
+		for _, ministryActivity := range ministryActivites {
+			activities = append(activities, ministryActivity.Name)
+		}
+
+		ministries = append(ministries, mappers.ToDomain(entity, ministryLeaderNames, activities))
 	}
 
 	return ministries, nil
@@ -148,7 +158,17 @@ func (ms *service) GetByID(ctx context.Context, ministryID string) (*domain.Mini
 		ministryLeaderNames = append(ministryLeaderNames, name)
 	}
 
-	ministryDomain := mappers.ToDomain(ministryEntity, ministryLeaderNames)
+	ministryActivites, err := ms.ministryRepo.GetMinistryActivitiesByMinistryID(ctx, ministryEntity.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ministry activities: %s", err)
+	}
+
+	var activities []string
+	for _, ministryActivity := range ministryActivites {
+		activities = append(activities, ministryActivity.Name)
+	}
+
+	ministryDomain := mappers.ToDomain(ministryEntity, ministryLeaderNames, activities)
 
 	return ministryDomain, nil
 }

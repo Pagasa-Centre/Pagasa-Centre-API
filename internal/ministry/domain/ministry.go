@@ -16,4 +16,5 @@ type Ministry struct {
 	LongDescription  string
 	ThumbnailURL     string
 	MinistryLeaders  []string
+	Activities       []string
 }

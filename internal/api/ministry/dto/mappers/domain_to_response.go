@@ -50,6 +50,7 @@ func toMinistries(ministry *domain.Ministry) *dto.Ministry {
 		LongDescription:  &ministry.LongDescription,
 		MinistryLeaders:  ministry.MinistryLeaders,
 		ThumbnailURL:     &ministry.ThumbnailURL,
+		Activities:       ministry.Activities,
 	}
 }
 
