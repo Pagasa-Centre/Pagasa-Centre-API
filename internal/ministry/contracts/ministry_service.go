@@ -7,6 +7,5 @@ import (
 )
 
 type MinistryService interface {
-	AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error
 	GetByID(ctx context.Context, ministryID string) (*domain.Ministry, error)
 }

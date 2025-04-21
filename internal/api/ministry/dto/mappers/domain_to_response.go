@@ -39,14 +39,17 @@ func toMinistries(ministry *domain.Ministry) *dto.Ministry {
 	}
 
 	return &dto.Ministry{
-		ID:              ministry.ID,
-		OutreachID:      ministry.OutreachID,
-		Name:            ministry.Name,
-		Description:     ministry.Description,
-		Day:             ministry.Day,
-		StartTime:       formattedStartTime,
-		EndTime:         formattedEndTime,
-		MeetingLocation: ministry.MeetingLocation,
+		ID:               ministry.ID,
+		OutreachID:       ministry.OutreachID,
+		Name:             ministry.Name,
+		Day:              ministry.Day,
+		StartTime:        formattedStartTime,
+		EndTime:          formattedEndTime,
+		MeetingLocation:  ministry.MeetingLocation,
+		ShortDescription: &ministry.ShortDescription,
+		LongDescription:  &ministry.LongDescription,
+		MinistryLeaders:  ministry.MinistryLeaders,
+		ThumbnailURL:     &ministry.ThumbnailURL,
 	}
 }
 

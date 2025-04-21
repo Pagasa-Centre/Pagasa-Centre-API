@@ -4,33 +4,35 @@
 package entity
 
 var TableNames = struct {
-	Approvals        string
-	CellGroupMembers string
-	CellGroups       string
-	EventDays        string
-	Events           string
-	GooseDBVersion   string
-	Media            string
-	Ministries       string
-	MinistryLeaders  string
-	OutreachServices string
-	Outreaches       string
-	Roles            string
-	UserRoles        string
-	Users            string
+	Approvals          string
+	CellGroupMembers   string
+	CellGroups         string
+	EventDays          string
+	Events             string
+	GooseDBVersion     string
+	Media              string
+	Ministries         string
+	MinistryActivities string
+	MinistryLeaders    string
+	OutreachServices   string
+	Outreaches         string
+	Roles              string
+	UserRoles          string
+	Users              string
 }{
-	Approvals:        "approvals",
-	CellGroupMembers: "cell_group_members",
-	CellGroups:       "cell_groups",
-	EventDays:        "event_days",
-	Events:           "events",
-	GooseDBVersion:   "goose_db_version",
-	Media:            "media",
-	Ministries:       "ministries",
-	MinistryLeaders:  "ministry_leaders",
-	OutreachServices: "outreach_services",
-	Outreaches:       "outreaches",
-	Roles:            "roles",
-	UserRoles:        "user_roles",
-	Users:            "users",
+	Approvals:          "approvals",
+	CellGroupMembers:   "cell_group_members",
+	CellGroups:         "cell_groups",
+	EventDays:          "event_days",
+	Events:             "events",
+	GooseDBVersion:     "goose_db_version",
+	Media:              "media",
+	Ministries:         "ministries",
+	MinistryActivities: "ministry_activities",
+	MinistryLeaders:    "ministry_leaders",
+	OutreachServices:   "outreach_services",
+	Outreaches:         "outreaches",
+	Roles:              "roles",
+	UserRoles:          "user_roles",
+	Users:              "users",
 }

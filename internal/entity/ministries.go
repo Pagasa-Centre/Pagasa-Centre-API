@@ -24,119 +24,126 @@ import (
 
 // Ministry is an object representing the database table.
 type Ministry struct {
-	ID              string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	OutreachID      string      `boil:"outreach_id" json:"outreach_id" toml:"outreach_id" yaml:"outreach_id"`
-	Name            string      `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Description     null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
-	LeaderID        null.String `boil:"leader_id" json:"leader_id,omitempty" toml:"leader_id" yaml:"leader_id,omitempty"`
-	MeetingDay      null.String `boil:"meeting_day" json:"meeting_day,omitempty" toml:"meeting_day" yaml:"meeting_day,omitempty"`
-	StartTime       time.Time   `boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
-	EndTime         null.Time   `boil:"end_time" json:"end_time,omitempty" toml:"end_time" yaml:"end_time,omitempty"`
-	MeetingLocation null.String `boil:"meeting_location" json:"meeting_location,omitempty" toml:"meeting_location" yaml:"meeting_location,omitempty"`
+	ID               string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	OutreachID       string      `boil:"outreach_id" json:"outreach_id" toml:"outreach_id" yaml:"outreach_id"`
+	Name             string      `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Description      null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
+	MeetingDay       null.String `boil:"meeting_day" json:"meeting_day,omitempty" toml:"meeting_day" yaml:"meeting_day,omitempty"`
+	StartTime        time.Time   `boil:"start_time" json:"start_time" toml:"start_time" yaml:"start_time"`
+	EndTime          null.Time   `boil:"end_time" json:"end_time,omitempty" toml:"end_time" yaml:"end_time,omitempty"`
+	MeetingLocation  null.String `boil:"meeting_location" json:"meeting_location,omitempty" toml:"meeting_location" yaml:"meeting_location,omitempty"`
+	ShortDescription null.String `boil:"short_description" json:"short_description,omitempty" toml:"short_description" yaml:"short_description,omitempty"`
+	LongDescription  null.String `boil:"long_description" json:"long_description,omitempty" toml:"long_description" yaml:"long_description,omitempty"`
+	ThumbnailURL     null.String `boil:"thumbnail_url" json:"thumbnail_url,omitempty" toml:"thumbnail_url" yaml:"thumbnail_url,omitempty"`
 
 	R *ministryR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L ministryL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var MinistryColumns = struct {
-	ID              string
-	OutreachID      string
-	Name            string
-	Description     string
-	LeaderID        string
-	MeetingDay      string
-	StartTime       string
-	EndTime         string
-	MeetingLocation string
+	ID               string
+	OutreachID       string
+	Name             string
+	Description      string
+	MeetingDay       string
+	StartTime        string
+	EndTime          string
+	MeetingLocation  string
+	ShortDescription string
+	LongDescription  string
+	ThumbnailURL     string
 }{
-	ID:              "id",
-	OutreachID:      "outreach_id",
-	Name:            "name",
-	Description:     "description",
-	LeaderID:        "leader_id",
-	MeetingDay:      "meeting_day",
-	StartTime:       "start_time",
-	EndTime:         "end_time",
-	MeetingLocation: "meeting_location",
+	ID:               "id",
+	OutreachID:       "outreach_id",
+	Name:             "name",
+	Description:      "description",
+	MeetingDay:       "meeting_day",
+	StartTime:        "start_time",
+	EndTime:          "end_time",
+	MeetingLocation:  "meeting_location",
+	ShortDescription: "short_description",
+	LongDescription:  "long_description",
+	ThumbnailURL:     "thumbnail_url",
 }
 
 var MinistryTableColumns = struct {
-	ID              string
-	OutreachID      string
-	Name            string
-	Description     string
-	LeaderID        string
-	MeetingDay      string
-	StartTime       string
-	EndTime         string
-	MeetingLocation string
+	ID               string
+	OutreachID       string
+	Name             string
+	Description      string
+	MeetingDay       string
+	StartTime        string
+	EndTime          string
+	MeetingLocation  string
+	ShortDescription string
+	LongDescription  string
+	ThumbnailURL     string
 }{
-	ID:              "ministries.id",
-	OutreachID:      "ministries.outreach_id",
-	Name:            "ministries.name",
-	Description:     "ministries.description",
-	LeaderID:        "ministries.leader_id",
-	MeetingDay:      "ministries.meeting_day",
-	StartTime:       "ministries.start_time",
-	EndTime:         "ministries.end_time",
-	MeetingLocation: "ministries.meeting_location",
+	ID:               "ministries.id",
+	OutreachID:       "ministries.outreach_id",
+	Name:             "ministries.name",
+	Description:      "ministries.description",
+	MeetingDay:       "ministries.meeting_day",
+	StartTime:        "ministries.start_time",
+	EndTime:          "ministries.end_time",
+	MeetingLocation:  "ministries.meeting_location",
+	ShortDescription: "ministries.short_description",
+	LongDescription:  "ministries.long_description",
+	ThumbnailURL:     "ministries.thumbnail_url",
 }
 
 // Generated where
 
 var MinistryWhere = struct {
-	ID              whereHelperstring
-	OutreachID      whereHelperstring
-	Name            whereHelperstring
-	Description     whereHelpernull_String
-	LeaderID        whereHelpernull_String
-	MeetingDay      whereHelpernull_String
-	StartTime       whereHelpertime_Time
-	EndTime         whereHelpernull_Time
-	MeetingLocation whereHelpernull_String
+	ID               whereHelperstring
+	OutreachID       whereHelperstring
+	Name             whereHelperstring
+	Description      whereHelpernull_String
+	MeetingDay       whereHelpernull_String
+	StartTime        whereHelpertime_Time
+	EndTime          whereHelpernull_Time
+	MeetingLocation  whereHelpernull_String
+	ShortDescription whereHelpernull_String
+	LongDescription  whereHelpernull_String
+	ThumbnailURL     whereHelpernull_String
 }{
-	ID:              whereHelperstring{field: "\"ministries\".\"id\""},
-	OutreachID:      whereHelperstring{field: "\"ministries\".\"outreach_id\""},
-	Name:            whereHelperstring{field: "\"ministries\".\"name\""},
-	Description:     whereHelpernull_String{field: "\"ministries\".\"description\""},
-	LeaderID:        whereHelpernull_String{field: "\"ministries\".\"leader_id\""},
-	MeetingDay:      whereHelpernull_String{field: "\"ministries\".\"meeting_day\""},
-	StartTime:       whereHelpertime_Time{field: "\"ministries\".\"start_time\""},
-	EndTime:         whereHelpernull_Time{field: "\"ministries\".\"end_time\""},
-	MeetingLocation: whereHelpernull_String{field: "\"ministries\".\"meeting_location\""},
+	ID:               whereHelperstring{field: "\"ministries\".\"id\""},
+	OutreachID:       whereHelperstring{field: "\"ministries\".\"outreach_id\""},
+	Name:             whereHelperstring{field: "\"ministries\".\"name\""},
+	Description:      whereHelpernull_String{field: "\"ministries\".\"description\""},
+	MeetingDay:       whereHelpernull_String{field: "\"ministries\".\"meeting_day\""},
+	StartTime:        whereHelpertime_Time{field: "\"ministries\".\"start_time\""},
+	EndTime:          whereHelpernull_Time{field: "\"ministries\".\"end_time\""},
+	MeetingLocation:  whereHelpernull_String{field: "\"ministries\".\"meeting_location\""},
+	ShortDescription: whereHelpernull_String{field: "\"ministries\".\"short_description\""},
+	LongDescription:  whereHelpernull_String{field: "\"ministries\".\"long_description\""},
+	ThumbnailURL:     whereHelpernull_String{field: "\"ministries\".\"thumbnail_url\""},
 }
 
 // MinistryRels is where relationship names are stored.
 var MinistryRels = struct {
-	Leader          string
-	Outreach        string
-	Approvals       string
-	MinistryLeaders string
+	Outreach           string
+	Approvals          string
+	MinistryActivities string
+	MinistryLeaders    string
 }{
-	Leader:          "Leader",
-	Outreach:        "Outreach",
-	Approvals:       "Approvals",
-	MinistryLeaders: "MinistryLeaders",
+	Outreach:           "Outreach",
+	Approvals:          "Approvals",
+	MinistryActivities: "MinistryActivities",
+	MinistryLeaders:    "MinistryLeaders",
 }
 
 // ministryR is where relationships are stored.
 type ministryR struct {
-	Leader          *User               `boil:"Leader" json:"Leader" toml:"Leader" yaml:"Leader"`
-	Outreach        *Outreach           `boil:"Outreach" json:"Outreach" toml:"Outreach" yaml:"Outreach"`
-	Approvals       ApprovalSlice       `boil:"Approvals" json:"Approvals" toml:"Approvals" yaml:"Approvals"`
-	MinistryLeaders MinistryLeaderSlice `boil:"MinistryLeaders" json:"MinistryLeaders" toml:"MinistryLeaders" yaml:"MinistryLeaders"`
+	Outreach           *Outreach             `boil:"Outreach" json:"Outreach" toml:"Outreach" yaml:"Outreach"`
+	Approvals          ApprovalSlice         `boil:"Approvals" json:"Approvals" toml:"Approvals" yaml:"Approvals"`
+	MinistryActivities MinistryActivitySlice `boil:"MinistryActivities" json:"MinistryActivities" toml:"MinistryActivities" yaml:"MinistryActivities"`
+	MinistryLeaders    MinistryLeaderSlice   `boil:"MinistryLeaders" json:"MinistryLeaders" toml:"MinistryLeaders" yaml:"MinistryLeaders"`
 }
 
 // NewStruct creates a new relationship struct
 func (*ministryR) NewStruct() *ministryR {
 	return &ministryR{}
-}
-
-func (r *ministryR) GetLeader() *User {
-	if r == nil {
-		return nil
-	}
-	return r.Leader
 }
 
 func (r *ministryR) GetOutreach() *Outreach {
@@ -153,6 +160,13 @@ func (r *ministryR) GetApprovals() ApprovalSlice {
 	return r.Approvals
 }
 
+func (r *ministryR) GetMinistryActivities() MinistryActivitySlice {
+	if r == nil {
+		return nil
+	}
+	return r.MinistryActivities
+}
+
 func (r *ministryR) GetMinistryLeaders() MinistryLeaderSlice {
 	if r == nil {
 		return nil
@@ -164,9 +178,9 @@ func (r *ministryR) GetMinistryLeaders() MinistryLeaderSlice {
 type ministryL struct{}
 
 var (
-	ministryAllColumns            = []string{"id", "outreach_id", "name", "description", "leader_id", "meeting_day", "start_time", "end_time", "meeting_location"}
+	ministryAllColumns            = []string{"id", "outreach_id", "name", "description", "meeting_day", "start_time", "end_time", "meeting_location", "short_description", "long_description", "thumbnail_url"}
 	ministryColumnsWithoutDefault = []string{"outreach_id", "name", "start_time"}
-	ministryColumnsWithDefault    = []string{"id", "description", "leader_id", "meeting_day", "end_time", "meeting_location"}
+	ministryColumnsWithDefault    = []string{"id", "description", "meeting_day", "end_time", "meeting_location", "short_description", "long_description", "thumbnail_url"}
 	ministryPrimaryKeyColumns     = []string{"id"}
 	ministryGeneratedColumns      = []string{}
 )
@@ -476,17 +490,6 @@ func (q ministryQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (b
 	return count > 0, nil
 }
 
-// Leader pointed to by the foreign key.
-func (o *Ministry) Leader(mods ...qm.QueryMod) userQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"id\" = ?", o.LeaderID),
-	}
-
-	queryMods = append(queryMods, mods...)
-
-	return Users(queryMods...)
-}
-
 // Outreach pointed to by the foreign key.
 func (o *Ministry) Outreach(mods ...qm.QueryMod) outreachQuery {
 	queryMods := []qm.QueryMod{
@@ -512,6 +515,20 @@ func (o *Ministry) Approvals(mods ...qm.QueryMod) approvalQuery {
 	return Approvals(queryMods...)
 }
 
+// MinistryActivities retrieves all the ministry_activity's MinistryActivities with an executor.
+func (o *Ministry) MinistryActivities(mods ...qm.QueryMod) ministryActivityQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"ministry_activities\".\"ministry_id\"=?", o.ID),
+	)
+
+	return MinistryActivities(queryMods...)
+}
+
 // MinistryLeaders retrieves all the ministry_leader's MinistryLeaders with an executor.
 func (o *Ministry) MinistryLeaders(mods ...qm.QueryMod) ministryLeaderQuery {
 	var queryMods []qm.QueryMod
@@ -524,130 +541,6 @@ func (o *Ministry) MinistryLeaders(mods ...qm.QueryMod) ministryLeaderQuery {
 	)
 
 	return MinistryLeaders(queryMods...)
-}
-
-// LoadLeader allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for an N-1 relationship.
-func (ministryL) LoadLeader(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMinistry interface{}, mods queries.Applicator) error {
-	var slice []*Ministry
-	var object *Ministry
-
-	if singular {
-		var ok bool
-		object, ok = maybeMinistry.(*Ministry)
-		if !ok {
-			object = new(Ministry)
-			ok = queries.SetFromEmbeddedStruct(&object, &maybeMinistry)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeMinistry))
-			}
-		}
-	} else {
-		s, ok := maybeMinistry.(*[]*Ministry)
-		if ok {
-			slice = *s
-		} else {
-			ok = queries.SetFromEmbeddedStruct(&slice, maybeMinistry)
-			if !ok {
-				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeMinistry))
-			}
-		}
-	}
-
-	args := make(map[interface{}]struct{})
-	if singular {
-		if object.R == nil {
-			object.R = &ministryR{}
-		}
-		if !queries.IsNil(object.LeaderID) {
-			args[object.LeaderID] = struct{}{}
-		}
-
-	} else {
-		for _, obj := range slice {
-			if obj.R == nil {
-				obj.R = &ministryR{}
-			}
-
-			if !queries.IsNil(obj.LeaderID) {
-				args[obj.LeaderID] = struct{}{}
-			}
-
-		}
-	}
-
-	if len(args) == 0 {
-		return nil
-	}
-
-	argsSlice := make([]interface{}, len(args))
-	i := 0
-	for arg := range args {
-		argsSlice[i] = arg
-		i++
-	}
-
-	query := NewQuery(
-		qm.From(`users`),
-		qm.WhereIn(`users.id in ?`, argsSlice...),
-	)
-	if mods != nil {
-		mods.Apply(query)
-	}
-
-	results, err := query.QueryContext(ctx, e)
-	if err != nil {
-		return errors.Wrap(err, "failed to eager load User")
-	}
-
-	var resultSlice []*User
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice User")
-	}
-
-	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for users")
-	}
-	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
-	}
-
-	if len(userAfterSelectHooks) != 0 {
-		for _, obj := range resultSlice {
-			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
-				return err
-			}
-		}
-	}
-
-	if len(resultSlice) == 0 {
-		return nil
-	}
-
-	if singular {
-		foreign := resultSlice[0]
-		object.R.Leader = foreign
-		if foreign.R == nil {
-			foreign.R = &userR{}
-		}
-		foreign.R.LeaderMinistries = append(foreign.R.LeaderMinistries, object)
-		return nil
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if queries.Equal(local.LeaderID, foreign.ID) {
-				local.R.Leader = foreign
-				if foreign.R == nil {
-					foreign.R = &userR{}
-				}
-				foreign.R.LeaderMinistries = append(foreign.R.LeaderMinistries, local)
-				break
-			}
-		}
-	}
-
-	return nil
 }
 
 // LoadOutreach allows an eager lookup of values, cached into the
@@ -883,6 +776,119 @@ func (ministryL) LoadApprovals(ctx context.Context, e boil.ContextExecutor, sing
 	return nil
 }
 
+// LoadMinistryActivities allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (ministryL) LoadMinistryActivities(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMinistry interface{}, mods queries.Applicator) error {
+	var slice []*Ministry
+	var object *Ministry
+
+	if singular {
+		var ok bool
+		object, ok = maybeMinistry.(*Ministry)
+		if !ok {
+			object = new(Ministry)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybeMinistry)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybeMinistry))
+			}
+		}
+	} else {
+		s, ok := maybeMinistry.(*[]*Ministry)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybeMinistry)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybeMinistry))
+			}
+		}
+	}
+
+	args := make(map[interface{}]struct{})
+	if singular {
+		if object.R == nil {
+			object.R = &ministryR{}
+		}
+		args[object.ID] = struct{}{}
+	} else {
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &ministryR{}
+			}
+			args[obj.ID] = struct{}{}
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	argsSlice := make([]interface{}, len(args))
+	i := 0
+	for arg := range args {
+		argsSlice[i] = arg
+		i++
+	}
+
+	query := NewQuery(
+		qm.From(`ministry_activities`),
+		qm.WhereIn(`ministry_activities.ministry_id in ?`, argsSlice...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load ministry_activities")
+	}
+
+	var resultSlice []*MinistryActivity
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice ministry_activities")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on ministry_activities")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for ministry_activities")
+	}
+
+	if len(ministryActivityAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.MinistryActivities = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &ministryActivityR{}
+			}
+			foreign.R.Ministry = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.MinistryID {
+				local.R.MinistryActivities = append(local.R.MinistryActivities, foreign)
+				if foreign.R == nil {
+					foreign.R = &ministryActivityR{}
+				}
+				foreign.R.Ministry = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
 // LoadMinistryLeaders allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
 func (ministryL) LoadMinistryLeaders(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMinistry interface{}, mods queries.Applicator) error {
@@ -993,86 +999,6 @@ func (ministryL) LoadMinistryLeaders(ctx context.Context, e boil.ContextExecutor
 		}
 	}
 
-	return nil
-}
-
-// SetLeader of the ministry to the related item.
-// Sets o.R.Leader to related.
-// Adds o to related.R.LeaderMinistries.
-func (o *Ministry) SetLeader(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
-	var err error
-	if insert {
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
-		}
-	}
-
-	updateQuery := fmt.Sprintf(
-		"UPDATE \"ministries\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 1, []string{"leader_id"}),
-		strmangle.WhereClause("\"", "\"", 2, ministryPrimaryKeyColumns),
-	)
-	values := []interface{}{related.ID, o.ID}
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, updateQuery)
-		fmt.Fprintln(writer, values)
-	}
-	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	queries.Assign(&o.LeaderID, related.ID)
-	if o.R == nil {
-		o.R = &ministryR{
-			Leader: related,
-		}
-	} else {
-		o.R.Leader = related
-	}
-
-	if related.R == nil {
-		related.R = &userR{
-			LeaderMinistries: MinistrySlice{o},
-		}
-	} else {
-		related.R.LeaderMinistries = append(related.R.LeaderMinistries, o)
-	}
-
-	return nil
-}
-
-// RemoveLeader relationship.
-// Sets o.R.Leader to nil.
-// Removes o from all passed in related items' relationships struct.
-func (o *Ministry) RemoveLeader(ctx context.Context, exec boil.ContextExecutor, related *User) error {
-	var err error
-
-	queries.SetScanner(&o.LeaderID, nil)
-	if _, err = o.Update(ctx, exec, boil.Whitelist("leader_id")); err != nil {
-		return errors.Wrap(err, "failed to update local table")
-	}
-
-	if o.R != nil {
-		o.R.Leader = nil
-	}
-	if related == nil || related.R == nil {
-		return nil
-	}
-
-	for i, ri := range related.R.LeaderMinistries {
-		if queries.Equal(o.LeaderID, ri.LeaderID) {
-			continue
-		}
-
-		ln := len(related.R.LeaderMinistries)
-		if ln > 1 && i < ln-1 {
-			related.R.LeaderMinistries[i] = related.R.LeaderMinistries[ln-1]
-		}
-		related.R.LeaderMinistries = related.R.LeaderMinistries[:ln-1]
-		break
-	}
 	return nil
 }
 
@@ -1247,6 +1173,59 @@ func (o *Ministry) RemoveApprovals(ctx context.Context, exec boil.ContextExecuto
 		}
 	}
 
+	return nil
+}
+
+// AddMinistryActivities adds the given related objects to the existing relationships
+// of the ministry, optionally inserting them as new records.
+// Appends related to o.R.MinistryActivities.
+// Sets related.R.Ministry appropriately.
+func (o *Ministry) AddMinistryActivities(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*MinistryActivity) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.MinistryID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"ministry_activities\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"ministry_id"}),
+				strmangle.WhereClause("\"", "\"", 2, ministryActivityPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.MinistryID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &ministryR{
+			MinistryActivities: related,
+		}
+	} else {
+		o.R.MinistryActivities = append(o.R.MinistryActivities, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &ministryActivityR{
+				Ministry: o,
+			}
+		} else {
+			rel.R.Ministry = o
+		}
+	}
 	return nil
 }
 

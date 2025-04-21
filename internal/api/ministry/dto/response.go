@@ -10,12 +10,15 @@ type GetAllMinistriesResponse struct {
 }
 
 type Ministry struct {
-	ID              string  `json:"id"`
-	OutreachID      string  `json:"outreach_id"`
-	Name            string  `json:"name"`
-	Description     string  `json:"description"`
-	Day             string  `json:"day"`
-	StartTime       *string `json:"start_time,omitempty"`
-	EndTime         *string `json:"end_time,omitempty"`
-	MeetingLocation string  `json:"meeting_location,omitempty"`
+	ID               string   `json:"id"`
+	OutreachID       string   `json:"outreach_id"`
+	Name             string   `json:"name"`
+	Day              string   `json:"day"`
+	StartTime        *string  `json:"start_time,omitempty"`
+	EndTime          *string  `json:"end_time,omitempty"`
+	MeetingLocation  string   `json:"meeting_location,omitempty"`
+	ShortDescription *string  `json:"short_description,omitempty"`
+	LongDescription  *string  `json:"long_description,omitempty"`
+	ThumbnailURL     *string  `json:"thumbnail_url,omitempty"`
+	MinistryLeaders  []string `json:"ministry_leaders,omitempty"` // TODO: PROFILE image url in the future
 }

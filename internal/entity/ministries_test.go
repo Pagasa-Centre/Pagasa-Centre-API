@@ -571,6 +571,84 @@ func testMinistryToManyApprovals(t *testing.T) {
 	}
 }
 
+func testMinistryToManyMinistryActivities(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Ministry
+	var b, c MinistryActivity
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, ministryDBTypes, true, ministryColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Ministry struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, ministryActivityDBTypes, false, ministryActivityColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, ministryActivityDBTypes, false, ministryActivityColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.MinistryID = a.ID
+	c.MinistryID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.MinistryActivities().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.MinistryID == b.MinistryID {
+			bFound = true
+		}
+		if v.MinistryID == c.MinistryID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := MinistrySlice{&a}
+	if err = a.L.LoadMinistryActivities(ctx, tx, false, (*[]*Ministry)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.MinistryActivities); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.MinistryActivities = nil
+	if err = a.L.LoadMinistryActivities(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.MinistryActivities); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testMinistryToManyMinistryLeaders(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -900,6 +978,81 @@ func testMinistryToManyRemoveOpApprovals(t *testing.T) {
 	}
 }
 
+func testMinistryToManyAddOpMinistryActivities(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Ministry
+	var b, c, d, e MinistryActivity
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*MinistryActivity{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, ministryActivityDBTypes, false, strmangle.SetComplement(ministryActivityPrimaryKeyColumns, ministryActivityColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*MinistryActivity{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddMinistryActivities(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.MinistryID {
+			t.Error("foreign key was wrong value", a.ID, first.MinistryID)
+		}
+		if a.ID != second.MinistryID {
+			t.Error("foreign key was wrong value", a.ID, second.MinistryID)
+		}
+
+		if first.R.Ministry != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Ministry != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.MinistryActivities[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.MinistryActivities[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.MinistryActivities().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
 func testMinistryToManyAddOpMinistryLeaders(t *testing.T) {
 	var err error
 
@@ -975,67 +1128,6 @@ func testMinistryToManyAddOpMinistryLeaders(t *testing.T) {
 		}
 	}
 }
-func testMinistryToOneUserUsingLeader(t *testing.T) {
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var local Ministry
-	var foreign User
-
-	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, ministryDBTypes, true, ministryColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize Ministry struct: %s", err)
-	}
-	if err := randomize.Struct(seed, &foreign, userDBTypes, false, userColumnsWithDefault...); err != nil {
-		t.Errorf("Unable to randomize User struct: %s", err)
-	}
-
-	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	queries.Assign(&local.LeaderID, foreign.ID)
-	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	check, err := local.Leader().One(ctx, tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !queries.Equal(check.ID, foreign.ID) {
-		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
-	}
-
-	ranAfterSelectHook := false
-	AddUserHook(boil.AfterSelectHook, func(ctx context.Context, e boil.ContextExecutor, o *User) error {
-		ranAfterSelectHook = true
-		return nil
-	})
-
-	slice := MinistrySlice{&local}
-	if err = local.L.LoadLeader(ctx, tx, false, (*[]*Ministry)(&slice), nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Leader == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	local.R.Leader = nil
-	if err = local.L.LoadLeader(ctx, tx, true, &local, nil); err != nil {
-		t.Fatal(err)
-	}
-	if local.R.Leader == nil {
-		t.Error("struct should have been eager loaded")
-	}
-
-	if !ranAfterSelectHook {
-		t.Error("failed to run AfterSelect hook for relationship")
-	}
-}
-
 func testMinistryToOneOutreachUsingOutreach(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
@@ -1094,115 +1186,6 @@ func testMinistryToOneOutreachUsingOutreach(t *testing.T) {
 
 	if !ranAfterSelectHook {
 		t.Error("failed to run AfterSelect hook for relationship")
-	}
-}
-
-func testMinistryToOneSetOpUserUsingLeader(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Ministry
-	var b, c User
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &c, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	for i, x := range []*User{&b, &c} {
-		err = a.SetLeader(ctx, tx, i != 0, x)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if a.R.Leader != x {
-			t.Error("relationship struct not set to correct value")
-		}
-
-		if x.R.LeaderMinistries[0] != &a {
-			t.Error("failed to append to foreign relationship struct")
-		}
-		if !queries.Equal(a.LeaderID, x.ID) {
-			t.Error("foreign key was wrong value", a.LeaderID)
-		}
-
-		zero := reflect.Zero(reflect.TypeOf(a.LeaderID))
-		reflect.Indirect(reflect.ValueOf(&a.LeaderID)).Set(zero)
-
-		if err = a.Reload(ctx, tx); err != nil {
-			t.Fatal("failed to reload", err)
-		}
-
-		if !queries.Equal(a.LeaderID, x.ID) {
-			t.Error("foreign key was wrong value", a.LeaderID, x.ID)
-		}
-	}
-}
-
-func testMinistryToOneRemoveOpUserUsingLeader(t *testing.T) {
-	var err error
-
-	ctx := context.Background()
-	tx := MustTx(boil.BeginTx(ctx, nil))
-	defer func() { _ = tx.Rollback() }()
-
-	var a Ministry
-	var b User
-
-	seed := randomize.NewSeed()
-	if err = randomize.Struct(seed, &a, ministryDBTypes, false, strmangle.SetComplement(ministryPrimaryKeyColumns, ministryColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.SetLeader(ctx, tx, true, &b); err != nil {
-		t.Fatal(err)
-	}
-
-	if err = a.RemoveLeader(ctx, tx, &b); err != nil {
-		t.Error("failed to remove relationship")
-	}
-
-	count, err := a.Leader().Count(ctx, tx)
-	if err != nil {
-		t.Error(err)
-	}
-	if count != 0 {
-		t.Error("want no relationships remaining")
-	}
-
-	if a.R.Leader != nil {
-		t.Error("R struct entry should be nil")
-	}
-
-	if !queries.IsValuerNil(a.LeaderID) {
-		t.Error("foreign key value should be nil")
-	}
-
-	if len(b.R.LeaderMinistries) != 0 {
-		t.Error("failed to remove a from b's relationships")
 	}
 }
 
@@ -1338,7 +1321,7 @@ func testMinistriesSelect(t *testing.T) {
 }
 
 var (
-	ministryDBTypes = map[string]string{`ID`: `uuid`, `OutreachID`: `uuid`, `Name`: `character varying`, `Description`: `text`, `LeaderID`: `uuid`, `MeetingDay`: `character varying`, `StartTime`: `timestamp without time zone`, `EndTime`: `timestamp without time zone`, `MeetingLocation`: `character varying`}
+	ministryDBTypes = map[string]string{`ID`: `uuid`, `OutreachID`: `uuid`, `Name`: `character varying`, `Description`: `text`, `MeetingDay`: `character varying`, `StartTime`: `timestamp without time zone`, `EndTime`: `timestamp without time zone`, `MeetingLocation`: `character varying`, `ShortDescription`: `character varying`, `LongDescription`: `text`, `ThumbnailURL`: `text`}
 	_               = bytes.MinRead
 )
 

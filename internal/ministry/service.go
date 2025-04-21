@@ -19,7 +19,6 @@ import (
 
 type MinistryService interface {
 	All(ctx context.Context) ([]*domain.Ministry, error)
-	AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error
 	SendApplication(ctx context.Context, userID, ministryID, reason string) error
 	GetByID(ctx context.Context, ministryID string) (*domain.Ministry, error)
 }
@@ -50,15 +49,6 @@ func NewMinistryService(
 
 var ErrMinistryNotFound = errors.New("ministry not found")
 
-func (ms *service) AssignLeaderToMinistry(ctx context.Context, ministryID string, userID string) error {
-	err := ms.ministryRepo.AssignLeaderToMinistry(ctx, ministryID, userID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 	ministryEntities, err := ms.ministryRepo.GetAll(ctx)
 	if err != nil {
@@ -66,8 +56,21 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 	}
 
 	var ministries []*domain.Ministry
+
 	for _, entity := range ministryEntities {
-		ministries = append(ministries, mappers.ToDomain(entity))
+		ministryLeadersDetails, err := ms.ministryRepo.GetMinistryLeaderUsersByMinistryID(ctx, entity.ID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get ministry leader users: %s", err)
+		}
+
+		var ministryLeaderNames []string
+
+		for _, ministryLeader := range ministryLeadersDetails {
+			name := fmt.Sprintf("%s %s", ministryLeader.FirstName, ministryLeader.LastName)
+			ministryLeaderNames = append(ministryLeaderNames, name)
+		}
+
+		ministries = append(ministries, mappers.ToDomain(entity, ministryLeaderNames))
 	}
 
 	return ministries, nil
@@ -133,7 +136,19 @@ func (ms *service) GetByID(ctx context.Context, ministryID string) (*domain.Mini
 		return nil, err
 	}
 
-	ministryDomain := mappers.ToDomain(ministryEntity)
+	ministryLeadersDetails, err := ms.ministryRepo.GetMinistryLeaderUsersByMinistryID(ctx, ministryEntity.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ministry leader users: %s", err)
+	}
+
+	var ministryLeaderNames []string
+
+	for _, ministryLeader := range ministryLeadersDetails {
+		name := fmt.Sprintf("%s %s", ministryLeader.FirstName, ministryLeader.LastName)
+		ministryLeaderNames = append(ministryLeaderNames, name)
+	}
+
+	ministryDomain := mappers.ToDomain(ministryEntity, ministryLeaderNames)
 
 	return ministryDomain, nil
 }
