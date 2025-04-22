@@ -1,4 +1,4 @@
-# Pagasa-Centre-Mobile-App-API
+# Pagasa-Centre-API
 Backend for the Pag-Asa Centre mobile and web app
 
 ## How to run
