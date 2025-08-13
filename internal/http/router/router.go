@@ -67,7 +67,7 @@ func New(
 		"/api/v1", func(r chi.Router) {
 			r.Route(
 				"/auth", func(r chi.Router) {
-					r.Post("/register", authHandler.Register())
+					r.Post("/register", authHandler.Register()) //todo: update the website and mobile app to use new endpoints
 					r.Post("/login", authHandler.Login())
 					// todo: create logout endpoint
 					// todo: create refresh token endpoint

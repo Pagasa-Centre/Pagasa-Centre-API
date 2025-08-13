@@ -12,7 +12,7 @@ import (
 	approvalDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approval/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/domain"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/mappers"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/mapper"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
 	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 )
@@ -80,7 +80,7 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 			activities = append(activities, ministryActivity.Name)
 		}
 
-		ministries = append(ministries, mappers.ToDomain(entity, ministryLeaderNames, activities))
+		ministries = append(ministries, mapper.ToDomain(entity, ministryLeaderNames, activities))
 	}
 
 	return ministries, nil
@@ -169,7 +169,7 @@ func (ms *service) GetByID(ctx context.Context, ministryID string) (*domain.Mini
 		activities = append(activities, ministryActivity.Name)
 	}
 
-	ministryDomain := mappers.ToDomain(ministryEntity, ministryLeaderNames, activities)
+	ministryDomain := mapper.ToDomain(ministryEntity, ministryLeaderNames, activities)
 
 	return ministryDomain, nil
 }
