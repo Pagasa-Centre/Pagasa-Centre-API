@@ -91,9 +91,7 @@ func (h *handler) Register() http.HandlerFunc {
 			return
 		}
 
-		resp := mapper.MapAuthResultToDTO(authResult, "Registration successful")
-
-		render.Json(w, http.StatusCreated, resp)
+		render.Json(w, http.StatusCreated, mapper.MapAuthResultToDTO(authResult, "Registration successful"))
 	}
 }
 
