@@ -8,14 +8,16 @@ import (
 	"github.com/go-chi/cors"
 	"go.uber.org/zap"
 
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/approvals"
-	events2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/events"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/approval"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/auth"
+	events2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/event"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/media"
 	ministry "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/ministry"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/outreach"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/api/user"
-	approvals2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events"
+	approvals2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approval"
+	auth2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/auth"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/event"
 	mediaService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	ministryService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry"
 	outreachService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
@@ -27,12 +29,13 @@ import (
 func New(
 	logger *zap.Logger,
 	jwtSecret string,
-	userService userService.UserService,
-	ministryService ministryService.MinistryService,
+	userService userService.Service,
+	ministryService ministryService.Service,
 	outreachService outreachService.OutreachService,
 	mediaService mediaService.MediaService,
-	approvalService approvals2.ApprovalService,
-	eventsService events.EventsService,
+	approvalService approvals2.Service,
+	eventsService event.EventsService,
+	authService auth2.Service,
 ) http.Handler {
 	// Create a new Chi router.
 	router := chi.NewRouter()
@@ -50,11 +53,12 @@ func New(
 	router.Use(middleware.Logger)    // logs every request
 	router.Use(middleware.Recoverer) // recovers from panics
 
+	authHandler := auth.NewAuthHandler(logger, authService)
 	userHandler := user.NewUserHandler(logger, userService)
 	ministryHandler := ministry.NewMinistryHandler(logger, ministryService)
 	outreachHandler := outreach.NewOutreachHandler(logger, outreachService)
 	mediaHandler := media.NewMediaHandler(logger, mediaService)
-	approvalsHandler := approvals.NewApprovalHandler(logger, approvalService)
+	approvalsHandler := approval.NewApprovalHandler(logger, approvalService)
 	eventsHandler := events2.NewEventsHandler(logger, eventsService)
 
 	// Define the /alive endpoint.
@@ -62,17 +66,25 @@ func New(
 	router.Route(
 		"/api/v1", func(r chi.Router) {
 			r.Route(
+				"/auth", func(r chi.Router) {
+					r.Post("/register", authHandler.Register())
+					r.Post("/login", authHandler.Login())
+					// todo: create logout endpoint
+					// todo: create refresh token endpoint
+				},
+			)
+			r.Route(
 				"/user", func(r chi.Router) {
-					r.Post("/register", userHandler.Register())
-					r.Post("/login", userHandler.Login())
-
 					// Protected endpoints: wrap these with auth middleware.
-					r.Group(func(r chi.Router) {
-						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
-						r.Put("/update-details", userHandler.UpdateDetails())
+					r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
+					r.Route("/me", func(r chi.Router) {
 						r.Delete("/", userHandler.Delete())
-						r.Get("/approvals/pending", approvalsHandler.All())
-						r.Post("/approvals/{id}", approvalsHandler.UpdateApprovalStatus())
+						r.Patch("/", userHandler.UpdateDetails())
+					})
+
+					r.Route("/approvals", func(r chi.Router) {
+						r.Delete("/pending", approvalsHandler.All())
+						r.Patch("/{id}", approvalsHandler.UpdateApprovalStatus())
 					})
 				},
 			)

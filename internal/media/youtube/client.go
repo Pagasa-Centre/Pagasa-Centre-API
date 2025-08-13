@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -34,7 +35,7 @@ type VideoItem struct {
 	} `json:"snippet"`
 }
 
-type YouTubeResponse struct {
+type YouTubeResponse struct { // todo: move to domain
 	Items []VideoItem `json:"items"`
 }
 
@@ -61,9 +62,14 @@ func (c *YouTubeClient) FetchVideosFromPlaylist(ctx context.Context, playlistID,
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			println("failed to close response body: ", err)
+		}
+	}(resp.Body)
 
-	var ytRes struct {
+	var ytRes struct { // todo: make into a struct and move to domain
 		Items []struct {
 			Snippet struct {
 				ResourceID struct {

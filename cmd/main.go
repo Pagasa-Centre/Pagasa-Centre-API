@@ -9,13 +9,15 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq" // <-- Add this line to register the Postgres driver
 
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
-	approvalStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approval"
+	approvalStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approval/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/auth"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/auth/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/config"
 	cron2 "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/cron"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events"
-	eventsStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/events/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/event"
+	eventsStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/event/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/http/router"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media"
 	mediaStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/storage"
@@ -24,8 +26,8 @@ import (
 	ministryStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach"
 	outreachStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/storage"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles"
-	rolesStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/roles/storage"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/role"
+	rolesStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/role/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	userStorage "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/storage"
 	commonDb "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/db"
@@ -55,8 +57,11 @@ func main() {
 		logger.Sugar().Fatalf("failed to run migrations: %v", err)
 	}
 
+	userRepo := userStorage.NewUserRepository(db)
+	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret)
+
 	rolesRepo := rolesStorage.NewRolesRepository(db)
-	rolesService := roles.NewRoleService(logger, rolesRepo)
+	rolesService := role.NewRoleService(logger, rolesRepo, nil, nil)
 
 	communicationService := communication.NewCommunicationService(
 		cfg.TwilioAccountSID,
@@ -65,25 +70,22 @@ func main() {
 	)
 
 	approvalRepository := approvalStorage.NewApprovalRepository(db)
-	approvalService := approvals.NewApprovalService(logger, approvalRepository, nil, rolesService)
+	approvalService := approval.NewApprovalService(logger, approvalRepository, userService, rolesService)
 
-	// Declare ministryService early so we can pass it into userService
-	var ministryService ministry.MinistryService
-
-	userRepo := userStorage.NewUserRepository(db)
-	userService := user.NewUserService(logger, userRepo, cfg.JwtSecret, nil, approvalService, rolesService)
-
-	ministryRepo := ministryStorage.NewMinistryRepository(db)
-	ministryService = ministry.NewMinistryService(
+	ministryRepo := ministryStorage.NewMinistryRepository(db) // todo: update all repos to use latest sqlboiler by aaron
+	ministryService := ministry.NewMinistryService(
 		logger,
 		ministryRepo,
 		communicationService,
-		userService, // uses interface, no cycle
+		userService,
 		approvalService,
 	)
 
-	userService.SetMinistryService(ministryService)
-	approvalService.SetUserService(userService)
+	rolesService.SetApprovalService(approvalService)
+	rolesService.SetMinistryService(ministryService)
+
+	authRepo := storage.NewAuthRepository(db)
+	authService := auth.NewAuthService(logger, cfg.JwtSecret, authRepo, userService, rolesService)
 
 	outreachRepo := outreachStorage.NewOutreachRepository(db)
 	outreachService := outreach.NewOutreachService(logger, outreachRepo)
@@ -92,7 +94,7 @@ func main() {
 	mediaService := media.NewMediaService(logger, mediaRepo)
 
 	eventsRepo := eventsStorage.NewEventsRepository(db)
-	eventsService := events.NewEventsService(logger, eventsRepo)
+	eventsService := event.NewEventsService(logger, eventsRepo)
 
 	ytClient := youtube.NewYouTubeClient(cfg.YoutubeAPIKey, cfg.YoutubeChannelID)
 	mediaCronJob := cron2.NewMediaCronJob(logger, ytClient, mediaService)
@@ -110,6 +112,7 @@ func main() {
 		mediaService,
 		approvalService,
 		eventsService,
+		authService,
 	)
 
 	logger.Sugar().Infof("Server starting on port %s", cfg.Port)

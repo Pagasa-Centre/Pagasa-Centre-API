@@ -118,7 +118,7 @@ func AuthMiddlewareString(jwtSecret []byte) func(http.Handler) http.Handler {
 			}
 
 			// 5. Set string userID in context
-			ctx := context.SetUserIDString(r.Context(), uid)
+			ctx := context.SetUserID(r.Context(), uid)
 
 			// 6. Proceed to next handler
 			next.ServeHTTP(w, r.WithContext(ctx))

@@ -26,11 +26,8 @@ func NewMinistryRepository(db *sqlx.DB) MinistryRepository {
 	}
 }
 
-func (repo *repository) GetAll(ctx context.Context) (entity.MinistrySlice, error) {
-	// sqlx.DB -> *sql.DB (for sqlboiler)
-	db := repo.db.DB
-
-	ministries, err := entity.Ministries().All(ctx, db)
+func (r *repository) GetAll(ctx context.Context) (entity.MinistrySlice, error) {
+	ministries, err := entity.Ministries().All(ctx, r.db)
 	if err != nil {
 		return nil, err
 	}
@@ -38,10 +35,8 @@ func (repo *repository) GetAll(ctx context.Context) (entity.MinistrySlice, error
 	return ministries, nil
 }
 
-func (repo *repository) GetMinistryByID(ctx context.Context, ministryID string) (*entity.Ministry, error) {
-	db := repo.db.DB
-
-	ministry, err := entity.FindMinistry(ctx, db, ministryID)
+func (r *repository) GetMinistryByID(ctx context.Context, ministryID string) (*entity.Ministry, error) {
+	ministry, err := entity.FindMinistry(ctx, r.db, ministryID)
 	if err != nil {
 		return nil, err
 	}
@@ -49,18 +44,16 @@ func (repo *repository) GetMinistryByID(ctx context.Context, ministryID string) 
 	return ministry, nil
 }
 
-func (repo *repository) GetMinistryLeaderUsersByMinistryID(ctx context.Context, ministryID string) (entity.UserSlice, error) {
-	db := repo.db.DB
-
+func (r *repository) GetMinistryLeaderUsersByMinistryID(ctx context.Context, ministryID string) (entity.UserSlice, error) {
 	leaders, err := entity.MinistryLeaders(
 		entity.MinistryLeaderWhere.MinistryID.EQ(ministryID),
-	).All(ctx, db)
+	).All(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ministry leaders: %w", err)
 	}
 
 	for _, leader := range leaders {
-		if err := leader.L.LoadUser(ctx, db, true, leader, nil); err != nil {
+		if err := leader.L.LoadUser(ctx, r.db, true, leader, nil); err != nil {
 			return nil, fmt.Errorf("failed to load user: %w", err)
 		}
 	}
@@ -76,12 +69,10 @@ func (repo *repository) GetMinistryLeaderUsersByMinistryID(ctx context.Context, 
 	return users, nil
 }
 
-func (repo *repository) GetMinistryActivitiesByMinistryID(ctx context.Context, ministryID string) (entity.MinistryActivitySlice, error) {
-	db := repo.db.DB
-
+func (r *repository) GetMinistryActivitiesByMinistryID(ctx context.Context, ministryID string) (entity.MinistryActivitySlice, error) {
 	activities, err := entity.MinistryActivities(
 		entity.MinistryActivityWhere.MinistryID.EQ(ministryID),
-	).All(ctx, db)
+	).All(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ministry activities: %w", err)
 	}

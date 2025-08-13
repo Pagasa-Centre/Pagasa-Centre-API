@@ -63,13 +63,13 @@ func GetUserIDUUID(ctx context.Context) (uuid.UUID, error) {
 	return uid, nil
 }
 
-// SetUserIDString sets the user ID (as a string) in context.
-func SetUserIDString(ctx context.Context, userID string) context.Context {
+// SetUserID sets the user ID (as a string) in context.
+func SetUserID(ctx context.Context, userID string) context.Context {
 	return context.WithValue(ctx, userIDKey, userID)
 }
 
-// GetUserIDString retrieves the user ID (as a string) from context.
-func GetUserIDString(ctx context.Context) (string, error) {
+// GetUserID retrieves the user ID (as a string) from context.
+func GetUserID(ctx context.Context) (string, error) {
 	val := ctx.Value(userIDKey)
 	if val == nil {
 		return "", errors.New("user ID not found in context")

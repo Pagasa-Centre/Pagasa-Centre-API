@@ -7,7 +7,7 @@ import (
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/domain"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/mappers"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/mapper"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/storage"
 )
 
@@ -36,7 +36,7 @@ func (s *service) All(ctx context.Context) ([]*domain.Media, error) {
 		return nil, err
 	}
 
-	mediaDomain := mappers.EntitySliceToDomainMediaSlice(mediaEntities)
+	mediaDomain := mapper.EntitySliceToDomainMediaSlice(mediaEntities)
 
 	return mediaDomain, nil
 }

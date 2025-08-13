@@ -8,16 +8,16 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals"
-	approvalDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approvals/domain"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approval"
+	approvalDomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approval/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/communication"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/domain"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/mappers"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/ministry/storage"
-	usercontracts "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/contracts"
+	userService "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 )
 
-type MinistryService interface {
+type Service interface {
 	All(ctx context.Context) ([]*domain.Ministry, error)
 	SendApplication(ctx context.Context, userID, ministryID, reason string) error
 	GetByID(ctx context.Context, ministryID string) (*domain.Ministry, error)
@@ -27,17 +27,17 @@ type service struct {
 	logger               *zap.Logger
 	ministryRepo         storage.MinistryRepository
 	communicationService communication.CommunicationService
-	userService          usercontracts.UserService
-	approvalService      approvals.ApprovalService
+	userService          userService.Service
+	approvalService      approval.Service
 }
 
 func NewMinistryService(
 	logger *zap.Logger,
 	ministryRepo storage.MinistryRepository,
 	communicationService communication.CommunicationService,
-	userService usercontracts.UserService,
-	approvalService approvals.ApprovalService,
-) MinistryService {
+	userService userService.Service,
+	approvalService approval.Service,
+) Service {
 	return &service{
 		logger:               logger,
 		ministryRepo:         ministryRepo,
@@ -86,20 +86,21 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 	return ministries, nil
 }
 
-func (ms *service) SendApplication(ctx context.Context, userID, ministryID, reason string) error {
+func (ms *service) SendApplication(ctx context.Context, userID, ministryID, reason string) error { //todo:create domain object
 	ms.logger.With(
 		zap.String("userID", userID),
 		zap.String("ministryID", ministryID)).Info("Sending application to Ministry Leader")
 
 	ministryDetails, err := ms.ministryRepo.GetMinistryByID(ctx, ministryID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return ErrMinistryNotFound
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrMinistryNotFound // todo: move to entity layer
 		}
 
 		return err
 	}
 
+	// todo: split into fetch ministry and then call user service to get user
 	ministryLeadersDetails, err := ms.ministryRepo.GetMinistryLeaderUsersByMinistryID(ctx, ministryID)
 	if err != nil {
 		return err
@@ -112,17 +113,17 @@ func (ms *service) SendApplication(ctx context.Context, userID, ministryID, reas
 
 	roleName := fmt.Sprintf("%s Member", ministryDetails.Name)
 
-	approval := &approvalDomain.Approval{
-		RequesterID:   userID,
-		RequestedRole: roleName,
-		Type:          approvalDomain.MinistryApplication,
-		Reason:        reason,
-		Status:        approvalDomain.Pending,
-	}
-
-	err = ms.approvalService.CreateNewApproval(ctx, approval)
+	err = ms.approvalService.CreateNewApproval(
+		ctx,
+		&approvalDomain.Approval{
+			RequesterID:   userID,
+			RequestedRole: roleName,
+			Type:          string(approvalDomain.MinistryApplication),
+			Reason:        reason,
+			Status:        string(approvalDomain.Pending),
+		})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create new approval: %s", err)
 	}
 
 	// 4. Construct and send Message to notify ministry leaders that an application has been made

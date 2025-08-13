@@ -28,7 +28,7 @@ var playlistMap = map[string]string{
 	"Bible Study":         "PL_isAVg17p0Cy27I5EK7PN88f6dKhS5Bd",
 	"Sunday Preachings":   "PL_isAVg17p0DiqigrZAEcl8qNdupG7Vao",
 	"Evangelistic Nights": "PL_isAVg17p0BeZMYzxWNzB9OZI1e253eZ",
-}
+} // todo: move to domain
 
 func (job *MediaCronJob) Start() {
 	c := cron.New()

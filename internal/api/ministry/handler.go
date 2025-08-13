@@ -20,12 +20,12 @@ type MinistryHandler interface {
 }
 type handler struct {
 	logger          *zap.Logger
-	MinistryService ministry.MinistryService
+	MinistryService ministry.Service
 }
 
 func NewMinistryHandler(
 	logger *zap.Logger,
-	ministryService ministry.MinistryService,
+	ministryService ministry.Service,
 ) MinistryHandler {
 	return &handler{
 		logger:          logger,
@@ -71,7 +71,7 @@ func (mh *handler) Apply() http.HandlerFunc {
 		}
 
 		// Get the user ID from the context
-		userID, err := context.GetUserIDString(ctx)
+		userID, err := context.GetUserID(ctx)
 		if err != nil {
 			mh.logger.Sugar().Errorw("User ID not found in session", "error", err)
 			render.Json(

@@ -11,11 +11,11 @@ import (
 )
 
 type UserRepository interface {
-	InsertUser(ctx context.Context, user *entity.User) (*string, error)
-	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
-	GetUserById(ctx context.Context, id string) (*entity.User, error)
-	UpdateUser(ctx context.Context, user *entity.User) (*entity.User, error)
-	DeleteUser(ctx context.Context, id string) error
+	Insert(ctx context.Context, user *entity.User) (string, error)
+	GetByEmail(ctx context.Context, email string) (*entity.User, error)
+	GetById(ctx context.Context, id string) (*entity.User, error)
+	Update(ctx context.Context, user *entity.User) (*entity.User, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type userRepository struct {
@@ -28,16 +28,16 @@ func NewUserRepository(db *sqlx.DB) UserRepository {
 	}
 }
 
-func (r *userRepository) InsertUser(ctx context.Context, user *entity.User) (*string, error) {
+func (r *userRepository) Insert(ctx context.Context, user *entity.User) (string, error) {
 	if err := user.Insert(ctx, r.db, boil.Infer()); err != nil {
-		return nil, fmt.Errorf("failed inserting user entity: %w", err)
+		return "", fmt.Errorf("failed inserting user entity: %w", err)
 	}
 
-	return &user.ID, nil
+	return user.ID, nil
 }
 
-// GetUserByEmail retrieves a user by their email address.
-func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+// GetByEmail retrieves a user by their email address.
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
 	user, err := entity.Users(entity.UserWhere.Email.EQ(email)).One(ctx, r.db)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by email %s: %w", email, err)
@@ -46,11 +46,11 @@ func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*ent
 	return user, nil
 }
 
-func (r *userRepository) GetUserById(ctx context.Context, id string) (*entity.User, error) {
+func (r *userRepository) GetById(ctx context.Context, id string) (*entity.User, error) {
 	return entity.Users(entity.UserWhere.ID.EQ(id)).One(ctx, r.db)
 }
 
-func (r *userRepository) UpdateUser(ctx context.Context, user *entity.User) (*entity.User, error) {
+func (r *userRepository) Update(ctx context.Context, user *entity.User) (*entity.User, error) {
 	_, err := user.Update(ctx, r.db, boil.Infer())
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
@@ -59,8 +59,8 @@ func (r *userRepository) UpdateUser(ctx context.Context, user *entity.User) (*en
 	return user, nil
 }
 
-// DeleteUser deletes a user with the given id.
-func (r *userRepository) DeleteUser(ctx context.Context, id string) error {
+// Delete deletes a user with the given id.
+func (r *userRepository) Delete(ctx context.Context, id string) error {
 	// Create an entity with the ID to delete.
 	user := &entity.User{ID: id}
 	// SQLBoiler's Delete method will execute a DELETE query using the user's primary key.
