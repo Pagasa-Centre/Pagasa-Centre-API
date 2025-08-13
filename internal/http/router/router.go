@@ -111,7 +111,7 @@ func New(
 
 			r.Route(
 				"/events", func(r chi.Router) {
-					r.Get("/", eventsHandler.All())
+					r.Get("/", eventsHandler.All()) //todo: needs fixing. returning 500 error
 					r.Post("/", eventsHandler.Create())
 				},
 			)

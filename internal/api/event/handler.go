@@ -12,7 +12,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
 )
 
-type EventHandler interface {
+type Handler interface {
 	All() http.HandlerFunc
 	Create() http.HandlerFunc
 }
@@ -25,7 +25,7 @@ type handler struct {
 func NewEventsHandler(
 	logger *zap.Logger,
 	eventsService event.EventsService,
-) EventHandler {
+) Handler {
 	return &handler{
 		logger:        logger,
 		eventsService: eventsService,

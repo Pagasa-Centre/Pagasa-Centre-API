@@ -15,7 +15,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
 )
 
-type AuthHandler interface {
+type Handler interface {
 	Register() http.HandlerFunc // Register handles registering a new user
 	Login() http.HandlerFunc    // Login handles logging in users
 }
@@ -28,7 +28,7 @@ type handler struct {
 func NewAuthHandler(
 	logger *zap.Logger,
 	authService auth2.Service,
-) AuthHandler {
+) Handler {
 	return &handler{
 		logger:      logger,
 		authService: authService,
@@ -52,7 +52,7 @@ func (h *handler) Register() http.HandlerFunc {
 
 			render.Json(
 				w,
-				http.StatusBadRequest,
+				http.StatusBadRequest, //todo: create mapper to friendly errors in all handlers
 				mapper.MapAuthResultToDTO(
 					nil,
 					commonErrors.InvalidInputMsg,
