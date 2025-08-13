@@ -112,9 +112,7 @@ func (h *handler) Login() http.HandlerFunc {
 			return
 		}
 
-		loginDetails := mapper.MapLoginRequestToDomain(req)
-
-		authResult, err := h.authService.Login(ctx, loginDetails)
+		authResult, err := h.authService.Login(ctx, mapper.MapLoginRequestToDomain(req))
 		if err != nil {
 			h.logger.Sugar().Errorw("authentication failed", "error", err)
 
@@ -127,9 +125,7 @@ func (h *handler) Login() http.HandlerFunc {
 			return
 		}
 
-		resp := mapper.MapAuthResultToDTO(authResult, "Successfully logged in")
-
-		render.Json(w, http.StatusOK, resp)
+		render.Json(w, http.StatusOK, mapper.MapAuthResultToDTO(authResult, "Successfully logged in"))
 	}
 }
 
