@@ -31,7 +31,7 @@ func New(
 	jwtSecret string,
 	userService userService.Service,
 	ministryService ministryService.Service,
-	outreachService outreachService.OutreachService,
+	outreachService outreachService.Service,
 	mediaService mediaService.Service,
 	approvalService approvals2.Service,
 	eventsService event.EventsService,
@@ -67,7 +67,7 @@ func New(
 		"/api/v1", func(r chi.Router) {
 			r.Route(
 				"/auth", func(r chi.Router) {
-					r.Post("/register", authHandler.Register()) //todo: update the website and mobile app to use new endpoints
+					r.Post("/register", authHandler.Register()) // todo: update the website and mobile app to use new endpoints
 					r.Post("/login", authHandler.Login())
 					// todo: create logout endpoint
 					// todo: create refresh token endpoint
@@ -83,35 +83,35 @@ func New(
 					})
 
 					r.Route("/approvals", func(r chi.Router) {
-						r.Delete("/pending", approvalsHandler.All()) //todo: add paginiation
+						r.Delete("/pending", approvalsHandler.All()) // todo: add paginiation
 						r.Patch("/{id}", approvalsHandler.UpdateApprovalStatus())
 					})
 				},
 			)
 			r.Route(
-				"/ministry", func(r chi.Router) { //todo: add paginiation
+				"/ministry", func(r chi.Router) { // todo: add paginiation
 					r.Get("/", ministryHandler.All())
 
 					r.Group(func(r chi.Router) {
 						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
-						r.Post("/application", ministryHandler.Apply()) //todo: move to application handler and service maybe
+						r.Post("/application", ministryHandler.Apply()) // todo: move to application handler and service maybe
 					})
 				},
 			)
 			r.Route(
-				"/outreach", func(r chi.Router) { //todo: add paginiation
-					r.Get("/", outreachHandler.All())
+				"/outreach", func(r chi.Router) { // todo: add paginiation
+					r.Get("/", outreachHandler.AllOutreaches())
 				},
 			)
 			r.Route(
 				"/media", func(r chi.Router) {
-					r.Get("/", mediaHandler.GetAllMedia()) //todo: add paginiation
+					r.Get("/", mediaHandler.GetAllMedia()) // todo: add paginiation
 				},
 			)
 
 			r.Route(
-				"/events", func(r chi.Router) { //todo: add paginiation
-					r.Get("/", eventsHandler.All()) //todo: needs fixing. returning 500 error
+				"/events", func(r chi.Router) { // todo: add paginiation
+					r.Get("/", eventsHandler.All()) // todo: needs fixing. returning 500 error
 					r.Post("/", eventsHandler.Create())
 				},
 			)

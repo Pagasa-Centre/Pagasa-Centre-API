@@ -15,7 +15,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/request"
 )
 
-type UserHandler interface {
+type Handler interface {
 	UpdateDetails() http.HandlerFunc // UpdateDetails handles updating the logged-in user's profile details
 	Delete() http.HandlerFunc        // Delete handles deleting the logged-in user's profile
 }
@@ -28,7 +28,7 @@ type handler struct {
 func NewUserHandler(
 	logger *zap.Logger,
 	userService user.Service,
-) UserHandler {
+) Handler {
 	return &handler{
 		logger:      logger,
 		userService: userService,

@@ -52,7 +52,7 @@ func (h *handler) Register() http.HandlerFunc {
 
 			render.Json(
 				w,
-				http.StatusBadRequest, //todo: create mapper to friendly errors in all handlers
+				http.StatusBadRequest, // todo: create mapper to friendly errors in all handlers
 				mapper.MapAuthResultToDTO(
 					nil,
 					commonErrors.InvalidInputMsg,

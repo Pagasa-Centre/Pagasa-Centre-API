@@ -10,23 +10,23 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 )
 
-type OutreachHandler interface {
-	All() http.HandlerFunc
+type Handler interface {
+	AllOutreaches() http.HandlerFunc
 }
 
 type handler struct {
 	logger          *zap.Logger
-	outreachService outreach.OutreachService
+	outreachService outreach.Service
 }
 
-func NewOutreachHandler(logger *zap.Logger, outreachService outreach.OutreachService) OutreachHandler {
+func NewOutreachHandler(logger *zap.Logger, outreachService outreach.Service) Handler {
 	return &handler{
 		logger:          logger,
 		outreachService: outreachService,
 	}
 }
 
-func (oh *handler) All() http.HandlerFunc {
+func (oh *handler) AllOutreaches() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 

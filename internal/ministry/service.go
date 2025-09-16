@@ -66,7 +66,7 @@ func (ms *service) All(ctx context.Context) ([]*domain.Ministry, error) {
 		var ministryLeaderNames []string
 
 		for _, ministryLeader := range ministryLeadersDetails {
-			//todo: turn this into a ministry struct method
+			// todo: turn this into a ministry struct method
 			name := fmt.Sprintf("%s %s", ministryLeader.FirstName, ministryLeader.LastName)
 			ministryLeaderNames = append(ministryLeaderNames, name)
 		}

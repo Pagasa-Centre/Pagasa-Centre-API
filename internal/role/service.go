@@ -55,7 +55,7 @@ func (s *service) SetMinistryService(service interfaces.MinistryService) {
 
 func (s *service) HandleRoleApprovals(ctx context.Context, app domain.RoleApplication) error {
 	s.logger.Sugar().Infof("Handling role application for %s", app.UserID)
-	//todo: remove logs like this and add context to errors instead with helpful non sensityve data.
+	// todo: remove logs like this and add context to errors instead with helpful non sensityve data.
 
 	createApproval := func(requestedRole, approvalType string, ministryID *string) error {
 		return s.approvalsService.CreateNewApproval(ctx, &approvaldomain.Approval{

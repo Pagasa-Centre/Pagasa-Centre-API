@@ -24,6 +24,7 @@ func ToGetAllMediaResponse(domainMedias []*domain.Media, message string) dto.Get
 			Media:   nil,
 		}
 	}
+
 	var mediaResponses []dto.Media
 	for _, m := range domainMedias {
 		mediaResponses = append(mediaResponses, ToMediaResponse(m))

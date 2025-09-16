@@ -26,13 +26,13 @@ func NewMediaHandler(logger *zap.Logger, service media.Service) Handler {
 	}
 }
 
-const InternalServerErrorMsg = "Internal server error. Please try again later." //todo: move to common library
+const InternalServerErrorMsg = "Internal server error. Please try again later." // todo: move to common library
 
 func (h *handler) GetAllMedia() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		m, err := h.service.All(ctx)
+		m, err := h.service.GetAllMedia(ctx)
 		if err != nil {
 			h.logger.Sugar().Errorw("Failed to get all medias", "error", err)
 			render.Json(

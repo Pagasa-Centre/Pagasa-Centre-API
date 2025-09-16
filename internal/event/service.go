@@ -52,14 +52,14 @@ func (s *services) Create(ctx context.Context, event domain.Events) error {
 
 	eventID, err := s.repo.CreateEvent(ctx, *eventEntity)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create event: %w", err)
 	}
 
 	eventDaysEntity := mapper.EventDaysDomainToEntities(eventID, event.Days)
 
 	err = s.repo.InsertEventDays(ctx, eventDaysEntity)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to insert event days: %w", err)
 	}
 
 	return nil

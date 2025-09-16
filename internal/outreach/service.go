@@ -12,7 +12,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/outreach/storage"
 )
 
-type OutreachService interface {
+type Service interface {
 	GetAllOutreaches(ctx context.Context) (*GetAllOutreachesResult, error)
 }
 
@@ -24,7 +24,7 @@ type service struct {
 func NewOutreachService(
 	logger *zap.Logger,
 	outreachRepo storage.OutreachRepository,
-) OutreachService {
+) Service {
 	return &service{
 		logger:       logger,
 		outreachRepo: outreachRepo,
@@ -63,10 +63,8 @@ func (os *service) GetAllOutreaches(ctx context.Context) (*GetAllOutreachesResul
 	outreaches := mappers.OutreachEntitiesToDomain(outreachesEntities)
 	serv := mappers.ServiceEntitiesToDomain(services)
 
-	result := &GetAllOutreachesResult{
+	return &GetAllOutreachesResult{
 		Outreaches: outreaches,
 		Services:   serv,
-	}
-
-	return result, nil
+	}, nil
 }

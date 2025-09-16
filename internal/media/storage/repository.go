@@ -3,8 +3,8 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"github.com/friendsofgo/errors"
 
+	"github.com/friendsofgo/errors"
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 
@@ -30,6 +30,7 @@ func (r *repository) GetAll(ctx context.Context) ([]*entity.Medium, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
+
 		return nil, err
 	}
 

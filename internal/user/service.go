@@ -142,7 +142,7 @@ func (s *userService) Update(ctx context.Context, req dto.UpdateDetailsRequest) 
 
 	user, err := s.userRepo.Update(ctx, currentUser)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
 	return mapper.EntityToDomain(user), nil

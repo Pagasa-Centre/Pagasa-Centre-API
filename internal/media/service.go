@@ -13,7 +13,7 @@ import (
 )
 
 type Service interface {
-	All(ctx context.Context) ([]*domain.Media, error)
+	GetAllMedia(ctx context.Context) ([]*domain.Media, error)
 	BulkInsert(ctx context.Context, videos []*entity.Medium) error
 }
 
@@ -29,11 +29,12 @@ func NewMediaService(logger *zap.Logger, repo storage.MediaRepository) Service {
 	}
 }
 
-func (s *service) All(ctx context.Context) ([]*domain.Media, error) {
+func (s *service) GetAllMedia(ctx context.Context) ([]*domain.Media, error) {
 	mediaEntities, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all media: %w", err)
 	}
+
 	if len(mediaEntities) == 0 {
 		return nil, nil
 	}

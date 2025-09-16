@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	userservice "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
-	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/interfaces"
 	"slices"
 	"strings"
 
@@ -17,8 +15,10 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/approval/storage"
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
 	roledomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/role/domain"
+	userservice "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user"
 	userdomain "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/user/domain"
 	commoncontext "github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/context"
+	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/interfaces"
 )
 
 type Service interface {
@@ -180,7 +180,7 @@ func (s *service) UpdateApprovalStatus(ctx context.Context, approvalID, status s
 		return err
 	}
 
-	//todo: don't update entity. convert to domain, manipulate, convert back entity
+	// todo: don't update entity. convert to domain, manipulate, convert back entity
 	switch status {
 	case string(domain.Approved):
 		approvalEntity.Status = string(domain.Approved)
