@@ -19,6 +19,7 @@ WORKDIR /root/
 
 COPY --from=builder /app/server .
 COPY --from=builder /app/internal/config ./internal/config
+# comment out when deploying to prod
 COPY --from=builder /app/.env .env
 COPY --from=builder /app/migrations ./migrations
 

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Pagasa-Centre-Mobile-App-API.iml" filepath="$PROJECT_DIR$/.idea/Pagasa-Centre-Mobile-App-API.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Pagasa-Centre-API.iml" filepath="$PROJECT_DIR$/.idea/Pagasa-Centre-API.iml" />
     </modules>
   </component>
 </project>

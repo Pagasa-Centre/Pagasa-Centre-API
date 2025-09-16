@@ -27,13 +27,17 @@ entity:
 	@sqlboiler psql -c ./sqlboiler.toml
 .PHONY: entity
 
-down:
-	docker-compose down -v
-.PHONY: down
+build:
+	docker-compose up --build -d
+.PHONY: build
 
 start:
-	docker-compose up --build
+	docker-compose up -d
 .PHONY: start
+
+stop:
+	docker-compose down -v
+.PHONY: stop
 
 lint:
 	go mod tidy

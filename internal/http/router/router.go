@@ -83,34 +83,34 @@ func New(
 					})
 
 					r.Route("/approvals", func(r chi.Router) {
-						r.Delete("/pending", approvalsHandler.All())
+						r.Delete("/pending", approvalsHandler.All()) //todo: add paginiation
 						r.Patch("/{id}", approvalsHandler.UpdateApprovalStatus())
 					})
 				},
 			)
 			r.Route(
-				"/ministry", func(r chi.Router) {
+				"/ministry", func(r chi.Router) { //todo: add paginiation
 					r.Get("/", ministryHandler.All())
 
 					r.Group(func(r chi.Router) {
 						r.Use(middleware2.AuthMiddlewareString([]byte(jwtSecret)))
-						r.Post("/application", ministryHandler.Apply())
+						r.Post("/application", ministryHandler.Apply()) //todo: move to application handler and service maybe
 					})
 				},
 			)
 			r.Route(
-				"/outreach", func(r chi.Router) {
+				"/outreach", func(r chi.Router) { //todo: add paginiation
 					r.Get("/", outreachHandler.All())
 				},
 			)
 			r.Route(
 				"/media", func(r chi.Router) {
-					r.Get("/", mediaHandler.All())
+					r.Get("/", mediaHandler.All()) //todo: add paginiation
 				},
 			)
 
 			r.Route(
-				"/events", func(r chi.Router) {
+				"/events", func(r chi.Router) { //todo: add paginiation
 					r.Get("/", eventsHandler.All()) //todo: needs fixing. returning 500 error
 					r.Post("/", eventsHandler.Create())
 				},
