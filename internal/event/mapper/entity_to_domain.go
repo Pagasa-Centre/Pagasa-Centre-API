@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/entity"
@@ -8,9 +9,9 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/utils"
 )
 
-func EntityToEventsDomain(eventEntities *entity.EventSlice, eventDays *entity.EventDaySlice) []*domain.Events {
+func EntityToEventsDomain(eventEntities *entity.EventSlice, eventDays *entity.EventDaySlice) ([]*domain.Events, error) {
 	if eventEntities == nil {
-		return nil
+		return []*domain.Events{}, nil
 	}
 
 	// Map of eventID -> []EventDays
@@ -33,13 +34,13 @@ func EntityToEventsDomain(eventEntities *entity.EventSlice, eventDays *entity.Ev
 			end = day.EndTime.Time
 		}
 
-		weekDay, weekDayShortform, err := utils.GetWeekdayFromDate(day.Date.Format("2006-01-02"))
+		weekDay, weekDayShortform, err := utils.GetWeekdayFromDate(day.Date.Format(time.DateOnly))
 		if err != nil {
-			return nil
+			return []*domain.Events{}, fmt.Errorf("failed to get weekday from date: %w", err)
 		}
 
 		daysByEventID[day.EventID] = append(daysByEventID[day.EventID], domain.EventDays{
-			Date:               day.Date.Format("2006-01-02"),
+			Date:               day.Date.Format(time.DateOnly),
 			WeekDay:            weekDay,
 			WeekDayShortFormat: weekDayShortform,
 			StartTime:          start,
@@ -60,5 +61,5 @@ func EntityToEventsDomain(eventEntities *entity.EventSlice, eventDays *entity.Ev
 		})
 	}
 
-	return results
+	return results, nil
 }

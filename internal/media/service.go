@@ -2,6 +2,7 @@ package media
 
 import (
 	"context"
+	"fmt"
 
 	"go.uber.org/zap"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/internal/media/storage"
 )
 
-type MediaService interface {
+type Service interface {
 	All(ctx context.Context) ([]*domain.Media, error)
 	BulkInsert(ctx context.Context, videos []*entity.Medium) error
 }
@@ -21,7 +22,7 @@ type service struct {
 	repo   storage.MediaRepository
 }
 
-func NewMediaService(logger *zap.Logger, repo storage.MediaRepository) MediaService {
+func NewMediaService(logger *zap.Logger, repo storage.MediaRepository) Service {
 	return &service{
 		repo:   repo,
 		logger: logger,
@@ -29,16 +30,15 @@ func NewMediaService(logger *zap.Logger, repo storage.MediaRepository) MediaServ
 }
 
 func (s *service) All(ctx context.Context) ([]*domain.Media, error) {
-	s.logger.Info("Fetching All Media")
-
 	mediaEntities, err := s.repo.GetAll(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get all media: %w", err)
+	}
+	if len(mediaEntities) == 0 {
+		return nil, nil
 	}
 
-	mediaDomain := mapper.EntitySliceToDomainMediaSlice(mediaEntities)
-
-	return mediaDomain, nil
+	return mapper.EntitySliceToDomainMediaSlice(mediaEntities), nil
 }
 
 func (s *service) BulkInsert(ctx context.Context, videos []*entity.Medium) error {

@@ -2,6 +2,8 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"github.com/friendsofgo/errors"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -23,8 +25,15 @@ func NewMediaRepository(db *sqlx.DB) MediaRepository {
 }
 
 func (r *repository) GetAll(ctx context.Context) ([]*entity.Medium, error) {
-	db := r.db.DB
-	return entity.Media().All(ctx, db)
+	all, err := entity.Media().All(ctx, r.db)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return all, nil
 }
 
 func (r *repository) BulkInsert(ctx context.Context, media []*entity.Medium) error {

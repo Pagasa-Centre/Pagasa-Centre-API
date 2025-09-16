@@ -10,25 +10,25 @@ import (
 	"github.com/Pagasa-Centre/Pagasa-Centre-Mobile-App-API/pkg/commonlibrary/render"
 )
 
-type MediaHandler interface {
-	All() http.HandlerFunc
+type Handler interface {
+	GetAllMedia() http.HandlerFunc
 }
 
 type handler struct {
 	logger  *zap.Logger
-	service media.MediaService
+	service media.Service
 }
 
-func NewMediaHandler(logger *zap.Logger, service media.MediaService) MediaHandler {
+func NewMediaHandler(logger *zap.Logger, service media.Service) Handler {
 	return &handler{
 		service: service,
 		logger:  logger,
 	}
 }
 
-const InternalServerErrorMsg = "Internal server error. Please try again later."
+const InternalServerErrorMsg = "Internal server error. Please try again later." //todo: move to common library
 
-func (h *handler) All() http.HandlerFunc {
+func (h *handler) GetAllMedia() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 

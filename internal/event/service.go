@@ -2,7 +2,7 @@ package event
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"go.uber.org/zap"
 
@@ -31,17 +31,17 @@ func NewEventsService(logger *zap.Logger, eventsRepo storage.EventsRepository) E
 func (s *services) GetAll(ctx context.Context) ([]*domain.Events, error) {
 	eventEntities, err := s.repo.GetAllEvents(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get all events: %w", err)
 	}
 
 	eventDays, err := s.repo.GetAllEventDays(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get all event days: %w", err)
 	}
 
-	events := mapper.EntityToEventsDomain(&eventEntities, &eventDays)
-	if events == nil {
-		return nil, errors.New("invalid event day date format")
+	events, err := mapper.EntityToEventsDomain(&eventEntities, &eventDays)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map events: %w", err)
 	}
 
 	return events, nil

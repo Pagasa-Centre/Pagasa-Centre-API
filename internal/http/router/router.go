@@ -32,7 +32,7 @@ func New(
 	userService userService.Service,
 	ministryService ministryService.Service,
 	outreachService outreachService.OutreachService,
-	mediaService mediaService.MediaService,
+	mediaService mediaService.Service,
 	approvalService approvals2.Service,
 	eventsService event.EventsService,
 	authService auth2.Service,
@@ -105,7 +105,7 @@ func New(
 			)
 			r.Route(
 				"/media", func(r chi.Router) {
-					r.Get("/", mediaHandler.All()) //todo: add paginiation
+					r.Get("/", mediaHandler.GetAllMedia()) //todo: add paginiation
 				},
 			)
 

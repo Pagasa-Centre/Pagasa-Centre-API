@@ -13,10 +13,10 @@ import (
 type MediaCronJob struct {
 	Logger        *zap.Logger
 	YouTubeClient *youtube.YouTubeClient
-	MediaService  media.MediaService
+	MediaService  media.Service
 }
 
-func NewMediaCronJob(logger *zap.Logger, ytClient *youtube.YouTubeClient, mediaService media.MediaService) *MediaCronJob {
+func NewMediaCronJob(logger *zap.Logger, ytClient *youtube.YouTubeClient, mediaService media.Service) *MediaCronJob {
 	return &MediaCronJob{
 		Logger:        logger,
 		YouTubeClient: ytClient,
