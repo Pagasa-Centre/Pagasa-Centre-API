@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/lib/pq"
@@ -74,6 +75,16 @@ func (s *userService) AuthenticateUser(ctx context.Context, email, password stri
 // Create inserts a new user into the user table and applies any roles that were provided by the user.
 func (s *userService) Create(ctx context.Context, domainUser domain.User) (*domain.User, error) {
 	domainUser.PhoneNumber = utils.NormalizePhoneNumber(domainUser.PhoneNumber)
+
+	if _, err := uuid.Parse(domainUser.OutreachID); err != nil {
+		return nil, fmt.Errorf("invalid outreach ID: %w", err)
+	}
+
+	if domainUser.CellLeaderID != nil {
+		if _, err := uuid.Parse(*domainUser.CellLeaderID); err != nil {
+			return nil, fmt.Errorf("invalid cell leader ID: %w", err)
+		}
+	}
 
 	userEntity := mapper.ToEntity(domainUser)
 
